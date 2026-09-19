@@ -1,0 +1,13 @@
+1 Adrien Delecroix 
+2 Loïc Baud 
+3 Vid Skrbinsek 
+4 Till Wohlfarth;
+Adrien Delecroix,Loïc Baud 
+Vid Skrbinsek,Till Wohlfarth
+|
+1 Sophia Pellmann 
+2 Yuka Fujimoto 
+3 Irene Genelin 
+4 Sonja Theiß;
+Sophia Pellmann ,Yuka Fujimoto 
+Irene Genelin ,Sonja Theiß

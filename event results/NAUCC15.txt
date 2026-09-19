@@ -1,0 +1,22 @@
+1 Jack Sebben
+2 Christian Kendall
+3 Nathan Miyachi
+4 Maxwell Schulze
+5 Alex Murr
+5 Edmund Leduc
+5 Kevin Kartchner
+5 Lars Anderson
+9  Matthew Sindelar
+10 David Moscoe
+11 Gabriel Seng
+12 Benjamin Koehler
+13 Alex Anderson
+14 Michael Bachleda;
+Jack Sebben,Christian Kendall
+Nathan Miyachi,Maxwell Schulze
+|
+1 Rachel Sindelar
+1 Katrine Jensen
+1 Maria Wegscheider
+2 Sarah Smith
+3 Danielle Chevalier;

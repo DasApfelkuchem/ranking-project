@@ -1,0 +1,16 @@
+1 Michael Bachleda
+2 Colby Thomas
+3 Christian Kendall
+4 Dale Grzych
+5 Scott Julian
+5 Liam Koehler
+5 Ryman Lollar;
+Michael Bachleda,Colby Thomas
+Christian Kendall,Dale Grzych
+|
+1 Rachel Sindelar
+2 Martin Panofsky
+3 Will Strohbehn
+4 Benaiah Kendall
+5 Augie Tourdot;
+Rachel Sindelar,Martin Panofsky

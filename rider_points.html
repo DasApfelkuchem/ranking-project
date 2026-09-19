@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider ranking points details</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-brand">
+        <a href="./" class="logo-link">
+          <img src="assets/iuf-mark.png" alt="IUF mark" class="brand-mark" />
+          <div class="logo-text">
+            <span class="logo-main">FLATLAND</span>
+            <span class="logo-sub">RANKINGS</span>
+          </div>
+        </a>
+      </div>
+      <nav class="site-nav">
+        <a href="index.html" class="ghost-button" id="rider-points-back-link">Back to rider profile</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="panel">
+        <div class="toolbar">
+          <div>
+            <h2 id="rider-points-title">Rider points details</h2>
+            <p id="rider-points-summary">Loading…</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Place</th>
+                <th><button class="sort-button rider-points-sort-button" data-key="points">Points</button></th>
+                <th><button class="sort-button rider-points-sort-button" data-key="rawPoints">Raw points</button></th>
+                <th>Decay</th>
+                <th><button class="sort-button rider-points-sort-button" data-key="decayedPoints">Decayed points</button></th>
+                <th>Type penalty</th>
+                <th>Best-5 multiplier</th>
+                <th><button class="sort-button rider-points-sort-button" data-key="countedPoints">Counted points</button></th>
+              </tr>
+            </thead>
+            <tbody id="rider-points-body">
+              <tr>
+                <td colspan="9" class="status">Loading rider details…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="ranking.js"></script>
+  </body>
+</html>

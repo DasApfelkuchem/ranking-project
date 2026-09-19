@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flatland World Ranking — Elo variant</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-brand">
+        <a href="./" class="logo-link">
+          <img src="assets/iuf-mark.png" alt="IUF mark" class="brand-mark" />
+          <div class="logo-text">
+            <span class="logo-main">FLATLAND</span>
+            <span class="logo-sub">RANKINGS (ELO)</span>
+          </div>
+        </a>
+      </div>
+    </header>
+    <main class="page">
+      <section class="stats" aria-label="Ranking summary">
+        <article class="stat-card">
+          <span class="label">Total riders</span>
+          <strong id="total-riders">0</strong>
+        </article>
+        <article class="stat-card">
+          <span class="label">Events counted</span>
+          <strong id="event-count">0</strong>
+        </article>
+        <article class="stat-card">
+          <span class="label">Battles recorded</span>
+          <strong id="battle-count">0</strong>
+        </article>
+      </section>
+
+      <section class="panel settings-panel hidden" id="settings-panel" aria-labelledby="settings-title">
+        <div class="toolbar">
+          <div>
+            <h2 id="settings-title">Settings</h2>
+            <p>Choose which columns to show and personalize the colors.</p>
+          </div>
+          <button id="close-settings" class="ghost-button" type="button">Close</button>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Visible columns</h3>
+            <label class="setting-item"><input type="checkbox" id="show-points" checked /><span>Points</span></label>
+            <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
+            <label class="setting-item"><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
+            <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
+            <div style="margin-top:12px;">
+              <button id="add-unknown-riders" class="ghost-button" type="button">Add unknown riders to riders_all</button>
+              <div id="add-unknown-result" style="margin-top:8px;color:var(--muted);font-size:0.9rem"></div>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Colors</h3>
+            <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#07111f" /></label>
+            <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#091423" /></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="profile-panel" aria-labelledby="profile-title">
+        <div class="toolbar">
+          <div>
+            <h2 id="profile-title">Rider profile</h2>
+            <p id="profile-description">Click a rider's name to see their past event placements.</p>
+          </div>
+          <button id="close-profile" class="ghost-button" type="button">Close</button>
+        </div>
+        <div class="profile-meta">
+          <p><strong id="profile-name">Select a rider to view their history</strong></p>
+          <p id="profile-summary">No rider selected.</p>
+        </div>
+        <div class="profile-notes">
+          <label for="rider-notes-input">Notes</label>
+          <textarea id="rider-notes-input" rows="8" placeholder="Write notes for this rider..."></textarea>
+          <p class="notes-hint">Saved automatically in this browser.</p>
+        </div>
+        <div class="profile-chart-wrapper">
+          <h3 style="margin:8px 0 6px;">Placement history</h3>
+          <div id="profile-chart" style="width:100%;height:180px"></div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Place</th>
+                <th>Raw points</th>
+              </tr>
+            </thead>
+            <tbody id="profile-body">
+              <tr>
+                <td colspan="3" class="status">Select a rider to see their placement history.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrapper">
+          <div class="battle-profile-header">
+            <p id="profile-battle-summary">Select a rider to see their battle history.</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th><button class="profile-sort-button" data-key="event">Event</button></th>
+                <th><button class="profile-sort-button" data-key="round">Round</button></th>
+                <th><button class="profile-sort-button" data-key="opponent">Opponent</button></th>
+                <th><button class="profile-sort-button" data-key="result">Result</button></th>
+                <th>ELO Δ</th>
+              </tr>
+            </thead>
+            <tbody id="profile-battle-body">
+              <tr>
+                <td colspan="5" class="status">Select a rider to see their battle history.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="ranking-title">
+        <div class="toolbar">
+          <div>
+            <h2 id="ranking-title">Current rankings (Elo)</h2>
+            <p id="ranking-description">Elo ratings derived from battle outcomes (who beat whom)</p>
+          </div>
+          <div class="toolbar-controls">
+            <label class="search-field">
+              <span>Search</span>
+              <input id="search-input" type="search" placeholder="Search riders or events" autocomplete="off" />
+            </label>
+            <label class="year-picker">
+              <span>Year</span>
+              <select id="year-select">
+              </select>
+            </label>
+            <button id="toggle-gender" class="ghost-button" type="button">Show female view</button>
+            <button id="open-settings" class="ghost-button" type="button">Settings</button>
+            <label class="view-picker">
+              <span>View</span>
+              <select id="view-select">
+                <option value="world">All</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead id="ranking-thead">
+              <tr>
+                <th>Rank</th>
+                <th>Rider</th>
+                <th>Points</th>
+                <th>Events</th>
+                <th>Wins</th>
+                <th>Podiums</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body">
+              <tr>
+                <td colspan="6" class="status">Loading rankings…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrapper hidden" id="event-battle-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Round</th>
+                <th>Winner</th>
+                <th>Loser</th>
+              </tr>
+            </thead>
+            <tbody id="event-battle-body">
+              <tr>
+                <td colspan="3" class="status">No battle details available.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="ranking_elo.js"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+1 Kornél Auth
+2 Pierre Sturny
+3 Lorenz Pöham
+4 Manuel Vetter;
+Kornél Auth,Pierre Sturny
+Lorenz Pöham,Manuel Vetter
+|
+1 Anna-Lena Blaschke
+2 Becky Wiedener
+3 Mary Wegscheider
+4 Theresa Zieglwalner;
+Anna-Lena Blaschke,Becky Wiedener
+Mary Wegscheider,Theresa Zieglwalner

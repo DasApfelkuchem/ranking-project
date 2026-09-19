@@ -1,0 +1,18 @@
+1 Michael Bachleda
+2 Scott Julian
+3 Jack Sebben
+4 Dale Grzych
+5 Loïc Miara
+5 David Moscoe
+5 Liam Koehler
+5 Nicolas Charbonneau-Rahm
+9 Colby Thomas
+10 Ryman Lollar
+11 Walker Orner;
+Michael Bachleda,Scott Julian
+Jack Sebben,Dale Grzych
+|
+1 Rachel Sindelar
+2 Neala Chevalier
+3 Danielle Chevalier;
+Rachel Sindelar,Neala Chevalier

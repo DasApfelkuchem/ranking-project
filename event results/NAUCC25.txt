@@ -1,0 +1,30 @@
+1 Trey Haun
+2 Jack Sebben
+3 Levi Prindle
+4 Michael Bachleda
+5 Abram Dostal
+5 Dale Grzych
+5 Nicholas Braun
+5 A.J Kinselle-Johnson
+9 Nicholas Koerber;
+Trey Haun, Jack Sebben
+Levi Prindle, Michael Bachleda
+Jack Sebben, Levi Prindle
+Trey Haun, Michael Bachleda
+Jack Sebben, A.J Kinselle-Johnson
+Trey Haun,Nicholas Braun
+Levi Prindle,Dale Grzych
+Michael Bachleda,Abram Dostal
+|
+1 Rachel Sindelar
+2 Irene Genelin
+3 Alison Martin
+4 Kether Laszlo;
+Rachel Sindelar,Irene Genelin
+
+
+
+
+
+
+

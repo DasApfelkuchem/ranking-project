@@ -1,0 +1,8 @@
+1 Lorenz Pöham
+2 Kornél Auth
+3 Pierre Sturny;
+Lorenz Pöham,Kornél Auth
+|
+1 Mary Wegscheider
+2 Theresa Zieglwalner;
+Mary Wegscheider,Theresa Zieglwalner

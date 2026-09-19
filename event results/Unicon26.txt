@@ -1,0 +1,138 @@
+1 Stéphane Ranc
+2 Trey Haun
+3 Jelle Dillen
+4 Shuhei Kawai
+5 Fuo Sato
+5 Michael Bachleda
+5 Ben Niediek
+5 August Agerskov
+9 Dao Shani
+9 Marvin Henke
+11 Tristan Jambon
+11 Jan Niediek
+11 Dale Grzych
+11 Waylon Batt
+15 Alexis Mercat
+15 Oliver Nielsen
+17 Jose Alberca
+17 Joos Machetanz
+17 Tuur Somers
+17 martin grouillon
+21 Samuel Hůlka
+21 Štěpán Toncr
+23 David Moscoe
+23 Folke Schubert
+23 Jussi Kumpulainen
+23 Julius Auth
+27 Felix-Nana Adjei
+27 Pavel Holba
+29 Sean Daugherty
+29 TAICHI ISHIKAWA
+29 Kjell Heidt
+29 JIUN CHEN PAO
+33 YI KAI LIAO
+33 Vitus Bieringer
+35 Christian Alejo Montaño
+35 Sebastian Retavisca Obando
+35 Bertram Agerskov
+35 Arthur Duyts
+39 emile themelin
+39 Mattis Westerberg
+41 Tomoyasu Ishigaki
+41 Erik Černý
+43 Taiki Nishiya
+43 Casper Martinsen
+45 Corentin Berset
+45 BO SIN LAI
+47 Misaki Uchida
+47 Youraï Gloux
+49 Philip Morse
+49 TATSUYA FUKUNAGA
+51 Leon-Noel Hunger;
+Stéphane Ranc ,Trey Haun
+Jelle Dillen ,Shuhei Kawai
+Trey Haun, Shuhei Kawai 
+Stéphane Ranc, Jelle Dillen
+Shuhei Kawai ,August Agerskov
+Trey Haun ,Ben Niediek
+Jelle Dillen ,Fuo Sato
+Stéphane Ranc, Michael Bachleda
+Michael Bachleda, Marvin Henke
+Shuhei Kawai, Dao Shani
+Marvin Henke ,Waylon Batt
+Michael Bachleda ,Tristan Jambon
+Shuhei Kawai ,Jan Niediek
+Dao Shani ,Dale Grzych
+Dale Grzych,Oliver Nielsen
+Waylon Batt,Alexis Mercat
+Oliver Nielsen ,Jose Alberca
+Dale Grzych ,Tuur Somers
+Alexis Mercat, martin grouillon
+Waylon Batt ,Joos Machetanz
+Jose Alberca,Samuel Hůlka
+Waylon Batt ,Štěpán Toncr
+Samuel Hůlka ,Jussi Kumpulainen
+Jose Alberca ,Folke Schubert
+Waylon Batt ,Julius Auth
+Štěpán Toncr ,David Moscoe
+Samuel  Hůlka,Felix-Nana Adjei
+David Moscoe ,Pavel Holba
+Samuel Hůlka ,TAICHI ISHIKAWA
+Felix-Nana Adjei, Kjell Heidt
+David Moscoe ,JIUN CHEN PAO
+Pavel Holba ,Sean Daugherty
+Pavel Holba ,Vitus Bieringer
+TAICHI ISHIKAWA,YI KAI LIAO 
+Pavel Holba ,Christian Alejo Montaño
+Vitus Bieringer ,Sebastian Retavisca Obando
+TAICHI ISHIKAWA ,Bertram Agerskov
+YI KAI LIAO ,Arthur Duyts
+|
+1 Roos Seegers 
+2 Paula Wache 
+3 Nina Beckmann 
+4 Marie Schlenker 
+5 Sofia van Veen 
+5 Cora Schindele 
+5 Mayuko Kogi 
+5 Maja Andersen 
+9 Sarah Smith 
+9 Nagomi Nejigane 
+11 Kim Höser 
+11 Isabell Haase 
+11 Diana Wache 
+11 Cecilie Leth 
+15 Khadija Compaoré 
+15 Linda Gossen 
+17 Cécile SAUTTER 
+17 Ellynn Del Perugia 
+17 Marie Pilz 
+17 Amina Compaoré 
+21 Maëlle Huguenin
+22 Hanna Czikowski 
+23 Louane kachelhoffer
+24 HSUAN CHEN 
+25 Yuhan Huang 
+26 Isabelle Bilkau
+27 Helena Vanbellinghen 
+28 Fiona Raddatz;
+Roos Seegers, Paula Wache
+Nina Beckmann, Marie Schlenker
+Roos Seegers, Marie Schlenker
+Paula Wache, Nina Beckmann
+Roos Seegers, Sofia van Veen
+Marie Schlenker, Cora Schindele
+Paula Wache, Maja Andersen
+Nina Beckmann, Mayuko Kogi
+Roos Seegers, Sarah Smith
+Mayuko Kogi, Nagomi Nejigane
+Roos Seegers, Diana Wache
+Sarah Smith, Cecilie Leth
+Nagomi Nejigane, Isabell Haase
+Mayuko Kogi, Kim Höser
+Diana Wache, Khadija Compaoré
+Kim Höser, Linda Gossen
+Diana Wache, Cécile SAUTTER
+Khadija Compaoré, Amina Compaoré
+Linda Gossen, Ellynn Del Perugia
+Kim Höser, Marie Pilz

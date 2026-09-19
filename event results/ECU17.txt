@@ -1,0 +1,20 @@
+1 Pierre Sturny 
+2 Jelle Dillen 
+3 Nicolas Neumann 
+4 Mattia Donda
+5 Lars Van Asbroeck 
+6 Cas Robben 
+7 Ivar Jönsson 
+8 Emile Themelin;
+Pierre Sturny ,Jelle Dillen 
+Nicolas Neumann ,Mattia Donda
+|
+1 Janna Wohlfarth 
+2 Theresa Zieglwalner 
+3 Anna Plininger
+4 Lara Kubiczek
+5 roos seegers 
+6 Marie Schlenker 
+7 Katharina Boll;
+Janna Wohlfarth ,Theresa Zieglwalner 
+Anna Plininger,Lara Kubiczek

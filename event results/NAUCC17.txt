@@ -1,0 +1,14 @@
+1 Dale Grzych
+2 Sean Minter
+3 Alex Anderson
+4 Liam Koehler
+5 Augie Tourdot
+6 Walker Orner
+7 Ryman Lollar;
+Dale Grzych,Sean Minter
+Alex Anderson,Liam Koehler
+|
+1 Rachel Sindelar
+2 Danielle Chevalier
+3 Greta Koehler;
+Rachel Sindelar,Danielle Chevalier

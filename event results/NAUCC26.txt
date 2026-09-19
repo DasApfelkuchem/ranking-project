@@ -1,0 +1,14 @@
+1 Nicholas Koerber
+2 Nicholas Braun
+3 Parker Lewis
+4 Jacob Hinshaw 
+5 Nick Taylor
+6 Konstantin Antonov
+7 Tyler Pike
+8 Colby Bruckner
+8 Johnathon McCarthy 
+8 Toshiro Wada;
+Nicholas Koerber,Nicholas Braun
+|
+Kether Laszlo;
+

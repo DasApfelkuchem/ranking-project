@@ -1,0 +1,37 @@
+1 Pierre Sturny
+2 Clement Pujol
+3 Mimo Seedler
+4 Tim Desmet
+5 Tirryn Nankivell
+6 Kornél Auth
+7 Kevin Gaudillere
+8 Alexis Mercat
+9 Alexej Ghirardini
+10 Ben Niediek
+11 Souryan Dubois
+12 Martin Grouillon
+13 Jeremy Bonzon
+14 Martin Dailliez
+15 Wout Chauvaux
+16 Milos Bakalar
+17 Emile Themelin
+18 Tobias Rudloff
+19 Sandy Armstrong
+20 August Agerskov
+21 Ben Eicker
+22 Timo Hirschmann
+23 Lars Van Asbroeck
+24 Balte Tomboy;
+|
+1 Anna Schubert
+2 Nina Beckmann
+3 Theresa Zieglwalner
+4 Anna-Lena Blaschke
+5 Roos Seegers
+6 Rebekka Wiedener
+7 Finnja Gross
+8 Élodie Zuchuat
+9 Johanna Sturm
+10 Lorena Schwerzmann
+11 Sofia Sedelnikova
+12 Gioia Thiem;

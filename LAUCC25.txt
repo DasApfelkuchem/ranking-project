@@ -1,0 +1,21 @@
+1 Christian Alejo Montaño 
+2 Omar Vargas 
+3 Luis Alberto Gamarra Riojas 
+4 Diogenes Sebastian Retavisca Obando 
+5 Alex David Campoverde Salazar 
+5 Juan Amaya 
+5 Diego Zelaya 
+5 Calla Carter 
+9 Maria Sarmientos;
+Christian Alejo Montaño,Omar Vargas
+Luis Alberto Gamarra Riojas,Diogenes Sebastian Retavisca Obando 
+Christian Alejo Montaño,Luis Alberto Gamarra Riojas
+Omar Vargas,Diogenes Sebastian Retavisca Obando 
+Christian Alejo Montaño, Calla Carter 
+Luis Alberto Gamarra Riojas,Juan Amaya 
+Diogenes Sebastian Retavisca Obando,Alex David Campoverde Salazar
+Omar Vargas,Diego Zelaya
+
+
+
+

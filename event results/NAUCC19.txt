@@ -1,0 +1,11 @@
+1 Jack Sebben
+2 Maxwell Schulze
+3 Scott Julian
+4 Ryman Lollar
+5 Dale Grzych
+6 Michael Bachleda
+7 Colby Thomas
+8 Alex Anderson
+9 Danielle Chevalier;
+Jack Sebben,Maxwell Schulze
+Scott Julian,Ryman Lollar
