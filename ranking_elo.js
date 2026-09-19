@@ -295,6 +295,55 @@ function computeRankDifferences(currentYearRankings, previousYearRankings) {
   return differences;
 }
 
+// Build a combined lookup of every ranked rider (both genders) for the given year,
+// keyed by normalized name, including their overall rank (1 = best) within their gender's list.
+function buildRiderRankLookup(year) {
+  const lookup = new Map();
+  GENDERS.forEach((gender) => {
+    const rows = getRankingsForYear(year, gender);
+    rows.forEach((entry, index) => {
+      lookup.set(normalizeName(entry.rider), {
+        name: entry.rider,
+        rank: index + 1,
+        gender,
+        points: entry.points
+      });
+    });
+  });
+  return lookup;
+}
+
+// Parse a free-text block of pasted rider names (newline or comma separated) into a clean list.
+function parseRiderNameList(text) {
+  return String(text || '')
+    .split(/[\r\n,]+/)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+// Given a list of rider names, look up their current ranking and sort them
+// lowest ranked (worst/highest rank number) first, highest ranked (rank 1) last.
+// Unmatched names are returned separately so the caller can warn about them.
+function sortRiderNamesByRanking(names, year) {
+  const lookup = buildRiderRankLookup(year);
+  const matched = [];
+  const unmatched = [];
+
+  names.forEach((rawName) => {
+    const canonical = aliasMap.get(normalizeName(rawName)) || rawName;
+    const entry = lookup.get(normalizeName(canonical));
+    if (entry) {
+      matched.push({ inputName: rawName, ...entry });
+    } else {
+      unmatched.push(rawName);
+    }
+  });
+
+  matched.sort((a, b) => b.rank - a.rank);
+
+  return { matched, unmatched };
+}
+
 function refreshRankingView() {
   const viewSelect = document.getElementById('view-select');
   const activeView = viewSelect ? viewSelect.value : 'world';
@@ -335,11 +384,70 @@ function attachSettingsEvents() {
   const openSettingsButton = document.getElementById('open-settings');
   const closeSettingsButton = document.getElementById('close-settings');
   const settingsPanel = document.getElementById('settings-panel');
-   
+  const loginOverlay = document.getElementById('login-overlay');
+  const loginForm = document.getElementById('login-form');
+  const loginUsernameInput = document.getElementById('login-username');
+  const loginPasswordInput = document.getElementById('login-password');
+  const loginError = document.getElementById('login-error');
+  const loginCancelButton = document.getElementById('login-cancel');
+
+  // Casual client-side gate only — credentials live in this file, so this is not real security.
+  const SETTINGS_USERNAME = 'admin1';
+  const SETTINGS_PASSWORD = 'test';
+  let settingsAuthenticated = sessionStorage.getItem('settingsAuthenticated') === 'true';
+
+  function openSettingsPanel() {
+    if (!settingsPanel) return;
+    settingsPanel.classList.remove('hidden');
+    settingsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showLoginModal() {
+    if (!loginOverlay) return;
+    loginOverlay.classList.remove('hidden');
+    if (loginError) loginError.classList.add('hidden');
+    if (loginUsernameInput) loginUsernameInput.value = '';
+    if (loginPasswordInput) loginPasswordInput.value = '';
+    if (loginUsernameInput) loginUsernameInput.focus();
+  }
+
+  function hideLoginModal() {
+    if (loginOverlay) loginOverlay.classList.add('hidden');
+  }
+
   if (openSettingsButton && settingsPanel) {
     openSettingsButton.addEventListener('click', () => {
-      settingsPanel.classList.remove('hidden');
-      settingsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (settingsAuthenticated) {
+        openSettingsPanel();
+      } else {
+        showLoginModal();
+      }
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = loginUsernameInput ? loginUsernameInput.value.trim() : '';
+      const password = loginPasswordInput ? loginPasswordInput.value : '';
+      if (username === SETTINGS_USERNAME && password === SETTINGS_PASSWORD) {
+        settingsAuthenticated = true;
+        sessionStorage.setItem('settingsAuthenticated', 'true');
+        hideLoginModal();
+        openSettingsPanel();
+      } else if (loginError) {
+        loginError.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (loginCancelButton) {
+    loginCancelButton.addEventListener('click', hideLoginModal);
+  }
+
+  if (loginOverlay) {
+    loginOverlay.addEventListener('click', (e) => {
+      if (e.target === loginOverlay) hideLoginModal();
     });
   }
 
@@ -378,6 +486,56 @@ function attachSettingsEvents() {
       } finally {
         addUnknownBtn.disabled = false;
         setTimeout(() => { if (addUnknownResult) addUnknownResult.textContent = ''; }, 6000);
+      }
+    });
+  }
+
+  // Settings tabs (General / Tools)
+  const tabButtons = Array.from(document.querySelectorAll('.settings-tab-button'));
+  const tabPanels = Array.from(document.querySelectorAll('.settings-tab-panel'));
+  tabButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const targetTab = button.getAttribute('data-tab');
+      tabButtons.forEach((btn) => {
+        const isActive = btn === button;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      tabPanels.forEach((panel) => {
+        panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== targetTab);
+      });
+    });
+  });
+
+  // Rider list sorter: paste names, sort by current world ranking (lowest ranked first, highest last)
+  const riderSortButton = document.getElementById('rider-sort-button');
+  const riderSortInput = document.getElementById('rider-sort-input');
+  const riderSortOutput = document.getElementById('rider-sort-output');
+  const riderSortNote = document.getElementById('rider-sort-note');
+  if (riderSortButton && riderSortInput && riderSortOutput) {
+    riderSortButton.addEventListener('click', () => {
+      const names = parseRiderNameList(riderSortInput.value);
+      if (riderSortNote) {
+        riderSortNote.classList.add('hidden');
+        riderSortNote.textContent = '';
+        riderSortNote.classList.remove('has-warnings');
+      }
+      if (names.length === 0) {
+        riderSortOutput.value = '';
+        if (riderSortNote) {
+          riderSortNote.textContent = 'Paste at least one rider name first.';
+          riderSortNote.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const { matched, unmatched } = sortRiderNamesByRanking(names, Number(currentYearComparison));
+      riderSortOutput.value = matched.map((entry) => entry.name).join('\n');
+
+      if (unmatched.length > 0 && riderSortNote) {
+        riderSortNote.textContent = `Not found in current rankings: ${unmatched.join(', ')}`;
+        riderSortNote.classList.remove('hidden');
+        riderSortNote.classList.add('has-warnings');
       }
     });
   }

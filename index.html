@@ -17,9 +17,6 @@
           </div>
         </a>
       </div>
-      <nav class="site-nav">
-        <a href="index_elo.html" class="ghost-button">ELO variant</a>
-      </nav>
     </header>
     <main class="page">
       <section class="stats" aria-label="Ranking summary">
@@ -41,41 +38,64 @@
         <div class="toolbar">
           <div>
             <h2 id="settings-title">Settings</h2>
-            <p>Choose which columns to show and personalize the colors.</p>
+            <p>Choose which columns to show, personalize colors, and use extra tools.</p>
           </div>
           <button id="close-settings" class="ghost-button" type="button">Close</button>
         </div>
-        <div class="settings-grid">
-          <div class="settings-card">
-            <h3>Visible columns</h3>
-            <label class="setting-item"><input type="checkbox" id="show-points" checked /><span>Points</span></label>
-            <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
-            <label class="setting-item"><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
-            <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
-            <div style="margin-top:12px;">
+        <div class="settings-tabs" role="tablist">
+          <button type="button" class="settings-tab-button active" data-tab="general" id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
+          <button type="button" class="settings-tab-button" data-tab="tools" id="settings-tab-btn-tools" role="tab" aria-selected="false">Tools</button>
+        </div>
+        <div class="settings-tab-panel" id="settings-tab-general" data-tab-panel="general">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>Visible columns</h3>
+              <label class="setting-item"><input type="checkbox" id="show-points" checked /><span>Points</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
+            </div>
+            <div class="settings-card">
+              <h3>Colors</h3>
+              <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#07111f" /></label>
+              <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#091423" /></label>
+            </div>
+          </div>
+        </div>
+        <div class="settings-tab-panel hidden" id="settings-tab-tools" data-tab-panel="tools">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>Event strength</h3>
+              <button id="show-event-strength" class="ghost-button" type="button">Show average event strength</button>
+            </div>
+            <div class="settings-card">
+              <h3>Riders database</h3>
               <button id="add-unknown-riders" class="ghost-button" type="button">Add unknown riders to riders_all</button>
               <div id="add-unknown-result" style="margin-top:8px;color:var(--muted);font-size:0.9rem"></div>
             </div>
+            <div class="settings-card rider-sort-card">
+              <h3>Sort riders by ranking</h3>
+              <p class="settings-card-hint">Paste a list of rider names (one per line, or comma-separated) to get them sorted by their current world ranking, lowest ranked first and highest ranked last.</p>
+              <label class="setting-item rider-sort-label"><span>Rider names</span></label>
+              <textarea id="rider-sort-input" class="rider-sort-textarea" rows="6" placeholder="Paste rider names here, one per line"></textarea>
+              <div class="rider-sort-actions">
+                <button id="rider-sort-button" class="ghost-button" type="button">Sort by ranking</button>
+              </div>
+              <label class="setting-item rider-sort-label"><span>Sorted result</span></label>
+              <textarea id="rider-sort-output" class="rider-sort-textarea" rows="6" readonly placeholder="Sorted list will appear here"></textarea>
+              <div id="rider-sort-note" class="rider-sort-note hidden"></div>
+            </div>
           </div>
-          <div class="settings-card">
-            <h3>Colors</h3>
-            <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#07111f" /></label>
-            <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#091423" /></label>
+          <div id="event-strength-wrapper" class="hidden" style="margin-top:16px;">
+            <h3>Male events</h3>
+            <div id="event-strength-chart-male" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Female events</h3>
+            <div id="event-strength-chart-female" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Current trailing average by event type (male)</h3>
+            <div id="event-strength-summary-male" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Current trailing average by event type (female)</h3>
+            <div id="event-strength-summary-female" style="width:100%;overflow:auto;"></div>
           </div>
-          <div class="settings-card">
-            <h3>Event strength</h3>
-            <button id="show-event-strength" class="ghost-button" type="button">Show average event strength</button>
-          </div>
-        </div>
-        <div id="event-strength-wrapper" class="hidden" style="margin-top:16px;">
-          <h3>Male events</h3>
-          <div id="event-strength-chart-male" style="width:100%;overflow:auto;"></div>
-          <h3 style="margin-top:16px;">Female events</h3>
-          <div id="event-strength-chart-female" style="width:100%;overflow:auto;"></div>
-          <h3 style="margin-top:16px;">Current trailing average by event type (male)</h3>
-          <div id="event-strength-summary-male" style="width:100%;overflow:auto;"></div>
-          <h3 style="margin-top:16px;">Current trailing average by event type (female)</h3>
-          <div id="event-strength-summary-female" style="width:100%;overflow:auto;"></div>
         </div>
       </section>
 
@@ -152,7 +172,11 @@
               </select>
             </label>
             <button id="toggle-gender" class="ghost-button" type="button">Show female view</button>
-            <button id="open-settings" class="ghost-button" type="button">Settings</button>
+            <button id="open-settings" class="icon-button" type="button" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.14.56-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.49.38 1.04.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.14-.56 1.63-.94l2.39.96c.24.1.46.02.6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>
+              </svg>
+            </button>
             <label class="view-picker">
               <span>View</span>
               <select id="view-select">
@@ -198,6 +222,28 @@
         </div>
       </section>
     </main>
+
+    <div class="modal-overlay hidden" id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <div class="modal-card">
+        <h2 id="login-title">Settings sign-in</h2>
+        <p class="modal-subtitle">Enter your credentials to access settings.</p>
+        <form id="login-form">
+          <label class="modal-field">
+            <span>Username</span>
+            <input id="login-username" type="text" autocomplete="username" required />
+          </label>
+          <label class="modal-field">
+            <span>Password</span>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+          </label>
+          <p id="login-error" class="modal-error hidden">Incorrect username or password.</p>
+          <div class="modal-actions">
+            <button type="button" id="login-cancel" class="ghost-button">Cancel</button>
+            <button type="submit" class="primary-button">Sign in</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script src="ranking.js"></script>
   </body>
