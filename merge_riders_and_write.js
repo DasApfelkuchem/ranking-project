@@ -6,7 +6,7 @@ const EVENT_FILES = [
   'EUCW26.txt','EUCW25.txt','EUCW24.txt','EUCS23.txt','EUCS25.txt','CFM25.txt',
   'NAUCC26.txt','NAUCC25.txt','LAUCC25.txt','GUC25.txt','GUC24.txt','GUC23.txt',
   'GUC22.txt','BUC24.txt','BUC25.txt','BUC23.txt','BUC22.txt','GUC26.txt'
-];
+].map((fn) => path.join('event results', fn));
 
 function normalizeName(name) {
   return String(name || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[.,()"']/g, '').replace(/\s+/g, ' ').trim();

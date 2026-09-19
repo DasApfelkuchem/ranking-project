@@ -1,5 +1,5 @@
 from pathlib import Path
-for path in sorted(Path('.').glob('*.txt')):
+for path in sorted(Path('event results').glob('*.txt')):
     text = path.read_text(encoding='utf-8')
     if ';' not in text:
         print(f'{path.name}: NO SEMICOLON')

@@ -6,9 +6,7 @@ notes_dir = root / "rider notes"
 notes_dir.mkdir(exist_ok=True)
 
 names = set()
-for path in sorted(root.glob('*.txt')):
-    if path.name.lower() in {'create_notes.py'}:
-        continue
+for path in sorted((root / "event results").glob('*.txt')):
     try:
         with path.open('r', encoding='utf-8') as fh:
             for raw in fh:

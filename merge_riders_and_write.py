@@ -2,10 +2,12 @@ import os
 import io
 
 EVENT_FILES = [
-  'Unicon24.txt','Unicon26.txt','Unicon22.txt','Unicon18.txt','Unicon16.txt','Unicon14.txt',
-  'EUCW26.txt','EUCW25.txt','EUCW24.txt','EUCS23.txt','EUCS25.txt','CFM25.txt',
-  'NAUCC26.txt','NAUCC25.txt','LAUCC25.txt','GUC25.txt','GUC24.txt','GUC23.txt',
-  'GUC22.txt','BUC24.txt','BUC25.txt','BUC23.txt','BUC22.txt','GUC26.txt'
+  os.path.join('event results', fn) for fn in (
+    'Unicon24.txt','Unicon26.txt','Unicon22.txt','Unicon18.txt','Unicon16.txt','Unicon14.txt',
+    'EUCW26.txt','EUCW25.txt','EUCW24.txt','EUCS23.txt','EUCS25.txt','CFM25.txt',
+    'NAUCC26.txt','NAUCC25.txt','LAUCC25.txt','GUC25.txt','GUC24.txt','GUC23.txt',
+    'GUC22.txt','BUC24.txt','BUC25.txt','BUC23.txt','BUC22.txt','GUC26.txt'
+  )
 ]
 
 def extract_names(text):

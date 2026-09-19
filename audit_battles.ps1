@@ -1,5 +1,5 @@
 Set-Location 'c:\Users\benni\Desktop\unicycling\ranking project'
-Get-ChildItem -Filter '*.txt' | ForEach-Object {
+Get-ChildItem -Path 'event results' -Filter '*.txt' | ForEach-Object {
   $text = Get-Content -Path $_.FullName -Raw
   if ($text -notmatch ';') {
     Write-Output "$($_.Name): NO SEMICOLON"
