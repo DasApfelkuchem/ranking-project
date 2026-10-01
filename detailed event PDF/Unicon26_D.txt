@@ -57,18 +57,18 @@ Shuhei Kawai, August Agerskov, 5, 0, 17.4/21, 16.8/21, 10.8/14, 11.5/14, 5.8/16,
 Trey Haun, Ben Niediek, 5, 0, 17.4/21, 16.8/21, 12.2/14, 11.2/14, 6.1/16, 10.8/14, 14.5/21, 13.4/21, 10.4/14, 9.8/14, 5.8/16, 10.6/14#https://www.youtube.com/watch?v=PQVzT9ay5GI&list=PLQfTZBs6tP8g&index=7
 Jelle Dillen, Fuo Sato, 5, 0, 13.7/21, 14.3/21, 10.4/14, 10.5/14, 5.1/16, 9.5/14, 17/21, 13.7/21, 7.6/14, 10.1/14, 6.1/16, 0/14#https://www.youtube.com/watch?v=msWEpist4fc&list=PLQfTZBs6tP8g&index=10
 Stéphane Ranc, Michael Bachleda, 3, 2, 17.2/21, 15.5/21, 11.3/14, 10.9/14, 6.7/16, 11.5/14, 17.9/21, 13.4/21, 8.7/14, 10.9/14, 6.7/16, 12.5/14#https://www.youtube.com/watch?v=zStYpw9ic3I&list=PLQfTZBs6tP8g&index=13
-Michael Bachleda, Marvin Henke, 3, 0, 16.8/21, 14.7/21, 10.3/14, 11.4/14, 7.5/16, 12.1/14, 14/21, 11.2/21, 9.8/14, 8.4/14, 6.4/16, 10.3/14
-Shuhei Kawai, Dao Shani, 3, 0, 17.5/21, 17.9/21, 9.6/14, 9.8/14, 10.1/16, 13.1/14, 14.4/21, 12.6/21, 11.2/14, 9.8/14, 7.5/16, 0/14
-Marvin Henke, Waylon Batt, 3, 0, 14/21, 14/21, 10.7/14, 9.6/14, 8/16, 9.3/14, 15.8/21, 14/21, 10.7/14, 9.8/14, 8/16, 0/14
-Michael Bachleda, Tristan Jambon, 3, 0, 15.1/21, 12.6/21, 8.6/14, 9.3/14, 6.9/16, 10.3/14, 4.9/21, 1.4/21, 3/14, 4.2/14, 3.7/16, 0/14
-Shuhei Kawai, Jan Niediek, 2, 1, 16.5/21, 16.8/21, 11/14, 9.8/14, 10.1/16, 11.9/14, 14.4/21, 14.4/21, 10.7/14, 10.3/14, 9.9/16, 10.3/14
-Dao Shani, Dale Grzych, 3, 0, 15.8/21, 15.8/21, 12.6/14, 10.3/14, 9.1/16, 10.5/14, 10.5/21, 8.4/21, 7.5/14, 7.9/14, 7.5/16, 0/14
-Dale Grzych, Oliver Nielsen, 2, 1, 12.8/24, 14.8/24, 12.5/17, 10.2/17, 9/18, no score, 16/24, 16/24, 9.6/17, 9.6/17, 6/18, no score
-Waylon Batt, Alexis Mercat, 3, 0, 19.2/24, 15.6/24, 14.2/17, 11.3/17, 7.8/18, no score, 14.8/24, 15.2/24, 12.8/17, 11.6/17, 7.8/18, no score
-Oliver Nielsen, Jose Alberca, 3, 0, 17.2/24, 14.4/24, 6.8/17, 10.2/17, 5.4/18, no score, 10.4/24, 9.6/24, 9.6/17, 9.1/17, 6.6/18, no score
-Dale Grzych, Tuur Somers, 3, 0, 13.6/24, 14.4/24, 8.5/17, 9.6/17, 7.8/18, no score, 9.6/24, 10.4/24, 7.9/17, 7.7/17, 5.4/18, no score
-Alexis Mercat, martin grouillon, 3, 0, 17.2/24, 15.2/24, 14.2/17, 11.9/17, 11.4/18, no score, 15.2/24, 13.6/24, 10.8/17, 10.8/17, 8.4/18, no score
-Waylon Batt, Joos Machetanz, 2, 1, 15.6/24, 12.8/24, 10.5/17, 11.3/17, 7.2/18, no score, 14/24, 13.6/24, 10.2/17, 10.8/17, 6.6/18, no score
+Michael Bachleda, Marvin Henke, 3, 0, 16.8/21, 14.7/21, 10.3/14, 11.4/14, 7.5/16, 12.1/14, 14/21, 11.2/21, 9.8/14, 8.4/14, 6.4/16, 10.3/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=20m00s
+Shuhei Kawai, Dao Shani, 3, 0, 17.5/21, 17.9/21, 9.6/14, 9.8/14, 10.1/16, 13.1/14, 14.4/21, 12.6/21, 11.2/14, 9.8/14, 7.5/16, 0/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=22m45s
+Marvin Henke, Waylon Batt, 3, 0, 14/21, 14/21, 10.7/14, 9.6/14, 8/16, 9.3/14, 15.8/21, 14/21, 10.7/14, 9.8/14, 8/16, 0/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=10m37s
+Michael Bachleda, Tristan Jambon, 3, 0, 15.1/21, 12.6/21, 8.6/14, 9.3/14, 6.9/16, 10.3/14, 4.9/21, 1.4/21, 3/14, 4.2/14, 3.7/16, 0/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=13m20s
+Shuhei Kawai, Jan Niediek, 2, 1, 16.5/21, 16.8/21, 11/14, 9.8/14, 10.1/16, 11.9/14, 14.4/21, 14.4/21, 10.7/14, 10.3/14, 9.9/16, 10.3/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=16m05s
+Dao Shani, Dale Grzych, 3, 0, 15.8/21, 15.8/21, 12.6/14, 10.3/14, 9.1/16, 10.5/14, 10.5/21, 8.4/21, 7.5/14, 7.9/14, 7.5/16, 0/14#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=18m18s
+Dale Grzych, Oliver Nielsen, 2, 1, 12.8/24, 14.8/24, 12.5/17, 10.2/17, 9/18, no score, 16/24, 16/24, 9.6/17, 9.6/17, 6/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=8m54s
+Waylon Batt, Alexis Mercat, 3, 0, 19.2/24, 15.6/24, 14.2/17, 11.3/17, 7.8/18, no score, 14.8/24, 15.2/24, 12.8/17, 11.6/17, 7.8/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=7m05s
+Oliver Nielsen, Jose Alberca, 3, 0, 17.2/24, 14.4/24, 6.8/17, 10.2/17, 5.4/18, no score, 10.4/24, 9.6/24, 9.6/17, 9.1/17, 6.6/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=0m5s
+Dale Grzych, Tuur Somers, 3, 0, 13.6/24, 14.4/24, 8.5/17, 9.6/17, 7.8/18, no score, 9.6/24, 10.4/24, 7.9/17, 7.7/17, 5.4/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=1m48s
+Alexis Mercat, martin grouillon, 3, 0, 17.2/24, 15.2/24, 14.2/17, 11.9/17, 11.4/18, no score, 15.2/24, 13.6/24, 10.8/17, 10.8/17, 8.4/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=3m31s
+Waylon Batt, Joos Machetanz, 2, 1, 15.6/24, 12.8/24, 10.5/17, 11.3/17, 7.2/18, no score, 14/24, 13.6/24, 10.2/17, 10.8/17, 6.6/18, no score#https://www.youtube.com/watch?v=L6bniYhNTuw&list=PLQfTZBs6tP8g&index=4&t=5m19s
 Jose Alberca, Samuel Hůlka, 3, 0, 14.4/24, 15.2/24, 13.6/17, 11.3/17, 7.2/18, no score, 10.8/24, 9.6/24, 8.5/17, 8.5/17, 7.8/18, no score
 Waylon Batt, Štěpán Toncr, 3, 0, 14.4/24, 12.8/24, 9.1/17, 11.3/17, 8.7/18, no score, 10.4/24, 9.6/24, 10.2/17, 8.5/17, 7.2/18, no score
 Samuel Hůlka, Jussi Kumpulainen, 2, 1, 12.4/24, 12.8/24, 9.6/17, 9.1/17, 7.8/18, no score, 10/24, 9.6/24, 9.1/17, 7.9/17, 6/18, no score
