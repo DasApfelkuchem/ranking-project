@@ -828,6 +828,59 @@ tbody tr:hover {
   font-weight: 700;
 }
 
+.section-subtitle {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.battle-detail-button {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: var(--text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.battle-detail-button:hover,
+.battle-detail-button:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(43, 140, 255, 0.08);
+  border-color: rgba(98, 200, 255, 0.6);
+  outline: none;
+}
+
+.battle-video-link {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.battle-video-link:hover,
+.battle-video-link:focus {
+  transform: translateY(-1px) scale(1.1);
+  outline: none;
+}
+
+.battle-detail-card {
+  max-width: 560px;
+}
+
+.battle-detail-card .modal-subtitle {
+  margin-bottom: 12px;
+}
+
+.battle-detail-votes {
+  font-weight: 700;
+}
+
 .podium-gold {
   color: #fbbf24;
   font-weight: 700;

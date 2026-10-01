@@ -113,6 +113,7 @@ const riderPointsSort = { key: 'event', direction: 'desc' };
 let currentSearch = '';
 const eventResults = new Map();
 const eventBattles = new Map();
+const eventPrelimResults = new Map(); // eventName -> { male: [{place, rider, score}], female: [...] }
 const riderHistoryByGender = { male: new Map(), female: new Map() };
 const riderBattlesByGender = { male: new Map(), female: new Map() };
 const aliasMap = new Map(); // maps normalized alias -> canonical display name
@@ -857,6 +858,32 @@ async function loadRanking() {
 
     eventResults.set(event.name, eventEntriesByGender);
     eventBattles.set(event.name, eventBattlesByGenderForEvent);
+
+    // Optionally enrich with per-battle vote/score breakdowns and preliminary results,
+    // loaded from an event-specific "detailed event PDF/<Event>_D.txt" file when present.
+    const detailText = await loadEventDetailText(event.name);
+    if (detailText) {
+      try {
+        const parsedDetail = parseEventDetailText(detailText);
+        eventPrelimResults.set(event.name, {
+          male: parsedDetail.male.prelim,
+          female: parsedDetail.female.prelim
+        });
+        GENDERS.forEach((gender) => {
+          const battles = eventBattlesByGenderForEvent[gender] || [];
+          const battleMap = parsedDetail[gender] ? parsedDetail[gender].battles : null;
+          if (!battleMap || battleMap.size === 0) return;
+          battles.forEach((battle) => {
+            const detail = battleMap.get(`${battle.winner}|||${battle.loser}`);
+            if (detail) {
+              battle.detail = detail;
+            }
+          });
+        });
+      } catch (err) {
+        console.warn(`Unable to parse detailed results for ${event.name}:`, err);
+      }
+    }
   }
 
   GENDERS.forEach((gender) => {
@@ -1691,6 +1718,8 @@ function renderWorldForYear(year) {
 
 function renderEvent(eventName) {
   const body = document.getElementById('ranking-body');
+  const prelimWrapper = document.getElementById('event-prelim-wrapper');
+  const prelimBody = document.getElementById('event-prelim-body');
   const battleWrapper = document.getElementById('event-battle-wrapper');
   const battleBody = document.getElementById('event-battle-body');
   if (!body || !battleWrapper || !battleBody) return;
@@ -1746,20 +1775,61 @@ function renderEvent(eventName) {
   }
 
   const battles = eventBattles.get(eventName)?.[currentGender] || [];
+
+  if (prelimWrapper && prelimBody) {
+    const prelimEntries = eventPrelimResults.get(eventName)?.[currentGender] || [];
+    const prelimHeadRow = document.getElementById('event-prelim-head-row');
+    // Not every event's preliminary results include a per-category score breakdown
+    // (e.g. Difficulty/Variety/Fullness/Style); only add those columns when present.
+    const categoryLabels = prelimEntries.find((entry) => entry.categoryScores?.length)?.categoryScores.map((c) => c.label) || [];
+    if (prelimHeadRow) {
+      const categoryHeaders = categoryLabels.map((label) => `<th>${label}</th>`).join('');
+      prelimHeadRow.innerHTML = `<th>Place</th><th>Rider</th><th>Score</th>${categoryHeaders}`;
+    }
+    if (prelimEntries.length > 0) {
+      prelimBody.innerHTML = '';
+      prelimEntries.forEach((entry) => {
+        const row = document.createElement('tr');
+        const categoryCells = categoryLabels
+          .map((_, i) => `<td>${entry.categoryScores?.[i]?.display ?? '—'}</td>`)
+          .join('');
+        row.innerHTML = `
+          <td class="rank">${entry.place}</td>
+          <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
+          <td>${Number.isFinite(entry.score) ? entry.score.toFixed(1) : entry.score}</td>
+          ${categoryCells}
+        `;
+        prelimBody.appendChild(row);
+      });
+      prelimWrapper.classList.remove('hidden');
+    } else {
+      prelimBody.innerHTML = `<tr><td colspan="${3 + categoryLabels.length}" class="status">No preliminary results available.</td></tr>`;
+      prelimWrapper.classList.add('hidden');
+    }
+  }
+
   if (battles.length > 0) {
     battleBody.innerHTML = '';
-    battles.forEach((battle) => {
+    battles.forEach((battle, index) => {
       const row = document.createElement('tr');
+      const detailButtonHtml = battle.detail
+        ? `<button type="button" class="battle-detail-button" data-battle-index="${index}">View</button>`
+        : '<span class="status">—</span>';
+      const videoLinkHtml = battle.detail?.videoUrl
+        ? `<a class="battle-video-link" href="${escapeXml(battle.detail.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch battle video">🎥</a>`
+        : '';
       row.innerHTML = `
         <td>${battle.round}</td>
         <td><button class="rider-link" data-rider="${battle.winner}">${battle.winner}</button></td>
         <td><button class="rider-link" data-rider="${battle.loser}">${battle.loser}</button></td>
+        <td>${detailButtonHtml}${videoLinkHtml}</td>
       `;
       battleBody.appendChild(row);
     });
     battleWrapper.classList.remove('hidden');
+    attachBattleDetailButtons(battles);
   } else {
-    battleBody.innerHTML = `<tr><td colspan="3" class="status">No battle details available.</td></tr>`;
+    battleBody.innerHTML = `<tr><td colspan="4" class="status">No battle details available.</td></tr>`;
     battleWrapper.classList.add('hidden');
   }
 
@@ -1784,6 +1854,84 @@ function attachRiderLinks() {
   });
 }
 
+function attachBattleDetailButtons(battles) {
+  document.querySelectorAll('.battle-detail-button').forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = Number(button.getAttribute('data-battle-index'));
+      const battle = battles[index];
+      if (battle && battle.detail) {
+        openBattleDetailModal(battle);
+      }
+    });
+  });
+}
+
+function renderBattleDetailScoreRows(winnerScores, loserScores) {
+  return BATTLE_DETAIL_CATEGORIES.map((label, i) => {
+    const winnerCell = winnerScores[i] || {};
+    const loserCell = loserScores[i] || {};
+    return `
+      <tr>
+        <td>${label}</td>
+        <td>${winnerCell.display ?? '—'}</td>
+        <td>${loserCell.display ?? '—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openBattleDetailModal(battle) {
+  const overlay = document.getElementById('battle-detail-overlay');
+  const subtitle = document.getElementById('battle-detail-subtitle');
+  const winnerHeader = document.getElementById('battle-detail-winner-header');
+  const loserHeader = document.getElementById('battle-detail-loser-header');
+  const detailBody = document.getElementById('battle-detail-body');
+  if (!overlay || !detailBody) return;
+
+  const detail = battle.detail;
+  if (subtitle) {
+    subtitle.textContent = `${battle.round} — ${battle.winner} def. ${battle.loser}`;
+  }
+  if (winnerHeader) winnerHeader.textContent = battle.winner;
+  if (loserHeader) loserHeader.textContent = battle.loser;
+
+  const votesRow = `
+    <tr>
+      <td class="battle-detail-votes">Votes</td>
+      <td class="battle-detail-votes">${detail.votesWinner}</td>
+      <td class="battle-detail-votes">${detail.votesLoser}</td>
+    </tr>
+  `;
+
+  detailBody.innerHTML = votesRow + renderBattleDetailScoreRows(detail.winnerScores, detail.loserScores);
+
+  overlay.classList.remove('hidden');
+}
+
+function closeBattleDetailModal() {
+  const overlay = document.getElementById('battle-detail-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function attachBattleDetailModalEvents() {
+  const overlay = document.getElementById('battle-detail-overlay');
+  const closeButton = document.getElementById('battle-detail-close');
+
+  if (closeButton) {
+    closeButton.addEventListener('click', closeBattleDetailModal);
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeBattleDetailModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBattleDetailModal();
+  });
+}
+
 function getBattleRound(eventName, index) {
   if (index === 0) return 'Final';
   if (index === 1) return 'Third place';
@@ -1796,6 +1944,149 @@ function addRiderBattle(rider, eventName, round, opponent, result, gender = 'mal
   const history = riderBattlesByGender[gender].get(rider) || [];
   history.push({ event: eventName, round, opponent, result });
   riderBattlesByGender[gender].set(rider, history);
+}
+
+// Categories expected (in file order) for each side of a detailed battle line.
+const BATTLE_DETAIL_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Last trick'];
+
+// Attempts to fetch a detailed-results file for an event (e.g. "detailed event PDF/GUC26_D.txt").
+// Returns the raw text, or null if no such file exists / it couldn't be loaded.
+async function loadEventDetailText(eventName) {
+  const path = `detailed event PDF/${eventName}_D.txt`;
+  try {
+    const response = await fetch(encodeURI(path));
+    if (!response.ok) return null;
+    return await response.text();
+  } catch (e) {
+    return null;
+  }
+}
+
+// Parses one score cell such as "16.8/21" or "no score" into a display string plus numeric value/max.
+function parseBattleScoreField(raw) {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed || /no\s*score/i.test(trimmed)) {
+    return { display: trimmed || '—', value: null, max: null };
+  }
+  const m = trimmed.match(/^([\d.]+)\s*\/\s*([\d.]+)$/);
+  if (!m) {
+    return { display: trimmed, value: null, max: null };
+  }
+  return { display: trimmed, value: Number(m[1]), max: Number(m[2]) };
+}
+
+// Categories for the optional per-category breakdown in preliminary results
+// (no Battling/Last trick, since those only apply to head-to-head battles).
+const PRELIM_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style'];
+
+// A preliminary-ranking line always starts with "<place>" optionally followed by a
+// period, e.g. "1 Ben Niediek 84.7" or "1. August Agerskov, 83.83, 24.5/30, ...".
+// Battle-detail lines always start with a rider's name instead.
+function isPrelimLine(line) {
+  return /^\d+\.?\s/.test(line.trim());
+}
+
+// Parses one preliminary-ranking line. Supports two formats:
+// - Simple: "<place> <name> <score>" (space-separated, no per-category breakdown).
+// - Detailed: "<place>. <name>, <score>, <category1>, <category2>, ..." (comma-separated,
+//   with a per-category score breakdown using PRELIM_SCORE_CATEGORIES order).
+function parsePrelimLine(rawLine) {
+  const line = rawLine.replace(/;\s*$/, '').trim();
+  if (!line) return null;
+
+  if (line.includes(',')) {
+    const parts = line.split(',').map((part) => part.trim());
+    const firstPartMatch = parts[0].match(/^(\d+)\.?\s*(.+)$/);
+    if (!firstPartMatch || parts.length < 2) return null;
+    const canonical = aliasMap.get(normalizeName(firstPartMatch[2])) || firstPartMatch[2];
+    const categoryScores = parts.slice(2).map((raw, i) => ({
+      label: PRELIM_SCORE_CATEGORIES[i] || `Score ${i + 1}`,
+      ...parseBattleScoreField(raw)
+    }));
+    return {
+      place: Number(firstPartMatch[1]),
+      rider: canonical,
+      score: Number(parts[1]),
+      categoryScores
+    };
+  }
+
+  const m = line.match(/^(\d+)\s+(.+?)\s+([\d.]+)$/);
+  if (!m) return null;
+  const canonical = aliasMap.get(normalizeName(m[2])) || m[2];
+  return { place: Number(m[1]), rider: canonical, score: Number(m[3]), categoryScores: [] };
+}
+
+// Parses the full contents of a "<Event>_D.txt" detailed-results file.
+// Format mirrors the main event results file: gender sections separated by '|',
+// each with a preliminary ranking (place, name, score, optional per-category breakdown)
+// followed by one battle-detail line per battle (winner, loser, votesWinner, votesLoser,
+// then 6 score categories for the winner and 6 for the loser). A ';' delimiter between
+// the two sections is supported but not required; lines are otherwise told apart because
+// preliminary lines always start with a place number (see isPrelimLine).
+function parseEventDetailText(text) {
+  const genderBlocks = String(text || '').split('|').map((part) => part.trim()).filter(Boolean);
+  const result = {
+    male: { prelim: [], battles: new Map() },
+    female: { prelim: [], battles: new Map() }
+  };
+
+  genderBlocks.forEach((block, index) => {
+    const gender = GENDERS[index];
+    if (!gender) return;
+
+    // Preliminary ranking lines always precede battle-detail lines and always start with
+    // a place number (optionally followed by a ';' delimiter on the last one), while battle
+    // lines always start with a rider's name — so split on the first line that isn't a
+    // preliminary-ranking line rather than relying on a specific delimiter being present.
+    const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const firstBattleIndex = lines.findIndex((line) => !isPrelimLine(line));
+    const prelimLines = firstBattleIndex === -1 ? lines : lines.slice(0, firstBattleIndex);
+    const battleLines = firstBattleIndex === -1 ? [] : lines.slice(firstBattleIndex);
+
+    const prelim = prelimLines.map(parsePrelimLine).filter(Boolean);
+
+    const battleMap = new Map();
+    battleLines
+      .forEach((line) => {
+        // An optional video link may be appended to the end of the line, separated by '#'
+        // (e.g. "...0/14#https://www.youtube.com/watch?v=...").
+        const hashIndex = line.indexOf('#');
+        const videoUrl = hashIndex === -1 ? null : line.slice(hashIndex + 1).trim();
+        const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
+
+        const parts = dataLine.split(',').map((part) => part.trim());
+        // winner, loser, votesWinner, votesLoser, 6 winner scores, 6 loser scores
+        if (parts.length < 4 + BATTLE_DETAIL_CATEGORIES.length * 2) return;
+
+        const [rawWinner, rawLoser, votesWinnerRaw, votesLoserRaw, ...scores] = parts;
+        const winner = aliasMap.get(normalizeName(rawWinner)) || rawWinner;
+        const loser = aliasMap.get(normalizeName(rawLoser)) || rawLoser;
+
+        const winnerScores = BATTLE_DETAIL_CATEGORIES.map((label, i) => ({
+          label,
+          ...parseBattleScoreField(scores[i])
+        }));
+        const loserScores = BATTLE_DETAIL_CATEGORIES.map((label, i) => ({
+          label,
+          ...parseBattleScoreField(scores[i + BATTLE_DETAIL_CATEGORIES.length])
+        }));
+
+        battleMap.set(`${winner}|||${loser}`, {
+          winner,
+          loser,
+          votesWinner: Number(votesWinnerRaw),
+          votesLoser: Number(votesLoserRaw),
+          winnerScores,
+          loserScores,
+          videoUrl
+        });
+      });
+
+    result[gender] = { prelim, battles: battleMap };
+  });
+
+  return result;
 }
 
 function getEventSortValue(eventName) {
@@ -2370,6 +2661,7 @@ window.addEventListener('DOMContentLoaded', () => {
   applySettingsToDom();
   attachSettingsEvents();
   attachRiderNotesEvents();
+  attachBattleDetailModalEvents();
 
   loadRanking().then(() => {
     if (document.getElementById('rider-points-body')) {

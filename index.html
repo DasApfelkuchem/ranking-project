@@ -204,6 +204,23 @@
             </tbody>
           </table>
         </div>
+        <div class="table-wrapper hidden" id="event-prelim-wrapper">
+          <h3 class="section-subtitle">Preliminary results</h3>
+          <table>
+            <thead>
+              <tr id="event-prelim-head-row">
+                <th>Place</th>
+                <th>Rider</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="event-prelim-body">
+              <tr>
+                <td colspan="3" class="status">No preliminary results available.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="table-wrapper hidden" id="event-battle-wrapper">
           <table>
             <thead>
@@ -211,17 +228,40 @@
                 <th>Round</th>
                 <th>Winner</th>
                 <th>Loser</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody id="event-battle-body">
               <tr>
-                <td colspan="3" class="status">No battle details available.</td>
+                <td colspan="4" class="status">No battle details available.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
     </main>
+
+    <div class="modal-overlay hidden" id="battle-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="battle-detail-title">
+      <div class="modal-card battle-detail-card">
+        <h2 id="battle-detail-title">Battle details</h2>
+        <p class="modal-subtitle" id="battle-detail-subtitle"></p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th id="battle-detail-winner-header">Winner</th>
+                <th id="battle-detail-loser-header">Loser</th>
+              </tr>
+            </thead>
+            <tbody id="battle-detail-body"></tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="battle-detail-close" class="ghost-button">Close</button>
+        </div>
+      </div>
+    </div>
 
     <div class="modal-overlay hidden" id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
       <div class="modal-card">
