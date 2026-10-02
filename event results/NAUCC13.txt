@@ -4,13 +4,16 @@
 4 Eli Brill
 4 Kyle Alviani
 4 Lars Anderson
-4 Christian Huriwai*
+4 Christian Huriwai
 4 Maxwell Schulze
 8 Isaiah Stefan
 9 Emile Mathieu-Begin
 10 Edmund Leduc
 11 David Hackett;
+Dan Colvin, Maxime Peabody # https://www.youtube.com/watch?v=mlb8xTGXg4Y&t=42m20s
 |
 1 Julia Belk
 2 Sarah Smith
 2 Sam La Hood;
+Julia Belk ,Sam La Hood#https://www.youtube.com/watch?v=mlb8xTGXg4Y&t=7m00s
+Julia Belk, Sarah Smith #https://www.youtube.com/watch?v=mlb8xTGXg4Y&t=1m00s

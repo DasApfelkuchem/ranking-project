@@ -782,7 +782,12 @@ async function loadRanking() {
             return; // preserve placeholder position for missing battle rows
           }
 
-          const parts = line.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
+          // Optional video link after '#', e.g. "Winner,Loser #https://youtu.be/..."
+          const hashIndex = line.indexOf('#');
+          const videoUrl = hashIndex === -1 ? null : (line.slice(hashIndex + 1).trim() || null);
+          const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
+
+          const parts = dataLine.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
           if (parts.length !== 2) {
             throw new Error(`Invalid battle line in ${event.name}: ${line}`);
           }
@@ -804,7 +809,8 @@ async function loadRanking() {
             winner,
             loser,
             rawWinner,
-            rawLoser
+            rawLoser,
+            videoUrl
           });
         });
 
@@ -1782,9 +1788,10 @@ function renderEvent(eventName) {
     // Not every event's preliminary results include a per-category score breakdown
     // (e.g. Difficulty/Variety/Fullness/Style); only add those columns when present.
     const categoryLabels = prelimEntries.find((entry) => entry.categoryScores?.length)?.categoryScores.map((c) => c.label) || [];
+    const hasPrelimVideos = prelimEntries.some((entry) => entry.videoUrl);
     if (prelimHeadRow) {
       const categoryHeaders = categoryLabels.map((label) => `<th>${label}</th>`).join('');
-      prelimHeadRow.innerHTML = `<th>Place</th><th>Rider</th><th>Score</th>${categoryHeaders}`;
+      prelimHeadRow.innerHTML = `<th>Place</th><th>Rider</th><th>Score</th>${categoryHeaders}${hasPrelimVideos ? '<th>Video</th>' : ''}`;
     }
     if (prelimEntries.length > 0) {
       prelimBody.innerHTML = '';
@@ -1798,12 +1805,13 @@ function renderEvent(eventName) {
           <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
           <td>${Number.isFinite(entry.score) ? entry.score.toFixed(1) : entry.score}</td>
           ${categoryCells}
+          ${hasPrelimVideos ? `<td>${entry.videoUrl ? `<a class="battle-video-link" href="${escapeXml(entry.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch run video">🎥</a>` : ''}</td>` : ''}
         `;
         prelimBody.appendChild(row);
       });
       prelimWrapper.classList.remove('hidden');
     } else {
-      prelimBody.innerHTML = `<tr><td colspan="${3 + categoryLabels.length}" class="status">No preliminary results available.</td></tr>`;
+      prelimBody.innerHTML = `<tr><td colspan="${3 + categoryLabels.length + (hasPrelimVideos ? 1 : 0)}" class="status">No preliminary results available.</td></tr>`;
       prelimWrapper.classList.add('hidden');
     }
   }
@@ -1815,8 +1823,9 @@ function renderEvent(eventName) {
       const detailButtonHtml = battle.detail
         ? `<button type="button" class="battle-detail-button" data-battle-index="${index}">View</button>`
         : '<span class="status">—</span>';
-      const videoLinkHtml = battle.detail?.videoUrl
-        ? `<a class="battle-video-link" href="${escapeXml(battle.detail.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch battle video">🎥</a>`
+      const videoUrl = battle.videoUrl || battle.detail?.videoUrl;
+      const videoLinkHtml = videoUrl
+        ? `<a class="battle-video-link" href="${escapeXml(videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch battle video">🎥</a>`
         : '';
       row.innerHTML = `
         <td>${battle.round}</td>
@@ -1991,7 +2000,10 @@ function isPrelimLine(line) {
 // - Detailed: "<place>. <name>, <score>, <category1>, <category2>, ..." (comma-separated,
 //   with a per-category score breakdown using PRELIM_SCORE_CATEGORIES order).
 function parsePrelimLine(rawLine) {
-  const line = rawLine.replace(/;\s*$/, '').trim();
+  // Optional video link after '#', e.g. "1 Name 84.7#https://youtu.be/..."
+  const hashIndex = rawLine.indexOf('#');
+  const videoUrl = hashIndex === -1 ? null : (rawLine.slice(hashIndex + 1).replace(/;\s*$/, '').trim() || null);
+  const line = (hashIndex === -1 ? rawLine : rawLine.slice(0, hashIndex)).replace(/;\s*$/, '').trim();
   if (!line) return null;
 
   if (line.includes(',')) {
@@ -2007,14 +2019,15 @@ function parsePrelimLine(rawLine) {
       place: Number(firstPartMatch[1]),
       rider: canonical,
       score: Number(parts[1]),
-      categoryScores
+      categoryScores,
+      videoUrl
     };
   }
 
   const m = line.match(/^(\d+)\s+(.+?)\s+([\d.]+)$/);
   if (!m) return null;
   const canonical = aliasMap.get(normalizeName(m[2])) || m[2];
-  return { place: Number(m[1]), rider: canonical, score: Number(m[3]), categoryScores: [] };
+  return { place: Number(m[1]), rider: canonical, score: Number(m[3]), categoryScores: [], videoUrl };
 }
 
 // Parses the full contents of a "<Event>_D.txt" detailed-results file.

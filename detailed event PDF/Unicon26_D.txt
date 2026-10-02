@@ -1,54 +1,54 @@
-1. August Agerskov, 83.83, 24.5/30, 24/30, 18.7/20, 16.7/20
-1. Stéphane Ranc, 85.77, 26.3/30, 24/30, 18.8/20, 16.7/20
-3. Jelle Dillen, 75.67, 20/30, 23/30, 16.7/20, 16/20
-3. Trey Haun, 85.13, 26.8/30, 24/30, 17/20, 17.3/20
-5. Ben Niediek, 74.67, 24/30, 21/30, 15.7/20, 14/20
-5. Fuo Sato, 80.33, 24.5/30, 24.5/30, 15.3/20, 16/20
-7. Marvin Henke, 69.17, 21.5/30, 20/30, 14/20, 13.7/20
-7. Dao Shani, 78.50, 22/30, 25.5/30, 14.7/20, 16.3/20
-9. Jan Niediek, 68.00, 21/30, 21/30, 11.3/20, 14.7/20
-9. Michael Bachleda, 74.60, 24.7/30, 20.3/30, 14.7/20, 14.9/20
-11. Tristan Jambon, 68.00, 19/30, 21/30, 14.7/20, 13.3/20
-11. Shuhei Kawai, 74.13, 24.3/30, 22.5/30, 12/20, 15.3/20
-13. Oliver Nielsen, 66.67, 21.5/30, 20.5/30, 12.7/20, 12/20
-13. Joos Machetanz, 69.33, 22/30, 20/30, 13.3/20, 14/20
-15. Alexis Mercat, 59.00, 17/30, 16/30, 12/20, 14/20
-15. Dale Grzych, 69.33, 22/30, 21/30, 12/20, 14.3/20
-17. Tuur Somers, 55.67, 15/30, 16/30, 12.7/20, 12/20
-17. martin grouillon, 69.33, 20/30, 20/30, 15/20, 14.3/20
-19. Jussi Kumpulainen, 51.00, 14/30, 15/30, 12/20, 10/20
-19. Štěpán Toncr, 63.83, 18.5/30, 18/30, 13.7/20, 13.7/20
-21. Julius Auth, 45.33, 13/30, 13/30, 10/20, 9.3/20
-21. Jose Alberca, 63.00, 19.5/30, 17.5/30, 11.7/20, 14.3/20
-23. Folke Schubert, 43.00, 14/30, 11/30, 6.7/20, 11.3/20
-23. Waylon Batt, 58.83, 23/30, 13.5/30, 6.3/20, 16/20
-25. Samuel Hůlka, 42.17, 10.5/30, 11/30, 11/20, 9.7/20
-25. Sean Daugherty, 55.83, 21/30, 8.5/30, 14/20, 12.3/20
-27. JIUN CHEN PAO, 41.67, 12/30, 13/30, 9.3/20, 7.3/20
-27. Kjell Heidt, 52.33, 14.5/30, 16.5/30, 12.3/20, 9/20
-29. Felix-Nana Adjei, 41.33, 14/30, 12/30, 8/20, 7.3/20
-29. David Moscoe, 51.00, 20/30, 11/30, 8.3/20, 11.7/20
-31. Christian Alejo Montaño, 40.17, 9.5/30, 11/30, 11/20, 8.7/20
-31. Arthur Duyts, 49.67, 15/30, 15/30, 9.3/20, 10.3/20
-33. Bertram Agerskov, 37.50, 10/30, 11.5/30, 9.3/20, 6.7/20
-33. Sebastian Retavisca Obando, 49.47, 12.8/30, 17/30, 10.3/20, 9.3/20
-35. Vitus Bieringer, 37.33, 12/30, 10/30, 8.7/20, 6.7/20
-35. TAICHI ISHIKAWA, 46.67, 19/30, 7/30, 11.3/20, 9.3/20
-37. YI KAI LIAO, 36.33, 12/30, 9/30, 8/20, 7.3/20
+1. August Agerskov, 83.83, 24.5/30, 24/30, 18.7/20, 16.7/20#https://www.youtube.com/watch?v=4TYDMGuO0VI&t=5m34s
+1. Stéphane Ranc, 85.77, 26.3/30, 24/30, 18.8/20, 16.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=36m41s
+3. Jelle Dillen, 75.67, 20/30, 23/30, 16.7/20, 16/20 # #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=0m50s
+3. Trey Haun, 85.13, 26.8/30, 24/30, 17/20, 17.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=34m59s
+5. Ben Niediek, 74.67, 24/30, 21/30, 15.7/20, 14/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=7m57s
+5. Fuo Sato, 80.33, 24.5/30, 24.5/30, 15.3/20, 16/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=26m40s
+7. Marvin Henke, 69.17, 21.5/30, 20/30, 14/20, 13.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=15m44s
+7. Dao Shani, 78.50, 22/30, 25.5/30, 14.7/20, 16.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=28m26s
+9. Jan Niediek, 68.00, 21/30, 21/30, 11.3/20, 14.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=3m07s
+9. Michael Bachleda, 74.60, 24.7/30, 20.3/30, 14.7/20, 14.9/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=35m57s
+11. Tristan Jambon, 68.00, 19/30, 21/30, 14.7/20, 13.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=8m45s
+11. Shuhei Kawai, 74.13, 24.3/30, 22.5/30, 12/20, 15.3/20 ##https://www.youtube.com/watch?v=4TYDMGuO0VI&t=24m43s
+13. Oliver Nielsen, 66.67, 21.5/30, 20.5/30, 12.7/20, 12/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=12m37s
+13. Joos Machetanz, 69.33, 22/30, 20/30, 13.3/20, 14/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=21m52s
+15. Alexis Mercat, 59.00, 17/30, 16/30, 12/20, 14/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=0m0s
+15. Dale Grzych, 69.33, 22/30, 21/30, 12/20, 14.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=29m14s
+17. Tuur Somers, 55.67, 15/30, 16/30, 12.7/20, 12/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=1m31s
+17. martin grouillon, 69.33, 20/30, 20/30, 15/20, 14.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=33m33s
+19. Jussi Kumpulainen, 51.00, 14/30, 15/30, 12/20, 10/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=3m55s
+19. Štěpán Toncr, 63.83, 18.5/30, 18/30, 13.7/20, 13.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=38m16s
+21. Julius Auth, 45.33, 13/30, 13/30, 10/20, 9.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=10m20s
+21. Jose Alberca, 63.00, 19.5/30, 17.5/30, 11.7/20, 14.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=34m12s
+23. Folke Schubert, 43.00, 14/30, 11/30, 6.7/20, 11.3/20#https://www.youtube.com/watch?v=4TYDMGuO0VI&t=6m20s
+23. Waylon Batt, 58.83, 23/30, 13.5/30, 6.3/20, 16/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=37m29s
+25. Samuel Hůlka, 42.17, 10.5/30, 11/30, 11/20, 9.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=14m10s
+25. Sean Daugherty, 55.83, 21/30, 8.5/30, 14/20, 12.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=19m30s
+27. JIUN CHEN PAO, 41.67, 12/30, 13/30, 9.3/20, 7.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=11m49s
+27. Kjell Heidt, 52.33, 14.5/30, 16.5/30, 12.3/20, 9/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=31m31s
+29. Felix-Nana Adjei, 41.33, 14/30, 12/30, 8/20, 7.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=4m43s
+29. David Moscoe, 51.00, 20/30, 11/30, 8.3/20, 11.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=39m03s
+31. Christian Alejo Montaño, 40.17, 9.5/30, 11/30, 11/20, 8.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=14m58s
+31. Arthur Duyts, 49.67, 15/30, 15/30, 9.3/20, 10.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=30m00s
+33. Bertram Agerskov, 37.50, 10/30, 11.5/30, 9.3/20, 6.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=16m31s
+33. Sebastian Retavisca Obando, 49.47, 12.8/30, 17/30, 10.3/20, 9.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=25m53s
+35. Vitus Bieringer, 37.33, 12/30, 10/30, 8.7/20, 6.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=18m12s
+35. TAICHI ISHIKAWA, 46.67, 19/30, 7/30, 11.3/20, 9.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=23m28s
+37. YI KAI LIAO, 36.33, 12/30, 9/30, 8/20, 7.3/20#https://www.youtube.com/watch?v=4TYDMGuO0VI&t=7m09s
 37. Pavel Holba, 45.33, 12/30, 16/30, 8.7/20, 8.7/20
-39. emile themelin, 34.67, 11/30, 10/30, 5.7/20, 8/20
-39. Mattis Westerberg, 41.17, 10.5/30, 14/30, 8/20, 8.7/20
+39. emile themelin, 34.67, 11/30, 10/30, 5.7/20, 8/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=13m37s
+39. Mattis Westerberg, 41.17, 10.5/30, 14/30, 8/20, 8.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=22m38s
 41. Tomoyasu Ishigaki, 34.50, 10/30, 8.5/30, 9.3/20, 6.7/20
-41. Erik Černý, 41.17, 12/30, 14.5/30, 7.3/20, 7.3/20
+41. Erik Černý, 41.17, 12/30, 14.5/30, 7.3/20, 7.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=30m45s
 43. Casper Martinsen, 30.00, 10/30, 8/30, 5.3/20, 6.7/20
-43. Taiki Nishiya, 40.67, 18/30, 7/30, 4.7/20, 11/20
-45. Corentin Berset, 25.33, 9/30, 5/30, 3.3/20, 8/20
-45. BO SIN LAI, 37.00, 16/30, 7/30, 4/20, 10/20
-47. Misaki Uchida, 22.33, 7/30, 6/30, 2.7/20, 6.7/20
-47. Youraï Gloux, 36.17, 9.5/30, 12/30, 5.3/20, 9.3/20
+43. Taiki Nishiya, 40.67, 18/30, 7/30, 4.7/20, 11/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=32m57s
+45. Corentin Berset, 25.33, 9/30, 5/30, 3.3/20, 8/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=9m30s
+45. BO SIN LAI, 37.00, 16/30, 7/30, 4/20, 10/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=20m16s
+47. Misaki Uchida, 22.33, 7/30, 6/30, 2.7/20, 6.7/20 ##https://www.youtube.com/watch?v=4TYDMGuO0VI&t=2m18s
+47. Youraï Gloux, 36.17, 9.5/30, 12/30, 5.3/20, 9.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=21m02s
 49. TATSUYA FUKUNAGA, 9.33, 3/30, 3/30, 1.3/20, 2/20
-49. Philip Morse, 25.83, 10/30, 5.5/30, 3/20, 7.3/20
-51. Leon-Noel Hunger, 19.33, 3.5/30, 4.5/30, 4.7/20, 6.7/20
+49. Philip Morse, 25.83, 10/30, 5.5/30, 3/20, 7.3/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=27m28s
+51. Leon-Noel Hunger, 19.33, 3.5/30, 4.5/30, 4.7/20, 6.7/20 #https://www.youtube.com/watch?v=4TYDMGuO0VI&t=32m17s
 Stéphane Ranc, Trey Haun, 3, 2, 18.5/21, 14.5/21, 11.1/14, 9.8/14, 6.9/16, 13/14, 17.2/21, 16.4/21, 8.7/14, 10.4/14, 7/16, 12.2/14#https://www.youtube.com/watch?v=-iXU9ucHvL8&list=PLQfTZBs6tP8g&index=6
 Jelle Dillen, Shuhei Kawai, 4, 1, 15.5/21, 14.9/21, 10.8/14, 11.2/14, 8.3/16, 8.5/14, 17/21, 15.5/21, 8/14, 9/14, 6.7/16, 0/14#https://www.youtube.com/watch?v=epiMq4KSMhc&list=PLQfTZBs6tP8g&index=9
 Trey Haun, Shuhei Kawai, 5, 0, 16.8/21, 16/21, 9.2/14, 10.5/14, 8.3/16, 11.8/14, 15.5/21, 16/21, 7/14, 10.1/14, 7.7/16, 9.8/14#https://www.youtube.com/watch?v=p1o29f8XmiU&list=PLQfTZBs6tP8g&index=11
