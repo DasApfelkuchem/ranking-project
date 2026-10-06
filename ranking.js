@@ -784,7 +784,7 @@ async function loadRanking() {
 
           // Optional video link after '#', e.g. "Winner,Loser #https://youtu.be/..."
           const hashIndex = line.indexOf('#');
-          const videoUrl = hashIndex === -1 ? null : (line.slice(hashIndex + 1).trim() || null);
+          const videoUrl = hashIndex === -1 ? null : extractVideoUrl(line.slice(hashIndex + 1));
           const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
 
           const parts = dataLine.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
@@ -1941,6 +1941,13 @@ function attachBattleDetailModalEvents() {
   });
 }
 
+// Pulls an absolute http(s) URL out of the text after a '#', tolerating stray '#' or spaces
+// (e.g. "# #https://..."); a non-absolute value would otherwise resolve to this site.
+function extractVideoUrl(text) {
+  const match = String(text || '').match(/https?:\/\/[^\s;]+/i);
+  return match ? match[0] : null;
+}
+
 function getBattleRound(eventName, index) {
   if (index === 0) return 'Final';
   if (index === 1) return 'Third place';
@@ -2002,7 +2009,7 @@ function isPrelimLine(line) {
 function parsePrelimLine(rawLine) {
   // Optional video link after '#', e.g. "1 Name 84.7#https://youtu.be/..."
   const hashIndex = rawLine.indexOf('#');
-  const videoUrl = hashIndex === -1 ? null : (rawLine.slice(hashIndex + 1).replace(/;\s*$/, '').trim() || null);
+  const videoUrl = hashIndex === -1 ? null : extractVideoUrl(rawLine.slice(hashIndex + 1));
   const line = (hashIndex === -1 ? rawLine : rawLine.slice(0, hashIndex)).replace(/;\s*$/, '').trim();
   if (!line) return null;
 
@@ -2065,7 +2072,7 @@ function parseEventDetailText(text) {
         // An optional video link may be appended to the end of the line, separated by '#'
         // (e.g. "...0/14#https://www.youtube.com/watch?v=...").
         const hashIndex = line.indexOf('#');
-        const videoUrl = hashIndex === -1 ? null : line.slice(hashIndex + 1).trim();
+        const videoUrl = hashIndex === -1 ? null : extractVideoUrl(line.slice(hashIndex + 1));
         const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
 
         const parts = dataLine.split(',').map((part) => part.trim());

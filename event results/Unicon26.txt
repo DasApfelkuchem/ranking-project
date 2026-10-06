@@ -124,12 +124,12 @@ Roos Seegers, Sofia van Veen
 Marie Schlenker, Cora Schindele
 Paula Wache, Maja Andersen
 Nina Beckmann, Mayuko Kogi
-Roos Seegers, Sarah Smith
-Mayuko Kogi, Nagomi Nejigane
+Roos Seegers, Sarah Smith #https://www.youtube.com/watch?v=OQM75llsG94&t=6m50s
+Mayuko Kogi, Nagomi Nejigane ##https://www.youtube.com/watch?v=OQM75llsG94&t=9m01s
 Roos Seegers, Diana Wache
-Sarah Smith, Cecilie Leth
-Nagomi Nejigane, Isabell Haase
-Mayuko Kogi, Kim Höser
+Sarah Smith, Cecilie Leth #https://www.youtube.com/watch?v=OQM75llsG94&t=0m05s
+Nagomi Nejigane, Isabell Haase #https://www.youtube.com/watch?v=OQM75llsG94&t=2m36s
+Mayuko Kogi, Kim Höser #https://www.youtube.com/watch?v=OQM75llsG94&t=4m50s
 Diana Wache, Khadija Compaoré
 Kim Höser, Linda Gossen
 Diana Wache, Cécile SAUTTER
