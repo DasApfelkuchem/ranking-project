@@ -910,3 +910,23 @@ tbody tr:hover {
     align-items: flex-start;
   }
 }
+
+.site-header { justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.site-nav { display: flex; gap: 8px; }
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+}
+.nav-link:hover,
+.nav-link:focus { border-color: rgba(98, 200, 255, 0.56); }
+.nav-link.active {
+  border-color: rgba(98, 200, 255, 0.56);
+  background: rgba(98, 200, 255, 0.14);
+  font-weight: 600;
+}
+
+.col-sep { border-left: 2px solid rgba(98, 200, 255, 0.28); }

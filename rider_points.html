@@ -6,7 +6,7 @@
     <title>Rider ranking points details</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-site="ranking">
     <header class="site-header">
       <div class="site-brand">
         <a href="./" class="logo-link">
@@ -17,8 +17,9 @@
           </div>
         </a>
       </div>
-      <nav class="site-nav">
-        <a href="index.html" class="ghost-button" id="rider-points-back-link">Back to rider profile</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html" class="nav-link active">Rankings</a>
+        <a href="results.html" class="nav-link">Results</a>
       </nav>
     </header>
 
@@ -28,6 +29,9 @@
           <div>
             <h2 id="rider-points-title">Rider points details</h2>
             <p id="rider-points-summary">Loading…</p>
+          </div>
+          <div class="toolbar-controls">
+            <a href="index.html" class="ghost-button" id="rider-points-back-link">Back to rider profile</a>
           </div>
         </div>
         <div class="table-wrapper">

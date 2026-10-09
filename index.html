@@ -6,7 +6,7 @@
     <title>Flatland World Ranking</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-site="ranking">
     <header class="site-header">
       <div class="site-brand">
         <a href="./" class="logo-link">
@@ -17,6 +17,10 @@
           </div>
         </a>
       </div>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html" class="nav-link active">Rankings</a>
+        <a href="results.html" class="nav-link">Results</a>
+      </nav>
     </header>
     <main class="page">
       <section class="stats" aria-label="Ranking summary">
@@ -27,10 +31,6 @@
         <article class="stat-card">
           <span class="label">Events counted</span>
           <strong id="event-count">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="label">Battles recorded</span>
-          <strong id="battle-count">0</strong>
         </article>
       </section>
 
@@ -103,7 +103,7 @@
         <div class="toolbar">
           <div>
             <h2 id="profile-title">Rider profile</h2>
-            <p id="profile-description">Click a rider's name to see their past event placements.</p>
+            <p id="profile-description">Click a rider's name to see their event results and ranking points.</p>
           </div>
           <div class="toolbar-controls">
             <a id="profile-points-link" class="ghost-button" href="rider_points.html">Detailed ranking points</a>
@@ -116,7 +116,7 @@
         </div>
         <div class="profile-chart-wrapper">
           <h3 style="margin:8px 0 6px;">Rank over time</h3>
-          <div id="profile-chart" style="width:100%;height:180px"></div>
+          <div id="profile-chart" style="width:100%;overflow-x:auto"></div>
         </div>
         <div class="table-wrapper">
           <table id="profile-events-table">
@@ -133,26 +133,6 @@
             </tbody>
           </table>
         </div>
-        <div class="table-wrapper">
-          <div class="battle-profile-header">
-            <p id="profile-battle-summary">Select a rider to see their battle history.</p>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th><button class="profile-sort-button" data-key="event">Event</button></th>
-                <th><button class="profile-sort-button" data-key="round">Round</button></th>
-                <th><button class="profile-sort-button" data-key="opponent">Opponent</button></th>
-                <th><button class="profile-sort-button" data-key="result">Result</button></th>
-              </tr>
-            </thead>
-            <tbody id="profile-battle-body">
-              <tr>
-                <td colspan="4" class="status">Select a rider to see their battle history.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
 
       <section class="panel" id="ranking-panel" aria-labelledby="ranking-title">
@@ -164,7 +144,7 @@
           <div class="toolbar-controls">
             <label class="search-field">
               <span>Search</span>
-              <input id="search-input" type="search" placeholder="Search riders or events" autocomplete="off" />
+              <input id="search-input" type="search" placeholder="Search riders" autocomplete="off" />
             </label>
             <label class="year-picker">
               <span>Year</span>
@@ -177,12 +157,6 @@
                 <path fill="currentColor" d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.14.56-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.49.38 1.04.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.14-.56 1.63-.94l2.39.96c.24.1.46.02.6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>
               </svg>
             </button>
-            <label class="view-picker">
-              <span>View</span>
-              <select id="view-select">
-                <option value="world">All</option>
-              </select>
-            </label>
           </div>
         </div>
         <div class="table-wrapper">
@@ -204,64 +178,8 @@
             </tbody>
           </table>
         </div>
-        <div class="table-wrapper hidden" id="event-prelim-wrapper">
-          <h3 class="section-subtitle">Preliminary results</h3>
-          <table>
-            <thead>
-              <tr id="event-prelim-head-row">
-                <th>Place</th>
-                <th>Rider</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody id="event-prelim-body">
-              <tr>
-                <td colspan="3" class="status">No preliminary results available.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-wrapper hidden" id="event-battle-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Round</th>
-                <th>Winner</th>
-                <th>Loser</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="event-battle-body">
-              <tr>
-                <td colspan="4" class="status">No battle details available.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
     </main>
-
-    <div class="modal-overlay hidden" id="battle-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="battle-detail-title">
-      <div class="modal-card battle-detail-card">
-        <h2 id="battle-detail-title">Battle details</h2>
-        <p class="modal-subtitle" id="battle-detail-subtitle"></p>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th id="battle-detail-winner-header">Winner</th>
-                <th id="battle-detail-loser-header">Loser</th>
-              </tr>
-            </thead>
-            <tbody id="battle-detail-body"></tbody>
-          </table>
-        </div>
-        <div class="modal-actions">
-          <button type="button" id="battle-detail-close" class="ghost-button">Close</button>
-        </div>
-      </div>
-    </div>
 
     <div class="modal-overlay hidden" id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
       <div class="modal-card">

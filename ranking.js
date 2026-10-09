@@ -104,6 +104,8 @@ function computeRiderTotalPoints(scoreEntries) {
   const sortedScores = [...penalizedScores].sort((a, b) => b - a);
   return sortedScores.reduce((total, score, index) => total + score * (BEST_RESULT_MULTIPLIERS[index] ?? 0), 0);
 }
+// 'ranking' (index.html, rider_points.html) or 'results' (results.html); set via <body data-site>.
+const IS_RESULTS_SITE = document.body?.dataset?.site === 'results';
 const GENDERS = ['male', 'female'];
 let currentGender = 'male';
 let currentYearComparison = '2026'; // default to 2026
@@ -144,6 +146,7 @@ function escapeXml(s) {
 }
 let currentProfileRider = null;
 const profileBattleSort = { key: 'event', direction: 'asc' };
+const prelimSort = { key: 'place', direction: 'asc' };
 const SETTINGS_STORAGE_KEY = 'ranking-settings-v1';
 const RIDER_NOTES_STORAGE_KEY = 'ranking-rider-notes-v1';
 const defaultSettings = {
@@ -801,17 +804,18 @@ async function loadRanking() {
           }
 
           const round = getBattleRound(event.name, index);
-          addRiderBattle(winner, event.name, round, loser, 'Won', gender);
-          addRiderBattle(loser, event.name, round, winner, 'Lost', gender);
-
-          battles.push({
+          const battle = {
             round,
             winner,
             loser,
             rawWinner,
             rawLoser,
             videoUrl
-          });
+          };
+          addRiderBattle(winner, event.name, round, loser, 'Won', gender, battle);
+          addRiderBattle(loser, event.name, round, winner, 'Lost', gender, battle);
+
+          battles.push(battle);
         });
 
         eventBattlesByGenderForEvent[gender] = battles;
@@ -1038,7 +1042,7 @@ function populateViewSelector() {
   const select = document.getElementById('view-select');
   if (!select) return;
 
-  select.innerHTML = '<option value="world">All</option>';
+  select.innerHTML = IS_RESULTS_SITE ? '' : '<option value="world">All</option>';
 
   // Sort events by year and month (newest first) when populating the selector.
   const filesSortedByYear = [...EVENT_FILES].sort((a, b) => getEventSortValue(b.name) - getEventSortValue(a.name));
@@ -1126,10 +1130,12 @@ function readRouteFromUrl() {
   const yearParam = params.get('year');
 
   let view = 'world';
-  if (viewParam === 'event' && eventParam && isKnownEvent(eventParam)) {
-    view = eventParam;
-  } else if (viewParam !== 'world' && eventParam && isKnownEvent(eventParam)) {
-    view = eventParam;
+  if (IS_RESULTS_SITE) {
+    // The results site always shows an event; default to the most recent one.
+    const latest = [...EVENT_FILES].sort((a, b) => getEventSortValue(b.name) - getEventSortValue(a.name))[0];
+    view = eventParam && isKnownEvent(eventParam) ? eventParam : (latest ? latest.name : 'world');
+  } else {
+    view = 'world';
   }
 
   return {
@@ -1175,6 +1181,16 @@ function buildRiderPointsUrl(rider, route) {
     }
   }
 
+  return url.toString();
+}
+
+function buildResultsEventUrl(eventName) {
+  const url = new URL('results.html', window.location.href);
+  url.searchParams.set('view', 'event');
+  url.searchParams.set('event', eventName);
+  if (currentGender === 'male' || currentGender === 'female') {
+    url.searchParams.set('gender', currentGender);
+  }
   return url.toString();
 }
 
@@ -1483,11 +1499,8 @@ function setRankingHeaders(type) {
   } else {
     thead.innerHTML = `
       <tr>
-        <th>Rank</th>
-        <th>Rider</th>
         <th>Place</th>
-        <th>Raw points</th>
-        <th>Decay</th>
+        <th>Rider</th>
       </tr>
     `;
   }
@@ -1731,15 +1744,6 @@ function renderEvent(eventName) {
   if (!body || !battleWrapper || !battleBody) return;
 
   const eventEntries = eventResults.get(eventName)?.[currentGender] || [];
-  // If a rider profile is open, compute their top-5 events so we can highlight their row in this event view
-  let profileTop5 = new Set();
-  if (currentProfileRider) {
-    const history = riderHistoryByGender[currentGender].get(currentProfileRider) || [];
-    // Use decayed rawPoints (displayed points) when ranking top-5
-    const scores = history.map((e) => ({ event: e.event, score: e.rawPoints ?? e.rawPointsBeforeDecay ?? 0 }));
-    scores.sort((a, b) => b.score - a.score);
-    profileTop5 = new Set(scores.slice(0, 5).map((x) => x.event));
-  }
   const visibleEntries = currentSearch
     ? eventEntries.filter((entry) => entry.rider.toLowerCase().includes(currentSearch))
     : eventEntries;
@@ -1747,51 +1751,88 @@ function renderEvent(eventName) {
   body.innerHTML = '';
 
   if (visibleEntries.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" class="status">No riders match your search.</td></tr>';
+    body.innerHTML = '<tr><td colspan="2" class="status">No riders match your search.</td></tr>';
   } else {
-    visibleEntries.forEach((entry) => {
-      const isTopForProfile = currentProfileRider && entry.rider === currentProfileRider && profileTop5.has(eventName);
+    // Split into side-by-side Place/Rider blocks to use the horizontal space.
+    const colCount = IS_RESULTS_SITE ? (visibleEntries.length >= 30 ? 3 : visibleEntries.length >= 12 ? 2 : 1) : 1;
+    const thead = document.getElementById('ranking-thead');
+    if (thead) {
+      thead.innerHTML = `<tr>${Array.from({ length: colCount }, (_, i) => `<th class="${i > 0 ? 'col-sep' : ''}">Place</th><th>Rider</th>`).join('')}</tr>`;
+    }
+    const rowsPerCol = Math.ceil(visibleEntries.length / colCount);
+    for (let r = 0; r < rowsPerCol; r++) {
       const row = document.createElement('tr');
-      const placeClass = entry.place === 1
-        ? 'podium-gold'
-        : entry.place === 2
-          ? 'podium-silver'
-          : entry.place === 3
-            ? 'podium-bronze'
-            : '';
-
-      // Compute display decay relative to the current year (live view)
-      const referenceYear = new Date().getFullYear();
-      const entryYear = entry.eventYear || null;
-      const decayMultiplierDisplay = entryYear && entryYear < referenceYear ? Math.pow(seasondecay, referenceYear - entryYear) : 1;
-      const rawPointsDisplay = (entry.rawPointsBeforeDecay || 0) * decayMultiplierDisplay;
-
-      row.innerHTML = `
-        <td class="rank">${entry.place}</td>
-        <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
-        <td class="${placeClass}">${entry.place}</td>
-        <td>${rawPointsDisplay.toFixed(2)}</td>
-        <td>×${decayMultiplierDisplay.toFixed(2)}</td>
-      `;
-      if (isTopForProfile) {
-        row.classList.add('profile-top-five');
+      for (let c = 0; c < colCount; c++) {
+        const entry = visibleEntries[c * rowsPerCol + r];
+        if (!entry) {
+          row.innerHTML += `<td class="${c > 0 ? 'col-sep' : ''}"></td><td></td>`;
+          continue;
+        }
+        const placeClass = entry.place === 1
+          ? 'podium-gold'
+          : entry.place === 2
+            ? 'podium-silver'
+            : entry.place === 3
+              ? 'podium-bronze'
+              : '';
+        row.innerHTML += `
+          <td class="rank ${placeClass} ${c > 0 ? 'col-sep' : ''}">${entry.place}</td>
+          <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
+        `;
       }
       body.appendChild(row);
-    });
+    }
   }
 
   const battles = eventBattles.get(eventName)?.[currentGender] || [];
 
   if (prelimWrapper && prelimBody) {
-    const prelimEntries = eventPrelimResults.get(eventName)?.[currentGender] || [];
+    const prelimEntries = [...(eventPrelimResults.get(eventName)?.[currentGender] || [])];
     const prelimHeadRow = document.getElementById('event-prelim-head-row');
     // Not every event's preliminary results include a per-category score breakdown
     // (e.g. Difficulty/Variety/Fullness/Style); only add those columns when present.
     const categoryLabels = prelimEntries.find((entry) => entry.categoryScores?.length)?.categoryScores.map((c) => c.label) || [];
     const hasPrelimVideos = prelimEntries.some((entry) => entry.videoUrl);
+
+    const sortKey = prelimSort.key;
+    const sortValue = (entry) => {
+      if (sortKey === 'place') return entry.place;
+      if (sortKey === 'score') return Number.isFinite(entry.score) ? entry.score : null;
+      const v = entry.categoryScores?.[Number(sortKey.slice(4))]?.value;
+      return Number.isFinite(v) ? v : null;
+    };
+    prelimEntries.sort((a, b) => {
+      const va = sortValue(a);
+      const vb = sortValue(b);
+      if (va == null && vb == null) return a.place - b.place;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      const diff = prelimSort.direction === 'asc' ? va - vb : vb - va;
+      return diff !== 0 ? diff : a.place - b.place;
+    });
+
     if (prelimHeadRow) {
-      const categoryHeaders = categoryLabels.map((label) => `<th>${label}</th>`).join('');
-      prelimHeadRow.innerHTML = `<th>Place</th><th>Rider</th><th>Score</th>${categoryHeaders}${hasPrelimVideos ? '<th>Video</th>' : ''}`;
+      const sortHeader = (key, label) => {
+        const arrow = prelimSort.key === key ? (prelimSort.direction === 'asc' ? ' ▲' : ' ▼') : '';
+        return `<th><button class="sort-button prelim-sort-button" data-key="${key}">${label}${arrow}</button></th>`;
+      };
+      const categoryHeaders = categoryLabels.map((label, i) => sortHeader(`cat-${i}`, label)).join('');
+      prelimHeadRow.innerHTML = `${sortHeader('place', 'Place')}<th>Rider</th>${sortHeader('score', 'Score')}${categoryHeaders}${hasPrelimVideos ? '<th>Video</th>' : ''}`;
+      if (!prelimHeadRow.dataset.sortBound) {
+        prelimHeadRow.dataset.sortBound = 'true';
+        prelimHeadRow.addEventListener('click', (e) => {
+          const button = e.target.closest('.prelim-sort-button');
+          if (!button) return;
+          const key = button.getAttribute('data-key');
+          if (prelimSort.key === key) {
+            prelimSort.direction = prelimSort.direction === 'desc' ? 'asc' : 'desc';
+          } else {
+            prelimSort.key = key;
+            prelimSort.direction = key === 'place' ? 'asc' : 'desc';
+          }
+          renderEvent(getCurrentViewSelection());
+        });
+      }
     }
     if (prelimEntries.length > 0) {
       prelimBody.innerHTML = '';
@@ -1956,9 +1997,9 @@ function getBattleRound(eventName, index) {
   return 'Lower-Rounds';
 }
 
-function addRiderBattle(rider, eventName, round, opponent, result, gender = 'male') {
+function addRiderBattle(rider, eventName, round, opponent, result, gender = 'male', battle = null) {
   const history = riderBattlesByGender[gender].get(rider) || [];
-  history.push({ event: eventName, round, opponent, result });
+  history.push({ event: eventName, round, opponent, result, battle });
   riderBattlesByGender[gender].set(rider, history);
 }
 
@@ -2169,24 +2210,29 @@ function renderProfileBattleHistory(rider) {
   profileBattleBody.innerHTML = '';
 
   if (sortedBattles.length === 0) {
-    profileBattleBody.innerHTML = `<tr><td colspan="4" class="status">No battle history available.</td></tr>`;
+    profileBattleBody.innerHTML = `<tr><td colspan="5" class="status">No battle history available.</td></tr>`;
     profileBattleSummary.textContent = 'No battles recorded.';
     return;
   }
 
-  sortedBattles.forEach((battle) => {
+  sortedBattles.forEach((entry) => {
     const row = document.createElement('tr');
-    const resultClass = battle.result === 'Won'
+    const resultClass = entry.result === 'Won'
       ? 'battle-result-won'
-      : battle.result === 'Lost'
+      : entry.result === 'Lost'
         ? 'battle-result-lost'
         : '';
+    const videoUrl = entry.battle?.videoUrl || entry.battle?.detail?.videoUrl;
+    const videoHtml = videoUrl
+      ? `<a class="battle-video-link" href="${escapeXml(videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch battle video">🎥</a>`
+      : '';
 
     row.innerHTML = `
-      <td>${battle.event}</td>
-      <td>${battle.round}</td>
-      <td>${battle.opponent}</td>
-      <td class="${resultClass}">${battle.result}</td>
+      <td>${entry.event}</td>
+      <td>${entry.round}</td>
+      <td>${entry.opponent}</td>
+      <td class="${resultClass}">${entry.result}</td>
+      <td>${videoHtml}</td>
     `;
     profileBattleBody.appendChild(row);
   });
@@ -2291,6 +2337,10 @@ function showRiderProfile(rider) {
       button.addEventListener('click', () => {
         const eventName = button.getAttribute('data-event');
         if (!eventName) return;
+        if (!IS_RESULTS_SITE) {
+          window.location.href = buildResultsEventUrl(eventName);
+          return;
+        }
         navigateToRoute({
           view: eventName,
           gender: currentGender,
@@ -2705,7 +2755,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const viewSelect = document.getElementById('view-select');
       const activeView = viewSelect ? viewSelect.value : 'world';
 
-      if (currentSearch) {
+      if (currentSearch && IS_RESULTS_SITE) {
         const matchingEvent = EVENT_FILES.find((event) => event.name.toLowerCase().includes(currentSearch));
         if (matchingEvent && activeView !== matchingEvent.name) {
           if (viewSelect) {
