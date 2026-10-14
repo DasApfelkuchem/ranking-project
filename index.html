@@ -12,11 +12,24 @@
         <a href="./" class="logo-link">
           <img src="assets/iuf-mark.png" alt="IUF mark" class="brand-mark" />
           <div class="logo-text">
-            <span class="logo-main">FLATLAND</span>
+            <span class="logo-main" data-discipline-label>FLATLAND</span>
             <span class="logo-sub">RANKINGS</span>
           </div>
         </a>
       </div>
+      <label class="discipline-picker">
+        <span>Discipline</span>
+        <select data-discipline-select aria-label="Select discipline">
+          <optgroup label="Urban">
+            <option value="flatland">Flatland</option>
+            <option value="street">Street</option>
+            <option value="trial">Trial</option>
+          </optgroup>
+          <optgroup label="Freestyle">
+            <option value="x-style">X-Style</option>
+          </optgroup>
+        </select>
+      </label>
       <nav class="site-nav" aria-label="Main">
         <a href="index.html" class="nav-link active">Rankings</a>
         <a href="results.html" class="nav-link">Results</a>
@@ -52,7 +65,7 @@
               <h3>Visible columns</h3>
               <label class="setting-item"><input type="checkbox" id="show-points" checked /><span>Points</span></label>
               <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
-              <label class="setting-item"><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
+              <label class="setting-item" data-battle-only><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
               <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
             </div>
             <div class="settings-card">
@@ -86,6 +99,52 @@
               <div id="rider-sort-note" class="rider-sort-note hidden"></div>
             </div>
           </div>
+          <section class="settings-card results-builder-card" aria-labelledby="results-builder-title">
+            <div>
+              <h3 id="results-builder-title">Generate results text file</h3>
+              <p class="settings-card-hint">Enter one rider per line as <code>Rider Name</code>, <code>Rider Name Score1 Score2</code>, or <code>Placement. [Rider ID] Rider Name Score1 Score2</code>. A numeric rider ID after the placement is ignored. The first round is the final; riders in higher rounds take priority.</p>
+              <p id="results-builder-score-format" class="settings-card-hint"></p>
+            </div>
+            <div class="round-tabs" role="tablist" aria-label="Result file sections">
+              <button class="round-tab-button active" type="button" data-results-builder-tab="results" role="tab" aria-selected="true">Results</button>
+              <button class="round-tab-button" type="button" data-results-builder-tab="battles" role="tab" aria-selected="false" data-battle-only>Battles</button>
+            </div>
+            <div id="results-builder-results-panel" data-results-builder-panel="results">
+              <div class="results-builder-event-fields">
+                <label class="setting-item"><span>Event code</span><input id="results-event-code" type="text" list="known-event-codes" autocomplete="off" placeholder="Unicon" /></label>
+                <datalist id="known-event-codes"></datalist>
+                <label class="setting-item"><span>Year</span><input id="results-event-year" type="number" min="2000" max="9999" step="1" placeholder="2026" /></label>
+              </div>
+              <div class="results-builder-genders">
+                <section class="results-builder-gender" aria-labelledby="male-results-builder-title">
+                  <h4 id="male-results-builder-title">Male</h4>
+                  <div class="round-tabs" id="male-round-tabs" role="tablist" aria-label="Male result rounds"></div>
+                  <div id="male-round-panels"></div>
+                  <button id="add-male-round" class="ghost-button" type="button">Add lower round</button>
+                </section>
+                <section class="results-builder-gender" aria-labelledby="female-results-builder-title">
+                  <h4 id="female-results-builder-title">Female</h4>
+                  <div class="round-tabs" id="female-round-tabs" role="tablist" aria-label="Female result rounds"></div>
+                  <div id="female-round-panels"></div>
+                  <button id="add-female-round" class="ghost-button" type="button">Add lower round</button>
+                </section>
+              </div>
+            </div>
+            <div id="results-builder-battles-panel" class="hidden" data-results-builder-panel="battles" data-battle-only>
+              <p class="settings-card-hint">Enter one battle per line as <code>Winning Rider, winning scores, Losing Rider, losing scores</code>. Scores in each group are Difficulty, Variety, Fullness, Style, Battling, Last trick.</p>
+              <div class="results-builder-genders">
+                <label class="results-builder-gender"><span>Male battles</span><textarea id="male-battles-input" class="rider-sort-textarea" rows="8" placeholder="Winner Name, 95 24, Loser Name, 87 18"></textarea></label>
+                <label class="results-builder-gender"><span>Female battles</span><textarea id="female-battles-input" class="rider-sort-textarea" rows="8" placeholder="Winner Name, 95 24, Loser Name, 87 18"></textarea></label>
+              </div>
+            </div>
+            <div class="results-builder-actions">
+              <button id="generate-results-text" class="primary-button" type="button">Generate results text file</button>
+              <button id="send-results-text" class="ghost-button" type="button">Send to maintainer</button>
+              <span id="results-builder-status" class="rider-sort-note hidden" aria-live="polite"></span>
+            </div>
+            <label class="rider-sort-label" for="results-text-preview">Preview</label>
+            <textarea id="results-text-preview" class="rider-sort-textarea" rows="12" readonly placeholder="Generated results text will appear here"></textarea>
+          </section>
           <div id="event-strength-wrapper" class="hidden" style="margin-top:16px;">
             <h3>Male events</h3>
             <div id="event-strength-chart-male" style="width:100%;overflow:auto;"></div>
@@ -203,6 +262,7 @@
       </div>
     </div>
 
+    <script src="discipline-menu.js"></script>
     <script src="ranking.js"></script>
   </body>
 </html>

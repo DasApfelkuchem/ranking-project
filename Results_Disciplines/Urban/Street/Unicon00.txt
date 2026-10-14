@@ -1,0 +1,9 @@
+@scores Difficulty, Variety, Flow, Fullness, Besttrick, Total
+1. Jelle, 1 5 3 5 9 20
+2. Ian, 4 0 3 9 5 30
+3. Fett, 9 7 6 3 5 20
+4. Marvin Henke, 8 - 91 3 4 100
+-
+1. fett, 1 - - - - 10;
+|
+;

@@ -8,6 +8,7 @@ const EUCW = 2.5;
 const BUC = 10;
 const CFM = 10.5;
 const LAUCC = 1;
+const ROC = 0;
 
 // Map event code -> typical month (decimal allowed, e.g. 7.5)
 const EVENT_MONTHS = {
@@ -16,64 +17,113 @@ const EVENT_MONTHS = {
   EUCS: Number(EUCS) || 0,
   NAUCC: Number(NAUCC) || 0,
   EUCW: Number(EUCW) || 0,
+  ROC: Number(ROC) || 0,
   BUC: Number(BUC) || 0,
   CFM: Number(CFM) || 0
 };
 
-const EVENT_FILES = [
-  { name: 'Unicon24', file: 'event results/Unicon24.txt', weight: 3 },
-  { name: 'Unicon26', file: 'event results/Unicon26.txt', weight: 3 },
-  { name: 'Unicon22', file: 'event results/Unicon22.txt', weight: 3 },
-  { name: 'Unicon18', file: 'event results/Unicon18.txt', weight: 3 },
-  { name: 'Unicon16', file: 'event results/Unicon16.txt', weight: 3},
-  { name: 'Unicon14', file: 'event results/Unicon14.txt', weight: 3 },
-  { name: 'Unicon12', file: 'event results/Unicon12.txt', weight: 3 },
-  { name: 'Unicon10', file: 'event results/Unicon10.txt', weight: 3 },
+const FLATLAND_EVENT_FILES = [
+  { name: 'Unicon24', file: 'Flatland/Unicon24.txt', weight: 3 },
+  { name: 'Unicon26', file: 'Flatland/Unicon26.txt', weight: 3 },
+  { name: 'Unicon22', file: 'Flatland/Unicon22.txt', weight: 3 },
+  { name: 'Unicon18', file: 'Flatland/Unicon18.txt', weight: 3 },
+  { name: 'Unicon16', file: 'Flatland/Unicon16.txt', weight: 3 },
+  { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: 3 },
+  { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: 3 },
+  { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: 3 },
 
-  { name: 'EUCW26', file: 'event results/EUCW26.txt', weight: 2 },
-  { name: 'EUCW25', file: 'event results/EUCW25.txt', weight: 2 },
-  { name: 'EUCW24', file: 'event results/EUCW24.txt', weight: 2},
-  { name: 'EUCW20', file: 'event results/EUCW20.txt', weight: 2 },
-  { name: 'EUCW19', file: 'event results/EUCW19.txt', weight: 2 },
-  { name: 'EUCW18', file: 'event results/EUCW18.txt', weight: 2 },
-  { name: 'EUCW17', file: 'event results/EUCW17.txt', weight: 2 },
-  { name: 'EUCW16', file: 'event results/EUCW16.txt', weight: 2 },
-  { name: 'EUCW14', file: 'event results/EUCW14.txt', weight: 2 },
+  { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: 2 },
+  { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: 2 },
+  { name: 'EUCW24', file: 'Flatland/EUCW24.txt', weight: 2 },
+  { name: 'EUCW20', file: 'Flatland/EUCW20.txt', weight: 2 },
+  { name: 'EUCW19', file: 'Flatland/EUCW19.txt', weight: 2 },
+  { name: 'EUCW18', file: 'Flatland/EUCW18.txt', weight: 2 },
+  { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: 2 },
+  { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: 2 },
+  { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: 2 },
 
-  { name: 'EUCS23', file: 'event results/EUCS23.txt', weight: 2 },
-  { name: 'EUCS25', file: 'event results/EUCS25.txt', weight: 2 },
-  { name: 'EUCS15', file: 'event results/EUCS15.txt', weight: 2 },
-  { name: 'EUCS15', file: 'event results/EUCS15.txt', weight: 2 },
+  { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: 2 },
+  { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: 2 },
+  { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: 2 },
 
-  { name: 'CFM25', file: 'event results/CFM25.txt', weight: 1 },
-  { name: 'CFM24', file: 'event results/CFM24.txt', weight: 1 },
+  { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: 1 },
+  { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: 1 },
 
-  { name: 'NAUCC26', file: 'event results/NAUCC26.txt', weight: 2 },
-  { name: 'NAUCC25', file: 'event results/NAUCC25.txt', weight: 2 },
-  { name: 'NAUCC23', file: 'event results/NAUCC23.txt', weight: 2 },
-  { name: 'NAUCC22', file: 'event results/NAUCC22.txt', weight: 2 },
-  { name: 'NAUCC19', file: 'event results/NAUCC19.txt', weight: 2 },
-  { name: 'NAUCC18', file: 'event results/NAUCC18.txt', weight: 2 },
-  { name: 'NAUCC17', file: 'event results/NAUCC17.txt', weight: 2 },
-  { name: 'NAUCC16', file: 'event results/NAUCC16.txt', weight: 2 },
-  { name: 'NAUCC15', file: 'event results/NAUCC15.txt', weight: 2 },
-  { name: 'NAUCC14', file: 'event results/NAUCC14.txt', weight: 2 },
-  { name: 'NAUCC13', file: 'event results/NAUCC13.txt', weight: 2 },
+  { name: 'NAUCC26', file: 'Flatland/NAUCC26.txt', weight: 2 },
+  { name: 'NAUCC25', file: 'Flatland/NAUCC25.txt', weight: 2 },
+  { name: 'NAUCC23', file: 'Flatland/NAUCC23.txt', weight: 2 },
+  { name: 'NAUCC22', file: 'Flatland/NAUCC22.txt', weight: 2 },
+  { name: 'NAUCC19', file: 'Flatland/NAUCC19.txt', weight: 2 },
+  { name: 'NAUCC18', file: 'Flatland/NAUCC18.txt', weight: 2 },
+  { name: 'NAUCC17', file: 'Flatland/NAUCC17.txt', weight: 2 },
+  { name: 'NAUCC16', file: 'Flatland/NAUCC16.txt', weight: 2 },
+  { name: 'NAUCC15', file: 'Flatland/NAUCC15.txt', weight: 2 },
+  { name: 'NAUCC14', file: 'Flatland/NAUCC14.txt', weight: 2 },
+  { name: 'NAUCC13', file: 'Flatland/NAUCC13.txt', weight: 2 },
 
-  { name: 'LAUCC25', file: 'event results/LAUCC25.txt', weight: 2 },
+  { name: 'LAUCC25', file: 'Flatland/LAUCC25.txt', weight: 2 },
 
-  { name: 'GUC25', file: 'event results/GUC25.txt', weight: 1.0 },
-  { name: 'GUC24', file: 'event results/GUC24.txt', weight: 1.0},
-  { name: 'GUC23', file: 'event results/GUC23.txt', weight: 1.0 },
-  { name: 'GUC22', file: 'event results/GUC22.txt', weight: 1.0 },
-  { name: 'GUC26', file: 'event results/GUC26.txt', weight: 1.0 },
+  { name: 'GUC25', file: 'Flatland/GUC25.txt', weight: 1 },
+  { name: 'GUC24', file: 'Flatland/GUC24.txt', weight: 1 },
+  { name: 'GUC23', file: 'Flatland/GUC23.txt', weight: 1 },
+  { name: 'GUC22', file: 'Flatland/GUC22.txt', weight: 1 },
+  { name: 'GUC26', file: 'Flatland/GUC26.txt', weight: 1 },
 
-  { name: 'BUC24', file: 'event results/BUC24.txt', weight: 1.0 },
-  { name: 'BUC25', file: 'event results/BUC25.txt', weight: 1.0 },
-  { name: 'BUC23', file: 'event results/BUC23.txt', weight: 1.0},
-  { name: 'BUC22', file: 'event results/BUC22.txt', weight: 1.0 }
+  { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: 0.5 },
+  { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: 0.5 },
+
+  { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: 1 },
+  { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: 1 },
+  { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: 1 },
+  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1 }
 ];
 
+const DISCIPLINES = {
+  flatland: {
+    label: 'Flatland',
+    resultsDirectory: 'Results_Disciplines/Urban',
+    eventFiles: FLATLAND_EVENT_FILES,
+    usesSimpleResults: false,
+    supportsBattles: true
+  },
+  street: {
+    label: 'Street',
+    resultsDirectory: 'Results_Disciplines/Urban',
+    eventFiles: [
+      { name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 },
+      { name: 'Unicon00', file: 'Street/Unicon00.txt', weight: 3 }
+    ],
+    usesSimpleResults: true,
+    supportsBattles: false
+  },
+  trial: {
+    label: 'Trial',
+    resultsDirectory: 'Results_Disciplines/Urban',
+    eventFiles: [{ name: 'Unicon26', file: 'Trial/Unicon26.txt', weight: 3 }],
+    usesSimpleResults: true,
+    supportsBattles: false
+  },
+  'x-style': {
+    label: 'X-Style',
+    resultsDirectory: 'Results_Disciplines/Freestyle/X-Style',
+    eventFiles: [
+      { name: 'Unicon24', file: 'Unicon24.txt', weight: 3 },
+      { name: 'Unicon22', file: 'Unicon22.txt', weight: 3 }
+    ],
+    usesSimpleResults: true,
+    supportsBattles: false
+  }
+};
+
+const requestedDiscipline = new URLSearchParams(window.location.search).get('discipline');
+const activeDisciplineKey = Object.prototype.hasOwnProperty.call(DISCIPLINES, requestedDiscipline)
+  ? requestedDiscipline
+  : 'flatland';
+const activeDiscipline = DISCIPLINES[activeDisciplineKey];
+const EVENT_FILES = activeDiscipline.eventFiles;
+
+const FLATLAND_RESULT_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style'];
+const FLATLAND_BATTLE_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Last trick'];
 const BEST_RESULT_MULTIPLIERS = [1,0.7,0.3,0.2,0.1];
 
 // Given a list of { score, event } contributions, halve scores that aren't a rider's best
@@ -135,6 +185,43 @@ function normalizeName(name) {
     return String(name).trim().toLowerCase();
   }
 }
+
+function splitRiderAndScores(value) {
+  // A ',' explicitly separates the rider name from the scores, e.g. "Jelle, 1 5 3 / 9".
+  // Anything after a '#' is a video link and is ignored here.
+  const text = String(value || '').split('#')[0];
+  const separatorIndex = text.indexOf(',');
+  if (separatorIndex !== -1) {
+    return {
+      rider: text.slice(0, separatorIndex).trim(),
+      scores: text.slice(separatorIndex + 1).trim().split(/[\s,]+/).filter(Boolean)
+    };
+  }
+
+  const parts = text.trim().split(/\s+/).filter(Boolean);
+  const scores = [];
+  // A lone "/" marks a score that was not given.
+  while (parts.length > 0 && /^(?:-?\d+(?:[.,]\d+)?(?:\/\d+(?:[.,]\d+)?)?|\/)$/.test(parts[parts.length - 1])) {
+    scores.unshift(parts.pop());
+  }
+  return { rider: parts.join(' '), scores };
+}
+
+// Optional first line of a gender's results listing the score names, e.g. "@scores Total, Difficulty".
+const SCORE_NAMES_PREFIX = '@scores';
+
+// Paste your Formspree form URL here, e.g. 'https://formspree.io/f/abcdwxyz'.
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/moejkbzp';
+
+function parseScoreNamesLine(line) {
+  const match = String(line || '').match(/^@scores\s+(.*)$/i);
+  return match ? match[1].split(',').map((name) => name.trim()).filter(Boolean) : null;
+}
+
+function removePlacementRiderId(value) {
+  return String(value || '').replace(/^\d+\s+/, '');
+}
+
 // Escape text for safe insertion into XML/SVG <title> elements
 function escapeXml(s) {
   return String(s || '')
@@ -217,7 +304,7 @@ function getVisibleWorldColumns() {
     { key: 'points', label: 'Points', visible: settings.showPoints, sortable: true },
     { key: 'wins', label: 'Wins', visible: settings.showWins, sortable: true },
     { key: 'podiums', label: 'Podiums', visible: settings.showPodiums, sortable: true },
-    { key: 'battles', label: 'Battles', visible: settings.showBattles, sortable: true }
+    { key: 'battles', label: 'Battles', visible: activeDiscipline.supportsBattles && settings.showBattles, sortable: true }
   ];
 }
 
@@ -593,6 +680,406 @@ function attachSettingsEvents() {
       }
     });
   }
+
+  setupResultsTextBuilder();
+}
+
+function setupResultsTextBuilder() {
+  const eventCodeInput = document.getElementById('results-event-code');
+  const eventYearInput = document.getElementById('results-event-year');
+  const knownEventCodes = document.getElementById('known-event-codes');
+  const preview = document.getElementById('results-text-preview');
+  const generateButton = document.getElementById('generate-results-text');
+  const status = document.getElementById('results-builder-status');
+  if (!eventCodeInput || !eventYearInput || !knownEventCodes || !preview || !generateButton) return;
+  const scoreFormatHint = document.getElementById('results-builder-score-format');
+  const scoreNameLists = {};
+  const scoreNamesStorageKey = `results-builder-score-names-${activeDisciplineKey}`;
+  if (scoreFormatHint) {
+    if (activeDisciplineKey === 'flatland') {
+      scoreFormatHint.textContent = 'Name each score in the Score names row above the input box, in the order the scores are entered. Category scores may use value/max notation, such as 24.5/30. Enter a single / for a score that was not given in that round.';
+    } else if (activeDisciplineKey === 'x-style') {
+      scoreFormatHint.textContent = 'For lower X-Style rounds, enter each rider’s place within that round. Matching places are tied and converted to overall event places after the riders in later rounds.';
+    } else {
+      scoreFormatHint.textContent = 'Optional scores are displayed in the order entered.';
+    }
+  }
+
+  const eventCodes = [...new Set(FLATLAND_EVENT_FILES.map((event) => parseEventNameYearPrefix(event.name).prefix))]
+    .sort((left, right) => left.localeCompare(right));
+  eventCodes.forEach((eventCode) => {
+    const option = document.createElement('option');
+    option.value = eventCode;
+    knownEventCodes.appendChild(option);
+  });
+
+  const builderTabButtons = Array.from(document.querySelectorAll('[data-results-builder-tab]'));
+  const builderTabPanels = Array.from(document.querySelectorAll('[data-results-builder-panel]'));
+  builderTabButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const selectedTab = button.getAttribute('data-results-builder-tab');
+      builderTabButtons.forEach((tabButton) => {
+        const isActive = tabButton === button;
+        tabButton.classList.toggle('active', isActive);
+        tabButton.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      builderTabPanels.forEach((panel) => {
+        panel.classList.toggle('hidden', panel.getAttribute('data-results-builder-panel') !== selectedTab);
+      });
+    });
+  });
+
+  const roundsByGender = { male: [], female: [] };
+
+  const prelimByGender = {};
+  const PRELIM_DEFAULT_NAMES = ['Total', ...PRELIM_SCORE_CATEGORIES].join(', ');
+
+  function activateRound(gender, activeRound) {
+    [...roundsByGender[gender], prelimByGender[gender]].filter(Boolean).forEach((round) => {
+      const isActive = round === activeRound;
+      round.button.classList.toggle('active', isActive);
+      round.button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      round.panel.classList.toggle('hidden', !isActive);
+    });
+  }
+
+  // Prelim results are written to the separate "<Event>_D.txt" detail file, which the
+  // results page shows above the battles.
+  function addPrelimRound(gender) {
+    const tabs = document.getElementById(`${gender}-round-tabs`);
+    const panels = document.getElementById(`${gender}-round-panels`);
+    if (!tabs || !panels) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'round-tab-button';
+    button.textContent = 'Prelim';
+    button.setAttribute('role', 'tab');
+
+    const panel = document.createElement('div');
+    panel.className = 'round-panel hidden';
+    panel.setAttribute('role', 'tabpanel');
+
+    const namesLabel = document.createElement('label');
+    namesLabel.className = 'setting-item';
+    const namesCaption = document.createElement('span');
+    namesCaption.textContent = 'Prelim score names (comma separated, first is the total)';
+    const namesInput = document.createElement('input');
+    namesInput.type = 'text';
+    namesInput.value = PRELIM_DEFAULT_NAMES;
+    namesLabel.append(namesCaption, namesInput);
+
+    const textarea = document.createElement('textarea');
+    textarea.rows = 10;
+    textarea.placeholder = '1. Rider Name, 84.7 24.5 18 16 15\nRider Name, 80.1 / 17 15 14';
+    textarea.setAttribute('aria-label', `${gender} prelim results`);
+    panel.append(namesLabel, textarea);
+
+    const prelim = { button, panel, textarea, namesInput };
+    prelimByGender[gender] = prelim;
+    tabs.appendChild(button);
+    panels.appendChild(panel);
+    button.addEventListener('click', () => activateRound(gender, prelim));
+  }
+
+  function addRound(gender) {
+    const index = roundsByGender[gender].length;
+    const roundName = index === 0 ? 'Final' : `Lower round ${index}`;
+    const tabs = document.getElementById(`${gender}-round-tabs`);
+    const panels = document.getElementById(`${gender}-round-panels`);
+    if (!tabs || !panels) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'round-tab-button';
+    button.textContent = roundName;
+    button.setAttribute('role', 'tab');
+
+    const panel = document.createElement('div');
+    panel.className = 'round-panel';
+    panel.setAttribute('role', 'tabpanel');
+
+    const textarea = document.createElement('textarea');
+    textarea.rows = 10;
+    textarea.placeholder = activeDisciplineKey === 'flatland'
+      ? '1. Rider Name 83.83 24.5/30 24/30 18.7/20 16.7/20'
+      : '1. Rider Name 95.5 24 18\nRider Name 83 21';
+    textarea.setAttribute('aria-label', `${gender} ${roundName} results`);
+    panel.appendChild(textarea);
+
+    const round = { button, panel, textarea };
+    roundsByGender[gender].push(round);
+    tabs.insertBefore(button, prelimByGender[gender]?.button || null);
+    panels.appendChild(panel);
+    button.addEventListener('click', () => activateRound(gender, round));
+    activateRound(gender, round);
+  }
+
+  function parseRound(text) {
+    return text.split(/\r?\n/).map((rawLine, index) => {
+      const line = rawLine.trim();
+      if (!line || line === '-') return null;
+
+      const placementMatch = line.match(/^(\d+)[.)]?\s+(.+)$/);
+      const explicitPlace = placementMatch ? Number(placementMatch[1]) : null;
+      const riderAndScores = placementMatch
+        ? removePlacementRiderId(placementMatch[2].trim())
+        : line;
+      const { rider, scores } = splitRiderAndScores(riderAndScores);
+      if (!rider) return null;
+
+      return {
+        rider,
+        place: explicitPlace ?? (index + 1),
+        scores
+      };
+    }).filter(Boolean);
+  }
+
+  function buildGenderResults(gender) {
+    const includedRiders = new Set();
+    const rounds = roundsByGender[gender].map((round) => {
+      const entries = parseRound(round.textarea.value).filter((entry) => {
+        const riderKey = normalizeName(entry.rider);
+        if (includedRiders.has(riderKey)) return false;
+        includedRiders.add(riderKey);
+        return true;
+      });
+      return entries;
+    }).filter((entries) => entries.length > 0);
+
+    if (activeDisciplineKey === 'x-style' && rounds.length > 1) {
+      let nextOverallPlace = rounds[0].length + 1;
+      for (let roundIndex = 1; roundIndex < rounds.length; roundIndex++) {
+        const entries = rounds[roundIndex];
+        const placeGroups = new Map();
+        entries.forEach((entry) => {
+          if (!placeGroups.has(entry.place)) placeGroups.set(entry.place, []);
+          placeGroups.get(entry.place).push(entry);
+        });
+
+        let place = nextOverallPlace;
+        const overallPlaceByEntry = new Map();
+        [...placeGroups.keys()].sort((a, b) => a - b).forEach((roundPlace) => {
+          const tiedEntries = placeGroups.get(roundPlace);
+          tiedEntries.forEach((entry) => {
+            overallPlaceByEntry.set(entry, place);
+          });
+          place += tiedEntries.length;
+        });
+        nextOverallPlace += entries.length;
+        rounds[roundIndex] = entries
+          .map((entry) => ({ ...entry, place: overallPlaceByEntry.get(entry) }))
+          .sort((a, b) => a.place - b.place);
+      }
+    }
+
+    const body = rounds
+      .map((entries) => entries.map((entry) => `${entry.place}. ${entry.rider}${entry.scores.length ? `, ${entry.scores.join(' ')}` : ''}`).join('\r\n'))
+      .join('\r\n-\r\n');
+    const names = getScoreNames(gender);
+    return body && names.length ? `${SCORE_NAMES_PREFIX} ${names.join(', ')}\r\n${body}` : body;
+  }
+
+  function getScoreNames(gender) {
+    return Array.from(scoreNameLists[gender].querySelectorAll('input'))
+      .map((input) => input.value.replace(/[,;|#]/g, ' ').trim())
+      .map((name) => name || '?');
+  }
+
+  function saveScoreNames(gender) {
+    try {
+      localStorage.setItem(`${scoreNamesStorageKey}-${gender}`, JSON.stringify(Array.from(scoreNameLists[gender].querySelectorAll('input')).map((i) => i.value)));
+    } catch (e) {
+      // storage unavailable; names are still written to the generated file
+    }
+  }
+
+  function addScoreNameInput(gender, value = '') {
+    const list = scoreNameLists[gender];
+    const row = document.createElement('div');
+    row.className = 'score-name-row';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.placeholder = `Score ${list.children.length + 1} name`;
+    input.setAttribute('aria-label', `${gender} score name`);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'ghost-button';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Remove score');
+    remove.addEventListener('click', () => {
+      row.remove();
+      saveScoreNames(gender);
+    });
+    input.addEventListener('input', () => saveScoreNames(gender));
+    row.append(input, remove);
+    list.appendChild(row);
+  }
+
+  // Builds the score-name row between the round tabs and the input boxes of one gender.
+  function setupScoreNames(gender) {
+    const panels = document.getElementById(`${gender}-round-panels`);
+    if (!panels) return;
+    const bar = document.createElement('div');
+    bar.className = 'score-names-builder';
+    const label = document.createElement('strong');
+    label.textContent = 'Score names';
+    const list = document.createElement('div');
+    list.className = 'score-names-list';
+    scoreNameLists[gender] = list;
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'ghost-button';
+    add.textContent = 'Add score';
+    add.addEventListener('click', () => {
+      addScoreNameInput(gender);
+      saveScoreNames(gender);
+    });
+    bar.append(label, list, add);
+    panels.parentNode.insertBefore(bar, panels);
+
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(`${scoreNamesStorageKey}-${gender}`) || 'null');
+    } catch (e) {
+      saved = null;
+    }
+    const defaults = activeDisciplineKey === 'flatland'
+      ? ['Total', ...FLATLAND_RESULT_SCORE_CATEGORIES]
+      : [];
+    (Array.isArray(saved) ? saved : defaults).forEach((name) => addScoreNameInput(gender, String(name)));
+  }
+
+  setupScoreNames('male');
+  setupScoreNames('female');
+
+  function buildBattleResults(gender) {
+    if (!activeDiscipline.supportsBattles) return '';
+    const input = document.getElementById(`${gender}-battles-input`);
+    if (!input) return '';
+
+    return input.value.split(/\r?\n/).map((rawLine, index) => {
+      const line = rawLine.trim();
+      if (!line) return null;
+      const parts = line.split(',').map((part) => part.trim());
+      if (parts.length !== 4 || parts.some((part) => !part)) {
+        throw new Error(`${gender} battle line ${index + 1} must contain winner, winner scores, loser, and loser scores.`);
+      }
+      const [winner, winnerScores, loser, loserScores] = parts;
+      return `${winner},${loser},${winnerScores},${loserScores}`;
+    }).filter(Boolean).join('\r\n');
+  }
+
+  function showStatus(message, warning = false) {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('hidden');
+    status.classList.toggle('has-warnings', warning);
+  }
+
+  addRound('male');
+  addRound('female');
+  if (activeDiscipline.supportsBattles) {
+    addPrelimRound('male');
+    addPrelimRound('female');
+  }
+
+  function buildPrelimResults(gender) {
+    const prelim = prelimByGender[gender];
+    if (!prelim) return '';
+    const entries = parseRound(prelim.textarea.value);
+    if (!entries.length) return '';
+    const names = prelim.namesInput.value.split(',').map((name) => name.replace(/[;|#]/g, ' ').trim()).filter(Boolean);
+    const lines = entries.map((entry) => `${entry.place}. ${entry.rider}${entry.scores.length ? `, ${entry.scores.join(', ')}` : ''}`);
+    return `${names.length ? `@prelim ${names.join(', ')}\r\n` : '@prelim Total\r\n'}${lines.join('\r\n')}`;
+  }
+
+  ['male', 'female'].forEach((gender) => {
+    const addRoundButton = document.getElementById(`add-${gender}-round`);
+    if (addRoundButton) {
+      addRoundButton.addEventListener('click', () => addRound(gender));
+    }
+  });
+
+  const sendButton = document.getElementById('send-results-text');
+  let lastGenerated = null;
+  if (sendButton) {
+    sendButton.addEventListener('click', async () => {
+      if (!lastGenerated) {
+        showStatus('Generate the results text file first, then send it.', true);
+        return;
+      }
+      if (!FORMSPREE_ENDPOINT) {
+        showStatus('Sending is not configured yet.', true);
+        return;
+      }
+      sendButton.disabled = true;
+      try {
+        const response = await fetch(FORMSPREE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            _subject: `New results file: ${lastGenerated.filename} (${activeDisciplineKey})`,
+            filename: lastGenerated.filename,
+            discipline: activeDisciplineKey,
+            content: lastGenerated.text
+          })
+        });
+        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+        showStatus(`Sent ${lastGenerated.filename} to the maintainer. Thank you!`);
+      } catch (error) {
+        showStatus(`Could not send the file: ${error.message}`, true);
+      } finally {
+        sendButton.disabled = false;
+      }
+    });
+  }
+
+  generateButton.addEventListener('click', () => {
+    const eventCode = eventCodeInput.value.trim();
+    const year = eventYearInput.value.trim();
+    if (!/^[A-Za-z]+$/.test(eventCode)) {
+      showStatus('Enter an event code containing letters only.', true);
+      return;
+    }
+    if (!/^\d{4}$/.test(year)) {
+      showStatus('Enter a four-digit year.', true);
+      return;
+    }
+
+    try {
+      const maleResults = buildGenderResults('male');
+      const femaleResults = buildGenderResults('female');
+      if (!maleResults && !femaleResults) {
+        showStatus('Enter at least one rider result before generating the file.', true);
+        return;
+      }
+
+      const maleBattles = [buildPrelimResults('male'), buildBattleResults('male')].filter(Boolean).join('\r\n');
+      const femaleBattles = [buildPrelimResults('female'), buildBattleResults('female')].filter(Boolean).join('\r\n');
+      const maleSection = `${maleResults};${maleBattles ? `\r\n${maleBattles}` : ''}`;
+      const femaleSection = `${femaleResults};${femaleBattles ? `\r\n${femaleBattles}` : ''}`;
+      const text = `${maleSection}\r\n|\r\n${femaleSection}\r\n`;
+      const filename = `${eventCode}${year.slice(-2)}.txt`;
+      preview.value = text;
+      lastGenerated = { filename, text };
+
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const download = document.createElement('a');
+      download.href = url;
+      download.download = filename;
+      document.body.appendChild(download);
+      download.click();
+      download.remove();
+      URL.revokeObjectURL(url);
+      showStatus(`Downloaded ${filename}.`);
+    } catch (error) {
+      showStatus(error.message, true);
+    }
+  });
 }
 
 // Collect riders not listed in riders_all.txt and produce a merged riders_all.txt for download.
@@ -699,15 +1186,17 @@ async function loadRanking() {
 
   eventResults.clear();
   eventBattles.clear();
+  eventPrelimResults.clear();
   riderHistoryByGender.male.clear();
   riderHistoryByGender.female.clear();
   riderBattlesByGender.male.clear();
   riderBattlesByGender.female.clear();
 
   for (const event of EVENT_FILES) {
-    const response = await fetch(event.file);
+    const eventFile = `${activeDiscipline.resultsDirectory}/${event.file}`;
+    const response = await fetch(eventFile);
     if (!response.ok) {
-      throw new Error(`Unable to load ${event.file}`);
+      throw new Error(`Unable to load ${eventFile}`);
     }
 
     const text = await response.text();
@@ -715,43 +1204,73 @@ async function loadRanking() {
     // Decay will be applied later relative to a snapshot or the current year (only to events older than the snapshot year).
     const yearMatch = String(event.name || '').match(/(\d{2})$/);
     const eventYear = yearMatch ? 2000 + Number(yearMatch[1]) : null;
-    const genderBlocks = text.split('|').map((part) => part.trim()).filter(Boolean);
+    const usesSimpleResults = activeDiscipline.usesSimpleResults && !text.includes('|');
+    const genderBlocks = usesSimpleResults
+      ? [text.trim()]
+      : text.split('|').map((part) => part.trim()).filter(Boolean);
     if (genderBlocks.length === 0) {
-      throw new Error(`Unable to parse gender sections in ${event.file}`);
+      throw new Error(`Unable to parse gender sections in ${eventFile}`);
     }
 
     const eventEntriesByGender = { male: [], female: [] };
     const eventBattlesByGenderForEvent = { male: [], female: [] };
+    const eventPrelimByGender = { male: [], female: [] };
 
     genderBlocks.forEach((block, index) => {
       const gender = GENDERS[index];
       if (!gender) return;
 
-      const sectionDelimiter = block.indexOf(';');
-      if (sectionDelimiter === -1) {
-        throw new Error(`Unable to parse results and battles in ${event.file} for ${gender} section.`);
+      let resultsText = block;
+      let battleText = '';
+      if (!usesSimpleResults) {
+        const sectionDelimiter = block.indexOf(';');
+        if (sectionDelimiter === -1) {
+          throw new Error(`Unable to parse results and battles in ${eventFile} for ${gender} section.`);
+        }
+        resultsText = block.slice(0, sectionDelimiter).trim();
+        battleText = block.slice(sectionDelimiter + 1).trim();
       }
-
-      const resultsText = block.slice(0, sectionDelimiter).trim();
-      const battleText = block.slice(sectionDelimiter + 1).trim();
+      let roundBreakBefore = false;
+      let scoreNames = [];
       const rawLines = resultsText
         .split(/\r?\n/)
         .map((item) => item.trim())
-        .filter(Boolean);
+        .reduce((lines, line) => {
+          if (!line) return lines;
+          const names = parseScoreNamesLine(line);
+          if (names) {
+            scoreNames = names;
+            return lines;
+          }
+          if (line === '-') {
+            roundBreakBefore = true;
+            return lines;
+          }
+          lines.push({ line, roundBreakBefore });
+          roundBreakBefore = false;
+          return lines;
+        }, []);
 
       if (rawLines.length === 0) {
         return;
       }
 
-      // Parse optional explicit place numbers at the start of a line.
-      // Examples supported: "1 Rider Name", "1. Rider Name", "1) Rider Name".
-        const parsed = rawLines.map((line) => {
-          const m = line.match(/^\s*(\d+)[\.)]?\s*(.+)$/);
-          if (m) {
-            return { name: m[2].trim(), explicitPlace: Number(m[1]) };
-          }
-          return { name: line, explicitPlace: null };
-        });
+      // Parse optional explicit places and trailing scores. Scores are retained in
+      // generated result files for display, but do not affect ranking points.
+      const parsed = rawLines.map(({ line, roundBreakBefore: startsNewRound }) => {
+        const placeMatch = line.match(/^\s*(\d+)[\.)]?\s*(.+)$/);
+        const explicitPlace = placeMatch ? Number(placeMatch[1]) : null;
+        const riderAndScores = placeMatch
+          ? removePlacementRiderId(placeMatch[2].trim())
+          : line;
+        const { rider, scores } = splitRiderAndScores(riderAndScores);
+        return {
+          name: rider,
+          explicitPlace,
+          scores,
+          startsNewRound
+        };
+      });
 
       const competitorCount = parsed.length;
       // Compute exponent so top place -> 100 points and last place -> 15 points
@@ -767,17 +1286,38 @@ async function loadRanking() {
           rawPointsBeforeDecay: baseRaw,
           decayMultiplier: null,
           originalName: item.name,
-          eventYear
+          eventYear,
+          startsNewRound: item.startsNewRound,
+          scores: item.scores,
+          scoreNames
         };
       });
 
       eventEntriesByGender[gender] = eventEntries;
       const eventRiderSet = new Set(eventEntries.map((e) => e.rider));
 
-      if (battleText) {
-        const battleLines = battleText
-          .split(/\r?\n/)
-          .map((item) => item.trim());
+      if (activeDiscipline.supportsBattles && battleText) {
+        // The battle section may also hold "@prelim Total, A, B" + prelim lines (starting with a
+        // place) and an "@battle A, B, ..." line naming the per-battle score categories.
+        let prelimNames = null;
+        let battleNames = BATTLE_DETAIL_CATEGORIES;
+        const inlinePrelim = [];
+        const battleLines = [];
+        battleText.split(/\r?\n/).map((item) => item.trim()).forEach((line) => {
+          const prelimHeader = line.match(/^@prelim\s+(.*)$/i);
+          const battleHeader = line.match(/^@battle\s+(.*)$/i);
+          if (prelimHeader) {
+            prelimNames = prelimHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
+          } else if (battleHeader) {
+            battleNames = battleHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
+          } else if (isPrelimLine(line)) {
+            const prelimEntry = parsePrelimLine(line, prelimNames ? prelimNames.slice(1) : PRELIM_SCORE_CATEGORIES);
+            if (prelimEntry) inlinePrelim.push(prelimEntry);
+          } else {
+            battleLines.push(line);
+          }
+        });
+        if (inlinePrelim.length) eventPrelimByGender[gender] = inlinePrelim;
 
         const battles = [];
         battleLines.forEach((line, index) => {
@@ -791,11 +1331,13 @@ async function loadRanking() {
           const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
 
           const parts = dataLine.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
-          if (parts.length !== 2) {
+          const detailedLength = 4 + battleNames.length * 2;
+          if (parts.length !== 2 && parts.length !== 4 && parts.length !== detailedLength) {
             throw new Error(`Invalid battle line in ${event.name}: ${line}`);
           }
 
-          const [rawWinner, rawLoser] = parts;
+          const isDetailed = parts.length === detailedLength && parts.length !== 4;
+          const [rawWinner, rawLoser, rawWinnerScores = '', rawLoserScores = ''] = parts;
           const winner = aliasMap.get(normalizeName(rawWinner)) || rawWinner;
           const loser = aliasMap.get(normalizeName(rawLoser)) || rawLoser;
           const missing = [winner, loser].filter((name) => !eventRiderSet.has(name));
@@ -810,8 +1352,22 @@ async function loadRanking() {
             loser,
             rawWinner,
             rawLoser,
+            winnerScores: !isDetailed && rawWinnerScores ? rawWinnerScores.split(/\s+/) : [],
+            loserScores: !isDetailed && rawLoserScores ? rawLoserScores.split(/\s+/) : [],
             videoUrl
           };
+          if (isDetailed) {
+            const scores = parts.slice(4);
+            battle.detail = {
+              winner,
+              loser,
+              votesWinner: Number(rawWinnerScores),
+              votesLoser: Number(rawLoserScores),
+              winnerScores: battleNames.map((label, i) => ({ label, ...parseBattleScoreField(scores[i]) })),
+              loserScores: battleNames.map((label, i) => ({ label, ...parseBattleScoreField(scores[i + battleNames.length]) })),
+              videoUrl
+            };
+          }
           addRiderBattle(winner, event.name, round, loser, 'Won', gender, battle);
           addRiderBattle(loser, event.name, round, winner, 'Lost', gender, battle);
 
@@ -868,17 +1424,24 @@ async function loadRanking() {
 
     eventResults.set(event.name, eventEntriesByGender);
     eventBattles.set(event.name, eventBattlesByGenderForEvent);
+    if (eventPrelimByGender.male.length || eventPrelimByGender.female.length) {
+      eventPrelimResults.set(event.name, eventPrelimByGender);
+    }
 
     // Optionally enrich with per-battle vote/score breakdowns and preliminary results,
     // loaded from an event-specific "detailed event PDF/<Event>_D.txt" file when present.
-    const detailText = await loadEventDetailText(event.name);
+    const detailText = activeDiscipline.supportsBattles
+      ? await loadEventDetailText(event.name)
+      : null;
     if (detailText) {
       try {
         const parsedDetail = parseEventDetailText(detailText);
-        eventPrelimResults.set(event.name, {
-          male: parsedDetail.male.prelim,
-          female: parsedDetail.female.prelim
-        });
+        if (!eventPrelimResults.has(event.name)) {
+          eventPrelimResults.set(event.name, {
+            male: parsedDetail.male.prelim,
+            female: parsedDetail.female.prelim
+          });
+        }
         GENDERS.forEach((gender) => {
           const battles = eventBattlesByGenderForEvent[gender] || [];
           const battleMap = parsedDetail[gender] ? parsedDetail[gender].battles : null;
@@ -1030,11 +1593,27 @@ function updateSummaryStats() {
   }
 
   if (battleCount) {
+    if (!activeDiscipline.supportsBattles) {
+      battleCount.closest('[data-battle-only]')?.classList.add('hidden');
+      return;
+    }
     const totalBattles = [...eventBattles.values()].reduce((sum, battlesByGender) => {
       const battles = battlesByGender[currentGender] || [];
       return sum + battles.length;
     }, 0);
     battleCount.textContent = String(totalBattles);
+  }
+
+}
+
+function applyDisciplineUi() {
+  if (activeDiscipline.supportsBattles) return;
+  document.querySelectorAll('[data-battle-only]').forEach((element) => {
+    element.classList.add('hidden');
+  });
+  const profileDescription = document.getElementById('profile-description');
+  if (profileDescription) {
+    profileDescription.textContent = 'Event results.';
   }
 }
 
@@ -1153,14 +1732,22 @@ function buildRouteUrl(route) {
   return url.toString();
 }
 
+function applyCurrentDiscipline(url) {
+  if (activeDisciplineKey !== 'flatland') {
+    url.searchParams.set('discipline', activeDisciplineKey);
+  }
+}
+
 function buildIndexRouteUrl(route) {
   const url = new URL('index.html', window.location.href);
+  applyCurrentDiscipline(url);
   applyRouteQueryParams(url.searchParams, route);
   return url.toString();
 }
 
 function buildRiderPointsUrl(rider, route) {
   const url = new URL('rider_points.html', window.location.href);
+  applyCurrentDiscipline(url);
   if (rider) {
     url.searchParams.set('rider', rider);
   }
@@ -1186,6 +1773,7 @@ function buildRiderPointsUrl(rider, route) {
 
 function buildResultsEventUrl(eventName) {
   const url = new URL('results.html', window.location.href);
+  applyCurrentDiscipline(url);
   url.searchParams.set('view', 'event');
   url.searchParams.set('event', eventName);
   if (currentGender === 'male' || currentGender === 'female') {
@@ -1735,6 +2323,30 @@ function renderWorldForYear(year) {
   updateSummaryStats();
 }
 
+function getEventScoreLabels(entries) {
+  const scoreCount = Math.max(0, ...entries.map((entry) => entry.scores?.length || 0));
+  if (scoreCount === 0) return [];
+  const fileNames = entries.find((entry) => entry.scoreNames?.length)?.scoreNames;
+  if (fileNames) {
+    return Array.from({ length: Math.max(scoreCount, fileNames.length) }, (_, index) => fileNames[index] || `Score ${index + 1}`);
+  }
+  if (activeDisciplineKey !== 'flatland') return ['Scores'];
+
+  const labels = scoreCount >= 5
+    ? ['Total', ...FLATLAND_RESULT_SCORE_CATEGORIES]
+    : FLATLAND_RESULT_SCORE_CATEGORIES;
+  return Array.from({ length: scoreCount }, (_, index) => labels[index] || `Score ${index + 1}`);
+}
+
+function formatBattleScores(scores) {
+  return scores.map((score, index) => {
+    const label = activeDisciplineKey === 'flatland'
+      ? (FLATLAND_BATTLE_SCORE_CATEGORIES[index] || `Score ${index + 1}`)
+      : `Score ${index + 1}`;
+    return `${label}: ${score}`;
+  }).join(' · ');
+}
+
 function renderEvent(eventName) {
   const body = document.getElementById('ranking-body');
   const prelimWrapper = document.getElementById('event-prelim-wrapper');
@@ -1754,10 +2366,15 @@ function renderEvent(eventName) {
     body.innerHTML = '<tr><td colspan="2" class="status">No riders match your search.</td></tr>';
   } else {
     // Split into side-by-side Place/Rider blocks to use the horizontal space.
-    const colCount = IS_RESULTS_SITE ? (visibleEntries.length >= 30 ? 3 : visibleEntries.length >= 12 ? 2 : 1) : 1;
+    const hasRoundSeparators = visibleEntries.some((entry) => entry.startsNewRound);
+    const scoreLabels = getEventScoreLabels(visibleEntries);
+    const colCount = IS_RESULTS_SITE && !hasRoundSeparators && scoreLabels.length <= 1
+      ? (visibleEntries.length >= 30 ? 3 : visibleEntries.length >= 12 ? 2 : 1)
+      : 1;
     const thead = document.getElementById('ranking-thead');
     if (thead) {
-      thead.innerHTML = `<tr>${Array.from({ length: colCount }, (_, i) => `<th class="${i > 0 ? 'col-sep' : ''}">Place</th><th>Rider</th>`).join('')}</tr>`;
+      const scoreHeaders = scoreLabels.map((label) => `<th>${label}</th>`).join('');
+      thead.innerHTML = `<tr>${Array.from({ length: colCount }, (_, i) => `<th class="${i > 0 ? 'col-sep' : ''}">Place</th><th>Rider</th>${scoreHeaders}`).join('')}</tr>`;
     }
     const rowsPerCol = Math.ceil(visibleEntries.length / colCount);
     for (let r = 0; r < rowsPerCol; r++) {
@@ -1765,7 +2382,7 @@ function renderEvent(eventName) {
       for (let c = 0; c < colCount; c++) {
         const entry = visibleEntries[c * rowsPerCol + r];
         if (!entry) {
-          row.innerHTML += `<td class="${c > 0 ? 'col-sep' : ''}"></td><td></td>`;
+          row.innerHTML += `<td class="${c > 0 ? 'col-sep' : ''}"></td><td></td>${scoreLabels.map(() => '<td></td>').join('')}`;
           continue;
         }
         const placeClass = entry.place === 1
@@ -1775,9 +2392,17 @@ function renderEvent(eventName) {
             : entry.place === 3
               ? 'podium-bronze'
               : '';
+        const roundSeparatorClass = entry.startsNewRound ? 'round-separator' : '';
+        const scoreCells = scoreLabels.length === 1 && scoreLabels[0] === 'Scores'
+          ? `<td class="${roundSeparatorClass}">${entry.scores?.join(' · ') || ''}</td>`
+          : scoreLabels.map((_, index) => {
+            const score = entry.scores?.[index];
+            return `<td class="${roundSeparatorClass}">${score === '/' ? '—' : (score || '')}</td>`;
+          }).join('');
         row.innerHTML += `
-          <td class="rank ${placeClass} ${c > 0 ? 'col-sep' : ''}">${entry.place}</td>
-          <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
+          <td class="rank ${placeClass} ${roundSeparatorClass} ${c > 0 ? 'col-sep' : ''}">${entry.place}</td>
+          <td class="${roundSeparatorClass}"><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
+          ${scoreCells}
         `;
       }
       body.appendChild(row);
@@ -1871,7 +2496,9 @@ function renderEvent(eventName) {
       row.innerHTML = `
         <td>${battle.round}</td>
         <td><button class="rider-link" data-rider="${battle.winner}">${battle.winner}</button></td>
+        <td>${formatBattleScores(battle.winnerScores || [])}</td>
         <td><button class="rider-link" data-rider="${battle.loser}">${battle.loser}</button></td>
+        <td>${formatBattleScores(battle.loserScores || [])}</td>
         <td>${detailButtonHtml}${videoLinkHtml}</td>
       `;
       battleBody.appendChild(row);
@@ -1879,7 +2506,7 @@ function renderEvent(eventName) {
     battleWrapper.classList.remove('hidden');
     attachBattleDetailButtons(battles);
   } else {
-    battleBody.innerHTML = `<tr><td colspan="4" class="status">No battle details available.</td></tr>`;
+    battleBody.innerHTML = `<tr><td colspan="6" class="status">No battle details available.</td></tr>`;
     battleWrapper.classList.add('hidden');
   }
 
@@ -2022,7 +2649,7 @@ async function loadEventDetailText(eventName) {
 // Parses one score cell such as "16.8/21" or "no score" into a display string plus numeric value/max.
 function parseBattleScoreField(raw) {
   const trimmed = String(raw || '').trim();
-  if (!trimmed || /no\s*score/i.test(trimmed)) {
+  if (!trimmed || trimmed === '/' || /no\s*score/i.test(trimmed)) {
     return { display: trimmed || '—', value: null, max: null };
   }
   const m = trimmed.match(/^([\d.]+)\s*\/\s*([\d.]+)$/);
@@ -2047,7 +2674,7 @@ function isPrelimLine(line) {
 // - Simple: "<place> <name> <score>" (space-separated, no per-category breakdown).
 // - Detailed: "<place>. <name>, <score>, <category1>, <category2>, ..." (comma-separated,
 //   with a per-category score breakdown using PRELIM_SCORE_CATEGORIES order).
-function parsePrelimLine(rawLine) {
+function parsePrelimLine(rawLine, categoryNames = PRELIM_SCORE_CATEGORIES) {
   // Optional video link after '#', e.g. "1 Name 84.7#https://youtu.be/..."
   const hashIndex = rawLine.indexOf('#');
   const videoUrl = hashIndex === -1 ? null : extractVideoUrl(rawLine.slice(hashIndex + 1));
@@ -2060,7 +2687,7 @@ function parsePrelimLine(rawLine) {
     if (!firstPartMatch || parts.length < 2) return null;
     const canonical = aliasMap.get(normalizeName(firstPartMatch[2])) || firstPartMatch[2];
     const categoryScores = parts.slice(2).map((raw, i) => ({
-      label: PRELIM_SCORE_CATEGORIES[i] || `Score ${i + 1}`,
+      label: categoryNames[i] || `Score ${i + 1}`,
       ...parseBattleScoreField(raw)
     }));
     return {
@@ -2100,12 +2727,17 @@ function parseEventDetailText(text) {
     // a place number (optionally followed by a ';' delimiter on the last one), while battle
     // lines always start with a rider's name — so split on the first line that isn't a
     // preliminary-ranking line rather than relying on a specific delimiter being present.
-    const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const allLines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    // An optional "@scores Total, A, B" line names the prelim score columns (first is the total).
+    const prelimNames = allLines.length ? parseScoreNamesLine(allLines[0]) : null;
+    const lines = prelimNames ? allLines.slice(1) : allLines;
     const firstBattleIndex = lines.findIndex((line) => !isPrelimLine(line));
     const prelimLines = firstBattleIndex === -1 ? lines : lines.slice(0, firstBattleIndex);
     const battleLines = firstBattleIndex === -1 ? [] : lines.slice(firstBattleIndex);
 
-    const prelim = prelimLines.map(parsePrelimLine).filter(Boolean);
+    const prelim = prelimLines
+      .map((line) => parsePrelimLine(line, prelimNames ? prelimNames.slice(1) : PRELIM_SCORE_CATEGORIES))
+      .filter(Boolean);
 
     const battleMap = new Map();
     battleLines
@@ -2564,9 +3196,10 @@ function renderProfilePlacementChart(rider) {
 }
 
 // Compute, for every event (oldest -> newest) and a given gender, the sum of the world
-// ranking points held by each competing rider immediately BEFORE that event. Points are
-// decayed relative to the event's own year using only strictly earlier contributions
-// (see preEventPointsByGender in computeRankingSnapshots), not the live/current-year totals.
+// ranking points held by each competing rider immediately BEFORE that event, plus the
+// equivalent sum for the three strongest competitors. Points are decayed relative to the
+// event's own year using only strictly earlier contributions (see
+// preEventPointsByGender in computeRankingSnapshots), not the live/current-year totals.
 function computeEventStrengthSeries(gender) {
   const snaps = rankingSnapshots.slice().sort((a, b) => a.dateValue - b.dateValue);
   return snaps.map((snap) => {
@@ -2574,7 +3207,12 @@ function computeEventStrengthSeries(gender) {
 
     const entriesByGender = eventResults.get(snap.event) || { male: [], female: [] };
     const entries = entriesByGender[gender] || [];
-    const strength = entries.reduce((total, entry) => total + (priorPointsByRider.get(entry.rider) || 0), 0);
+    const competitorStrengths = entries.map((entry) => priorPointsByRider.get(entry.rider) || 0);
+    const strength = competitorStrengths.reduce((total, points) => total + points, 0);
+    const topThreeStrength = competitorStrengths
+      .sort((a, b) => b - a)
+      .slice(0, 3)
+      .reduce((total, points) => total + points, 0);
 
     const parsed = parseEventNameYearPrefix(snap.event);
     const prefix = parsed.prefix || '';
@@ -2582,16 +3220,24 @@ function computeEventStrengthSeries(gender) {
     const monthVal = (EVENT_MONTHS && EVENT_MONTHS[prefix]) ? Number(EVENT_MONTHS[prefix]) : 0;
     const monthInt = monthVal ? Math.max(1, Math.min(12, Math.round(monthVal))) : 0;
 
-    return { event: snap.event, dateValue: snap.dateValue, year, monthInt, strength, competitorCount: entries.length };
+    return {
+      event: snap.event,
+      dateValue: snap.dateValue,
+      year,
+      monthInt,
+      strength,
+      topThreeStrength,
+      competitorCount: entries.length
+    };
   });
 }
 
 // Types that use a trailing average of the last 2 events instead of the last 3.
 const TRAILING_AVERAGE_WINDOW_OVERRIDES = { unicon: 2, eucs: 2 };
 
-// Group the per-event strength series by event type (prefix) and year, compute a trailing
-// average of summed strength over the last N events of that type (N=2 for Unicon/EUCS,
-// N=3 otherwise), then sort each type's events by that trailing average (descending).
+// Group the per-event strength series by event type (prefix) and year, compute trailing
+// averages of total and top-three strength over the last N events of that type (N=2 for
+// Unicon/EUCS, N=3 otherwise), keeping each type's events sorted chronologically.
 function computeEventStrengthByType(gender) {
   const series = computeEventStrengthSeries(gender);
   const byType = new Map();
@@ -2612,12 +3258,13 @@ function computeEventStrengthByType(gender) {
       const withTrailingAverage = chronological.map((entry, index) => {
         const windowEntries = chronological.slice(Math.max(0, index - windowSize + 1), index + 1);
         const trailingAverage = windowEntries.reduce((total, e) => total + e.strength, 0) / windowEntries.length;
-        return { ...entry, trailingAverage };
+        const topThreeTrailingAverage = windowEntries.reduce((total, e) => total + e.topThreeStrength, 0) / windowEntries.length;
+        return { ...entry, trailingAverage, topThreeTrailingAverage };
       });
 
       return {
         type: typeKey,
-        entries: withTrailingAverage.slice().sort((a, b) => b.trailingAverage - a.trailingAverage)
+        entries: withTrailingAverage
       };
     });
 }
@@ -2632,7 +3279,7 @@ function renderEventStrengthList(gender, containerId) {
     return;
   }
 
-  let html = '<table class="event-strength-table"><thead><tr><th>Event type</th><th>Year</th><th>Strength (sum)</th><th>Strength (avg)</th><th>Riders</th><th>Trailing avg</th></tr></thead><tbody>';
+  let html = '<table class="event-strength-table"><thead><tr><th>Event type</th><th>Year</th><th>Strength (sum)</th><th>Top 3 strength (sum)</th><th>Strength (avg)</th><th>Riders</th><th>Trailing avg</th><th>Top 3 trailing avg</th></tr></thead><tbody>';
   groups.forEach((group) => {
     group.entries.forEach((entry, i) => {
       const average = entry.competitorCount > 0 ? entry.strength / entry.competitorCount : 0;
@@ -2640,9 +3287,11 @@ function renderEventStrengthList(gender, containerId) {
       html += i === 0 ? `<td rowspan="${group.entries.length}">${escapeXml(group.type)}</td>` : '';
       html += `<td>${entry.year || ''}</td>`;
       html += `<td>${entry.strength.toFixed(1)}</td>`;
+      html += `<td>${entry.topThreeStrength.toFixed(1)}</td>`;
       html += `<td>${average.toFixed(1)}</td>`;
       html += `<td>${entry.competitorCount}</td>`;
       html += `<td>${entry.trailingAverage.toFixed(1)}</td>`;
+      html += `<td>${entry.topThreeTrailingAverage.toFixed(1)}</td>`;
       html += `</tr>`;
     });
   });
@@ -2655,7 +3304,12 @@ function computeCurrentTrailingAverages(gender) {
   const groups = computeEventStrengthByType(gender);
   return groups.map((group) => {
     const mostRecent = group.entries.reduce((latest, e) => (latest == null || e.dateValue > latest.dateValue ? e : latest), null);
-    return { type: group.type, trailingAverage: mostRecent ? mostRecent.trailingAverage : 0, latestEvent: mostRecent ? mostRecent.event : '' };
+    return {
+      type: group.type,
+      trailingAverage: mostRecent ? mostRecent.trailingAverage : 0,
+      topThreeTrailingAverage: mostRecent ? mostRecent.topThreeTrailingAverage : 0,
+      latestEvent: mostRecent ? mostRecent.event : ''
+    };
   });
 }
 
@@ -2670,12 +3324,13 @@ function renderEventStrengthSummary(gender, containerId) {
     return;
   }
 
-  let html = '<table class="event-strength-table"><thead><tr><th>Event type</th><th>Latest event</th><th>Trailing avg</th></tr></thead><tbody>';
+  let html = '<table class="event-strength-table"><thead><tr><th>Event type</th><th>Latest event</th><th>Trailing avg</th><th>Top 3 trailing avg</th></tr></thead><tbody>';
   averages.forEach((entry) => {
     html += `<tr>`;
     html += `<td>${escapeXml(entry.type)}</td>`;
     html += `<td>${escapeXml(entry.latestEvent)}</td>`;
     html += `<td>${entry.trailingAverage.toFixed(1)}</td>`;
+    html += `<td>${entry.topThreeTrailingAverage.toFixed(1)}</td>`;
     html += `</tr>`;
   });
   html += '</tbody></table>';
@@ -2728,6 +3383,7 @@ function exportRidersFile() {
 window.exportRidersFile = exportRidersFile;
 
 window.addEventListener('DOMContentLoaded', () => {
+  applyDisciplineUi();
   applySettingsToDom();
   attachSettingsEvents();
   attachRiderNotesEvents();

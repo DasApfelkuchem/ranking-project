@@ -6,7 +6,6 @@ const fs = require('fs');
 const path = require('path');
 const PORT = 6789;
 const FILE = path.join(__dirname, 'riders_all.txt');
-
 const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {

@@ -12,11 +12,24 @@
         <a href="results.html" class="logo-link">
           <img src="assets/iuf-mark.png" alt="IUF mark" class="brand-mark" />
           <div class="logo-text">
-            <span class="logo-main">FLATLAND</span>
+            <span class="logo-main" data-discipline-label>FLATLAND</span>
             <span class="logo-sub">RESULTS</span>
           </div>
         </a>
       </div>
+      <label class="discipline-picker">
+        <span>Discipline</span>
+        <select data-discipline-select aria-label="Select discipline">
+          <optgroup label="Urban">
+            <option value="flatland">Flatland</option>
+            <option value="street">Street</option>
+            <option value="trial">Trial</option>
+          </optgroup>
+          <optgroup label="Freestyle">
+            <option value="x-style">X-Style</option>
+          </optgroup>
+        </select>
+      </label>
       <nav class="site-nav" aria-label="Main">
         <a href="index.html" class="nav-link">Rankings</a>
         <a href="results.html" class="nav-link active">Results</a>
@@ -32,7 +45,7 @@
           <span class="label">Events</span>
           <strong id="event-count">0</strong>
         </article>
-        <article class="stat-card">
+        <article class="stat-card" data-battle-only>
           <span class="label">Battles recorded</span>
           <strong id="battle-count">0</strong>
         </article>
@@ -67,7 +80,7 @@
             </tbody>
           </table>
         </div>
-        <div class="table-wrapper">
+        <div class="table-wrapper" data-battle-only>
           <div class="battle-profile-header">
             <p id="profile-battle-summary">Select a rider to see their battle history.</p>
           </div>
@@ -140,20 +153,22 @@
             </tbody>
           </table>
         </div>
-        <div class="table-wrapper hidden" id="event-battle-wrapper">
+        <div class="table-wrapper hidden" id="event-battle-wrapper" data-battle-only>
           <h3 class="section-subtitle">Battles</h3>
           <table>
             <thead>
               <tr>
                 <th>Round</th>
                 <th>Winner</th>
+                <th>Winner scores</th>
                 <th>Loser</th>
+                <th>Loser scores</th>
                 <th>Details</th>
               </tr>
             </thead>
             <tbody id="event-battle-body">
               <tr>
-                <td colspan="4" class="status">No battle details available.</td>
+                <td colspan="6" class="status">No battle details available.</td>
               </tr>
             </tbody>
           </table>
@@ -183,6 +198,7 @@
       </div>
     </div>
 
+    <script src="discipline-menu.js"></script>
     <script src="ranking.js"></script>
   </body>
 </html>

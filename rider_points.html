@@ -12,11 +12,24 @@
         <a href="./" class="logo-link">
           <img src="assets/iuf-mark.png" alt="IUF mark" class="brand-mark" />
           <div class="logo-text">
-            <span class="logo-main">FLATLAND</span>
+            <span class="logo-main" data-discipline-label>FLATLAND</span>
             <span class="logo-sub">RANKINGS</span>
           </div>
         </a>
       </div>
+      <label class="discipline-picker">
+        <span>Discipline</span>
+        <select data-discipline-select aria-label="Select discipline">
+          <optgroup label="Urban">
+            <option value="flatland">Flatland</option>
+            <option value="street">Street</option>
+            <option value="trial">Trial</option>
+          </optgroup>
+          <optgroup label="Freestyle">
+            <option value="x-style">X-Style</option>
+          </optgroup>
+        </select>
+      </label>
       <nav class="site-nav" aria-label="Main">
         <a href="index.html" class="nav-link active">Rankings</a>
         <a href="results.html" class="nav-link">Results</a>
@@ -59,6 +72,7 @@
       </section>
     </main>
 
+    <script src="discipline-menu.js"></script>
     <script src="ranking.js"></script>
   </body>
 </html>

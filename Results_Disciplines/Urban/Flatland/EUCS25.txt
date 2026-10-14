@@ -16,14 +16,14 @@ Amit Berkowicz
 Samuel Hulka
 Vitus Bieringer
 Pavel Holba;
-Jelle Dillen, Mimo Seedler
-Stephane Ranc, August Agerskov
-Jelle Dillen, Stephane Ranc
-Mimo Seedler, August Agerskov
-Jelle Dillen, Folke Schubert
-Stephane Ranc, Alexis Mercat
-August Agerskov, Dao Shani
-Mimo Seedler, Kornel Auth
+Jelle Dillen, Mimo Seedler #https://youtu.be/1PP386HOsXM?t=3598
+Stephane Ranc, August Agerskov #https://youtu.be/1PP386HOsXM?t=2956
+Jelle Dillen, Stephane Ranc #https://youtu.be/1PP386HOsXM?t=2006
+Mimo Seedler, August Agerskov #https://youtu.be/1PP386HOsXM?t=2500
+Jelle Dillen, Folke Schubert #https://youtu.be/1PP386HOsXM?t=219
+Stephane Ranc, Alexis Mercat #https://youtu.be/1PP386HOsXM?t=605
+August Agerskov, Dao Shani #https://youtu.be/1PP386HOsXM?t=1002
+Mimo Seedler, Kornel Auth #https://youtu.be/1PP386HOsXM?t=1503
 Kornel Auth, Lars van Asbroeck
 Folke Schubert, Tristan Jambon
 Kornel Auth, Kis Marko
@@ -44,10 +44,10 @@ Jasmin Bothe
 Ariane Rohn
 Khadija Compaore
 Linda Gossen;
-Cora Schindele, Jana Riedel
-Lea Söser, Marie Schlenker
-Cora Schindele, Marie Schlenker
-Jana Riedel, Lea Söser
+Cora Schindele, Jana Riedel#https://youtu.be/bUeD8hTPUW4?t=4339
+Lea Söser, Marie Schlenker #https://youtu.be/bUeD8hTPUW4?t=3821
+Cora Schindele, Marie Schlenker #https://youtu.be/bUeD8hTPUW4?t=2775
+Jana Riedel, Lea Söser #https://youtu.be/bUeD8hTPUW4?t=3352
 Jana Riedel, Nina Beckmann
 Marie Schlenker, Roos Seegers
 Nina Beckmann, Jasmin Bothe
