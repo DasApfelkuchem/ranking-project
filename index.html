@@ -56,7 +56,7 @@
           <button id="close-settings" class="ghost-button" type="button">Close</button>
         </div>
         <div class="settings-tabs" role="tablist">
-          <button type="button" class="settings-tab-button active" data-tab="general" id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
+          <button type="button" class="settings-tab-button active" data-tab="general" data-admin-only id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
           <button type="button" class="settings-tab-button" data-tab="tools" id="settings-tab-btn-tools" role="tab" aria-selected="false">Tools</button>
         </div>
         <div class="settings-tab-panel" id="settings-tab-general" data-tab-panel="general">
@@ -77,11 +77,11 @@
         </div>
         <div class="settings-tab-panel hidden" id="settings-tab-tools" data-tab-panel="tools">
           <div class="settings-grid">
-            <div class="settings-card">
+            <div class="settings-card" data-admin-only>
               <h3>Event strength</h3>
               <button id="show-event-strength" class="ghost-button" type="button">Show average event strength</button>
             </div>
-            <div class="settings-card">
+            <div class="settings-card" data-admin-only>
               <h3>Riders database</h3>
               <button id="add-unknown-riders" class="ghost-button" type="button">Add unknown riders to riders_all</button>
               <div id="add-unknown-result" style="margin-top:8px;color:var(--muted);font-size:0.9rem"></div>

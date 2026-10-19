@@ -89,10 +89,7 @@ const DISCIPLINES = {
   street: {
     label: 'Street',
     resultsDirectory: 'Results_Disciplines/Urban',
-    eventFiles: [
-      { name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 },
-      { name: 'Unicon00', file: 'Street/Unicon00.txt', weight: 3 }
-    ],
+    eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 }],
     usesSimpleResults: true,
     supportsBattles: false
   },
@@ -513,12 +510,32 @@ function attachSettingsEvents() {
   const loginCancelButton = document.getElementById('login-cancel');
 
   // Casual client-side gate only — credentials live in this file, so this is not real security.
-  const SETTINGS_USERNAME = 'admin1';
-  const SETTINGS_PASSWORD = 'test';
-  let settingsAuthenticated = sessionStorage.getItem('settingsAuthenticated') === 'true';
+  // Admins see everything; hosts only see the results generator and the rider sorter.
+  const SETTINGS_ACCOUNTS = [
+    { username: 'admin1', password: 'test', role: 'admin' },
+    { username: 'BUC_Host', password: 'bCvLujmKYHhp', role: 'host' },
+    { username: 'Wout', password: 'yy42rXxzdmwS', role: 'host' },
+    { username: 'EUC_Host', password: 'FCRLALDDwPVs', role: 'host' }
+  ];
+  let settingsRole = sessionStorage.getItem('settingsRole');
+  if (settingsRole !== 'admin' && settingsRole !== 'host') settingsRole = null;
+
+  function applySettingsRole() {
+    const isHost = settingsRole === 'host';
+    document.querySelectorAll('[data-admin-only]').forEach((element) => {
+      element.classList.toggle('hidden', isHost);
+    });
+    if (isHost) {
+      const eventStrength = document.getElementById('event-strength-wrapper');
+      if (eventStrength) eventStrength.classList.add('hidden');
+      const toolsTab = document.getElementById('settings-tab-btn-tools');
+      if (toolsTab) toolsTab.click();
+    }
+  }
 
   function openSettingsPanel() {
     if (!settingsPanel) return;
+    applySettingsRole();
     settingsPanel.classList.remove('hidden');
     settingsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -538,7 +555,7 @@ function attachSettingsEvents() {
 
   if (openSettingsButton && settingsPanel) {
     openSettingsButton.addEventListener('click', () => {
-      if (settingsAuthenticated) {
+      if (settingsRole) {
         openSettingsPanel();
       } else {
         showLoginModal();
@@ -551,9 +568,11 @@ function attachSettingsEvents() {
       e.preventDefault();
       const username = loginUsernameInput ? loginUsernameInput.value.trim() : '';
       const password = loginPasswordInput ? loginPasswordInput.value : '';
-      if (username === SETTINGS_USERNAME && password === SETTINGS_PASSWORD) {
-        settingsAuthenticated = true;
-        sessionStorage.setItem('settingsAuthenticated', 'true');
+      const account = SETTINGS_ACCOUNTS.find((item) => item.username === username && item.password === password);
+      if (account) {
+        settingsRole = account.role;
+        sessionStorage.setItem('settingsRole', account.role);
+        sessionStorage.setItem('settingsUser', account.username);
         hideLoginModal();
         openSettingsPanel();
       } else if (loginError) {
@@ -732,7 +751,133 @@ function setupResultsTextBuilder() {
   const roundsByGender = { male: [], female: [] };
 
   const prelimByGender = {};
-  const PRELIM_DEFAULT_NAMES = ['Total', ...PRELIM_SCORE_CATEGORIES].join(', ');
+  const PRELIM_DEFAULT_NAMES = (activeDisciplineKey === 'flatland' ? ['Total', ...PRELIM_SCORE_CATEGORIES] : ['Total']).join(', ');
+
+  // CSV layout: header row names the scores; then [rank,] rider, score columns.
+  function parseCsvRows(text) {
+    const source = String(text || '').replace(/^\uFEFF/, '');
+    const firstLine = source.split(/\r?\n/, 1)[0];
+    const delimiter = [';', '\t', ','].reduce((best, candidate) =>
+      firstLine.split(candidate).length > firstLine.split(best).length ? candidate : best, ',');
+    const rows = [];
+    let row = [];
+    let cell = '';
+    let inQuotes = false;
+    for (let i = 0; i < source.length; i++) {
+      const char = source[i];
+      if (inQuotes) {
+        if (char === '"' && source[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = false;
+        } else {
+          cell += char;
+        }
+      } else if (char === '"') {
+        inQuotes = true;
+      } else if (char === delimiter) {
+        row.push(cell);
+        cell = '';
+      } else if (char === '\n' || char === '\r') {
+        if (char === '\r' && source[i + 1] === '\n') i++;
+        row.push(cell);
+        rows.push(row);
+        row = [];
+        cell = '';
+      } else {
+        cell += char;
+      }
+    }
+    row.push(cell);
+    rows.push(row);
+    return rows
+      .map((cells) => cells.map((value) => value.trim()))
+      .filter((cells) => cells.some(Boolean));
+  }
+
+  function parseCsvResults(text) {
+    const rows = parseCsvRows(text);
+    if (rows.length < 2) throw new Error('The CSV needs a header row and at least one rider row.');
+    const header = rows[0];
+    const dataRows = rows.slice(1);
+    const hasRank = dataRows.every((cells) => !cells[0] || /^\d+\.?$/.test(cells[0]));
+    const nameColumn = hasRank ? 1 : 0;
+    const firstScoreColumn = nameColumn + 1;
+
+    let lastScoreColumn = firstScoreColumn - 1;
+    [header, ...dataRows].forEach((cells) => {
+      for (let i = cells.length - 1; i > lastScoreColumn; i--) {
+        if (cells[i]) {
+          lastScoreColumn = i;
+          break;
+        }
+      }
+    });
+
+    const scoreNames = [];
+    for (let i = firstScoreColumn; i <= lastScoreColumn; i++) scoreNames.push(header[i] || '');
+
+    const entries = dataRows.map((cells, index) => {
+      const rider = (cells[nameColumn] || '').replace(/[,;|#]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!rider) return null;
+      const scores = scoreNames.map((_, i) => {
+        const value = (cells[firstScoreColumn + i] || '').replace(/\s+/g, '').replace(/(\d),(\d)/g, '$1.$2');
+        return value || '/';
+      });
+      const place = hasRank && cells[0] ? Number(cells[0].replace('.', '')) : index + 1;
+      return { place, rider, scores };
+    }).filter(Boolean);
+    return { scoreNames, entries };
+  }
+
+  function setScoreNames(gender, names) {
+    scoreNameLists[gender].innerHTML = '';
+    names.forEach((name) => addScoreNameInput(gender, name));
+    saveScoreNames(gender);
+  }
+
+  async function importCsvIntoRound(gender, round, file, isPrelim) {
+    try {
+      const buffer = await file.arrayBuffer();
+      let text = new TextDecoder('utf-8').decode(buffer);
+      if (text.includes('\uFFFD')) text = new TextDecoder('windows-1252').decode(buffer);
+      const { scoreNames, entries } = parseCsvResults(text);
+      if (!entries.length) throw new Error('No riders found in the CSV.');
+      round.textarea.value = entries
+        .map((entry) => `${entry.place}. ${entry.rider}${entry.scores.length ? `, ${entry.scores.join(' ')}` : ''}`)
+        .join('\n');
+      if (isPrelim) {
+        round.namesInput.value = scoreNames.map((name) => name || '?').join(', ');
+      } else {
+        setScoreNames(gender, scoreNames);
+      }
+      showStatus(`Imported ${entries.length} rider(s) from ${file.name} into ${gender} ${round.button.textContent}.`);
+    } catch (error) {
+      showStatus(`CSV import failed: ${error.message}`, true);
+    }
+  }
+
+  function createCsvImportControl(gender, round, isPrelim) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'rider-sort-actions';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ghost-button';
+    button.textContent = 'Import CSV';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.tsv,.txt,text/csv';
+    fileInput.className = 'hidden';
+    button.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      const [file] = fileInput.files;
+      fileInput.value = '';
+      if (file) await importCsvIntoRound(gender, round, file, isPrelim);
+    });
+    wrapper.append(button, fileInput);
+    return wrapper;
+  }
 
   function activateRound(gender, activeRound) {
     [...roundsByGender[gender], prelimByGender[gender]].filter(Boolean).forEach((round) => {
@@ -776,6 +921,7 @@ function setupResultsTextBuilder() {
     panel.append(namesLabel, textarea);
 
     const prelim = { button, panel, textarea, namesInput };
+    panel.insertBefore(createCsvImportControl(gender, prelim, true), textarea);
     prelimByGender[gender] = prelim;
     tabs.appendChild(button);
     panels.appendChild(panel);
@@ -808,6 +954,7 @@ function setupResultsTextBuilder() {
     panel.appendChild(textarea);
 
     const round = { button, panel, textarea };
+    panel.insertBefore(createCsvImportControl(gender, round, false), textarea);
     roundsByGender[gender].push(round);
     tabs.insertBefore(button, prelimByGender[gender]?.button || null);
     panels.appendChild(panel);
@@ -981,10 +1128,8 @@ function setupResultsTextBuilder() {
 
   addRound('male');
   addRound('female');
-  if (activeDiscipline.supportsBattles) {
-    addPrelimRound('male');
-    addPrelimRound('female');
-  }
+  addPrelimRound('male');
+  addPrelimRound('female');
 
   function buildPrelimResults(gender) {
     const prelim = prelimByGender[gender];
@@ -1021,7 +1166,8 @@ function setupResultsTextBuilder() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
-            _subject: `New results file: ${lastGenerated.filename} (${activeDisciplineKey})`,
+            _subject: `[${sessionStorage.getItem('settingsUser') || 'unknown'}] New results file: ${lastGenerated.filename} (${activeDisciplineKey})`,
+            login: sessionStorage.getItem('settingsUser') || 'unknown',
             filename: lastGenerated.filename,
             discipline: activeDisciplineKey,
             content: lastGenerated.text
@@ -1296,7 +1442,7 @@ async function loadRanking() {
       eventEntriesByGender[gender] = eventEntries;
       const eventRiderSet = new Set(eventEntries.map((e) => e.rider));
 
-      if (activeDiscipline.supportsBattles && battleText) {
+      if (battleText) {
         // The battle section may also hold "@prelim Total, A, B" + prelim lines (starting with a
         // place) and an "@battle A, B, ..." line naming the per-battle score categories.
         let prelimNames = null;
@@ -1313,7 +1459,7 @@ async function loadRanking() {
           } else if (isPrelimLine(line)) {
             const prelimEntry = parsePrelimLine(line, prelimNames ? prelimNames.slice(1) : PRELIM_SCORE_CATEGORIES);
             if (prelimEntry) inlinePrelim.push(prelimEntry);
-          } else {
+          } else if (activeDiscipline.supportsBattles) {
             battleLines.push(line);
           }
         });
