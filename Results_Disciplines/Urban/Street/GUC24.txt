@@ -1,0 +1,22 @@
+@scores run, Best trick, Total
+1. Wout Chauvaux, 48.65 22.60 71.25
+2. Jelle Dillen, 49.64 19.99 69.63
+3. Jan Niediek, 52.21 13.00 65.21
+4. David Neeff, 46.84 14.68 61.52;
+@prelim Total
+1. Jan Niediek, 74.58
+2. Jelle Dillen, 70.92
+3. Wout Chauvaux, 69.50
+4. David Neeff, 66.92
+5. Tim Desmet, 52.83
+6. Anton-Aren Kether, 47.33
+7. Lars Van Asbroeck, 45.50
+8. Jérôme Cauquil, 44.58
+9. Liu Chia Ying, 43.33
+10. Karel Dyselinck, 41.83
+|
+1. Nina Beckmann 
+2. Hsuan Chen;
+@prelim Total
+1. Nina Beckmann, 77.50
+2. Hsuan Chen, 56.33

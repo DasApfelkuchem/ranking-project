@@ -1049,3 +1049,6 @@ tbody tr:hover {
 
 .score-names-builder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .score-names-builder .score-names-list { margin: 0; }
+
+.battle-example { margin: 4px 0; padding: 6px 8px; overflow-x: auto; white-space: pre; font-size: 12px; background: rgba(128,128,128,0.12); border-radius: 6px; }
+.battle-lines-input { white-space: pre; overflow-x: auto; }

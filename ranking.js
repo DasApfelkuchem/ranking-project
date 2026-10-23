@@ -1,4 +1,4 @@
-const seasondecay = 0.85;
+const seasondecay = 0.9;
 const currentyear = 26;
 const Unicon = 7.5;
 const GUC = 6.5;
@@ -9,6 +9,7 @@ const BUC = 10;
 const CFM = 10.5;
 const LAUCC = 1;
 const ROC = 0;
+const JUC = 10.3;
 
 // Map event code -> typical month (decimal allowed, e.g. 7.5)
 const EVENT_MONTHS = {
@@ -19,7 +20,9 @@ const EVENT_MONTHS = {
   EUCW: Number(EUCW) || 0,
   ROC: Number(ROC) || 0,
   BUC: Number(BUC) || 0,
-  CFM: Number(CFM) || 0
+  CFM: Number(CFM) || 0,
+  JUC: Number(JUC) || 0,
+  LAUCC: Number(LAUCC) || 0,
 };
 
 const FLATLAND_EVENT_FILES = [
@@ -41,6 +44,7 @@ const FLATLAND_EVENT_FILES = [
   { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: 2 },
   { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: 2 },
   { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: 2 },
+   
 
   { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: 2 },
   { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: 2 },
@@ -75,7 +79,10 @@ const FLATLAND_EVENT_FILES = [
   { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: 1 },
   { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: 1 },
   { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: 1 },
-  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1 }
+  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1 },
+   { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: 1 },
+
+   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 1 }
 ];
 
 const DISCIPLINES = {
@@ -89,7 +96,20 @@ const DISCIPLINES = {
   street: {
     label: 'Street',
     resultsDirectory: 'Results_Disciplines/Urban',
-    eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 }],
+    eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 },
+      { name: 'Unicon24', file: 'Street/Unicon24.txt', weight: 3 },
+      { name: 'Unicon22', file: 'Street/Unicon22.txt', weight: 3 },
+      { name: 'Unicon16', file: 'Street/Unicon16.txt', weight: 3 },
+      { name: 'Unicon18', file: 'Street/Unicon18.txt', weight: 3 },
+      { name: 'Unicon14', file: 'Street/Unicon14.txt', weight: 3 },
+      { name: 'EUCW25', file: 'Street/EUCW25.txt', weight: 2 },
+       { name: 'EUCW24', file: 'Street/EUCW24.txt', weight: 2 },
+        { name: 'GUC22', file: 'Street/GUC22.txt', weight: 1 },
+           { name: 'GUC23', file: 'Street/GUC23.txt', weight: 1 },
+              { name: 'GUC24', file: 'Street/GUC24.txt', weight: 1 },
+                 { name: 'GUC25', file: 'Street/GUC25.txt', weight: 1 },
+                    { name: 'GUC26', file: 'Street/GUC26.txt', weight: 1 },
+    ],
     usesSimpleResults: true,
     supportsBattles: false
   },
@@ -121,7 +141,7 @@ const EVENT_FILES = activeDiscipline.eventFiles;
 
 const FLATLAND_RESULT_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style'];
 const FLATLAND_BATTLE_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Last trick'];
-const BEST_RESULT_MULTIPLIERS = [1,0.7,0.3,0.2,0.1];
+const BEST_RESULT_MULTIPLIERS = [1,0.8,0.6,0.4,0.2];
 
 // Given a list of { score, event } contributions, halve scores that aren't a rider's best
 // result within the same event type (e.g. multiple GUC results), then sum the top 5
@@ -154,6 +174,7 @@ function computeRiderTotalPoints(scoreEntries) {
 // 'ranking' (index.html, rider_points.html) or 'results' (results.html); set via <body data-site>.
 const IS_RESULTS_SITE = document.body?.dataset?.site === 'results';
 const GENDERS = ['male', 'female'];
+const genderLabel = (gender) => (gender === 'male' ? 'male/open' : gender);
 let currentGender = 'male';
 let currentYearComparison = '2026'; // default to 2026
 let globalRowsByGender = { male: [], female: [] };
@@ -716,7 +737,11 @@ function setupResultsTextBuilder() {
   const scoreNamesStorageKey = `results-builder-score-names-${activeDisciplineKey}`;
   if (scoreFormatHint) {
     if (activeDisciplineKey === 'flatland') {
-      scoreFormatHint.textContent = 'Name each score in the Score names row above the input box, in the order the scores are entered. Category scores may use value/max notation, such as 24.5/30. Enter a single / for a score that was not given in that round.';
+      const hint = document.getElementById('results-builder-hint');
+      if (hint) hint.innerHTML = 'Step 1: enter an <strong>event code</strong> and <strong>year</strong>. Step 2: fill in the <strong>Final rider ranking</strong> and, optionally, the <strong>Prelim</strong> tab for each gender. Step 3: on the <strong>Battles</strong> tab add the battle results. Then generate the file.';
+      scoreFormatHint.innerHTML = '<strong>Final rider ranking:</strong> only the final order, one rider per line, like <code>1. Rider Name</code>, <code>2. Rider Name</code>, … (no scores), or <strong>Import CSV</strong> with no header, one rider per row as <code>placement, rider</code>. <strong>Prelim:</strong> choose the score names yourself (Difficulty, Variety, Fullness and Style are the defaults; use <strong>Add Total</strong> if the prelim has a total score, it then goes first) and enter <code>1. Rider Name, score1 score2…</code> in the same order, or import a CSV with a header row. Use <code>/</code> for a score that was not given.';
+      const battleHint = document.getElementById('results-builder-battle-hint');
+      if (battleHint) battleHint.innerHTML = 'For each gender first choose the battle scores, either <strong>Import CSV</strong> (score names are read from the CSV header) or <strong>Add score</strong> / <strong>Add default scores</strong> (Votes, Difficulty, Variety, Fullness, Style, Battling, Final Trick). Then enter one battle per line as <code>Winning Rider, Losing Rider, winner scores, loser scores</code>. Scores are separated by spaces, in the same order as the score names above, for example <code>Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21, 0 14.5/21 18.2/21</code>. Use <code>/</code> for a missing score. <strong>CSV layout:</strong> header <code>Winner, Loser, Votes, Difficulty, …, Votes, Difficulty, …</code> — the winner’s scores first, then the loser’s scores with the same names; one battle per row.';
     } else if (activeDisciplineKey === 'x-style') {
       scoreFormatHint.textContent = 'For lower X-Style rounds, enter each rider’s place within that round. Matching places are tied and converted to overall event places after the riders in later rounds.';
     } else {
@@ -751,7 +776,6 @@ function setupResultsTextBuilder() {
   const roundsByGender = { male: [], female: [] };
 
   const prelimByGender = {};
-  const PRELIM_DEFAULT_NAMES = (activeDisciplineKey === 'flatland' ? ['Total', ...PRELIM_SCORE_CATEGORIES] : ['Total']).join(', ');
 
   // CSV layout: header row names the scores; then [rank,] rider, score columns.
   function parseCsvRows(text) {
@@ -837,11 +861,36 @@ function setupResultsTextBuilder() {
     saveScoreNames(gender);
   }
 
-  async function importCsvIntoRound(gender, round, file, isPrelim) {
+  // Final rider ranking CSV: no header, one rider per row as "placement, rider" (or "rider, placement").
+  function parseRankingCsv(text) {
+    const isPlace = (value) => /^\d+\.?$/.test(String(value || '').trim());
+    const cleanName = (value) => String(value || '').replace(/[,;|#]/g, ' ').replace(/\s+/g, ' ').trim();
+    return parseCsvRows(text).map((cells, index) => {
+      let place = index + 1;
+      let rider = cells[0];
+      if (isPlace(cells[0]) && cells.length > 1) {
+        place = Number(cells[0].replace('.', ''));
+        rider = cells[1];
+      } else if (isPlace(cells[1])) {
+        place = Number(cells[1].replace('.', ''));
+      }
+      rider = cleanName(rider);
+      return rider ? { place, rider } : null;
+    }).filter(Boolean);
+  }
+
+  async function importCsvIntoRound(gender, round, file, isPrelim, isRanking = false) {
     try {
       const buffer = await file.arrayBuffer();
       let text = new TextDecoder('utf-8').decode(buffer);
       if (text.includes('\uFFFD')) text = new TextDecoder('windows-1252').decode(buffer);
+      if (isRanking) {
+        const ranking = parseRankingCsv(text);
+        if (!ranking.length) throw new Error('No riders found in the CSV.');
+        round.textarea.value = ranking.map((entry) => `${entry.place}. ${entry.rider}`).join('\n');
+        showStatus(`Imported ${ranking.length} rider(s) from ${file.name} into ${genderLabel(gender)} ${round.button.textContent}.`);
+        return;
+      }
       const { scoreNames, entries } = parseCsvResults(text);
       if (!entries.length) throw new Error('No riders found in the CSV.');
       round.textarea.value = entries
@@ -852,13 +901,13 @@ function setupResultsTextBuilder() {
       } else {
         setScoreNames(gender, scoreNames);
       }
-      showStatus(`Imported ${entries.length} rider(s) from ${file.name} into ${gender} ${round.button.textContent}.`);
+      showStatus(`Imported ${entries.length} rider(s) from ${file.name} into ${genderLabel(gender)} ${round.button.textContent}.`);
     } catch (error) {
       showStatus(`CSV import failed: ${error.message}`, true);
     }
   }
 
-  function createCsvImportControl(gender, round, isPrelim) {
+  function createCsvImportControl(gender, round, isPrelim, isRanking = false) {
     const wrapper = document.createElement('div');
     wrapper.className = 'rider-sort-actions';
     const button = document.createElement('button');
@@ -873,7 +922,7 @@ function setupResultsTextBuilder() {
     fileInput.addEventListener('change', async () => {
       const [file] = fileInput.files;
       fileInput.value = '';
-      if (file) await importCsvIntoRound(gender, round, file, isPrelim);
+      if (file) await importCsvIntoRound(gender, round, file, isPrelim, isRanking);
     });
     wrapper.append(button, fileInput);
     return wrapper;
@@ -905,20 +954,75 @@ function setupResultsTextBuilder() {
     panel.className = 'round-panel hidden';
     panel.setAttribute('role', 'tabpanel');
 
-    const namesLabel = document.createElement('label');
-    namesLabel.className = 'setting-item';
-    const namesCaption = document.createElement('span');
-    namesCaption.textContent = 'Prelim score names (comma separated, first is the total)';
-    const namesInput = document.createElement('input');
-    namesInput.type = 'text';
-    namesInput.value = PRELIM_DEFAULT_NAMES;
-    namesLabel.append(namesCaption, namesInput);
+    const namesBar = document.createElement('div');
+    namesBar.className = 'score-names-builder';
+    const namesCaption = document.createElement('strong');
+    namesCaption.textContent = 'Prelim scores';
+    const namesList = document.createElement('div');
+    namesList.className = 'score-names-list';
+    const addNameRow = (value = '') => {
+      const row = document.createElement('div');
+      row.className = 'score-name-row';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = value;
+      input.placeholder = 'Score name';
+      input.setAttribute('aria-label', `${gender} prelim score name`);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'ghost-button';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', 'Remove score');
+      remove.addEventListener('click', () => row.remove());
+      row.append(input, remove);
+      namesList.appendChild(row);
+    };
+    const setNames = (names) => {
+      namesList.innerHTML = '';
+      names.forEach((name) => addNameRow(name));
+    };
+    const makeNamesButton = (text, onClick) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ghost-button';
+      btn.textContent = text;
+      btn.addEventListener('click', onClick);
+      return btn;
+    };
+    const defaultNames = () => (activeDisciplineKey === 'flatland' ? [...PRELIM_SCORE_CATEGORIES] : ['Total']);
+    setNames(defaultNames());
+    // "Total" is an ordinary score; when present it must be first (the results page shows it as the main score).
+    const addTotal = () => {
+      const hasTotal = Array.from(namesList.querySelectorAll('input')).some((input) => /^total/i.test(input.value.trim()));
+      if (!hasTotal) setNames(['Total', ...namesInput.names]);
+    };
+    namesBar.append(
+      namesCaption,
+      namesList,
+      makeNamesButton('Add score', () => addNameRow()),
+      makeNamesButton('Add Total', addTotal),
+      makeNamesButton('Reset to defaults', () => setNames(defaultNames()))
+    );
+    // Score names as written to the "@prelim" header, in the order the scores are entered.
+    const namesInput = {
+      get names() {
+        return Array.from(namesList.querySelectorAll('input'))
+          .map((input) => input.value.replace(/[,;|#]/g, ' ').replace(/\s+/g, ' ').trim())
+          .filter(Boolean);
+      },
+      get value() {
+        return this.names.join(', ');
+      },
+      set value(text) {
+        setNames(String(text).split(',').map((name) => name.trim()).filter(Boolean));
+      }
+    };
 
     const textarea = document.createElement('textarea');
     textarea.rows = 10;
-    textarea.placeholder = '1. Rider Name, 84.7 24.5 18 16 15\nRider Name, 80.1 / 17 15 14';
+    textarea.placeholder = '1. Ben Niediek, 24.5/30 24/30 18.7/20 16.7/20\n2. Marvin Henke, 20/30 19/30 14/20 13/20\n3. Rider Name, / 17/30 12/20 10/20';
     textarea.setAttribute('aria-label', `${gender} prelim results`);
-    panel.append(namesLabel, textarea);
+    panel.append(namesBar, textarea);
 
     const prelim = { button, panel, textarea, namesInput };
     panel.insertBefore(createCsvImportControl(gender, prelim, true), textarea);
@@ -930,7 +1034,8 @@ function setupResultsTextBuilder() {
 
   function addRound(gender) {
     const index = roundsByGender[gender].length;
-    const roundName = index === 0 ? 'Final' : `Lower round ${index}`;
+    const isFlatland = activeDisciplineKey === 'flatland';
+    const roundName = isFlatland ? 'Final rider ranking' : (index === 0 ? 'Final' : `Lower round ${index}`);
     const tabs = document.getElementById(`${gender}-round-tabs`);
     const panels = document.getElementById(`${gender}-round-panels`);
     if (!tabs || !panels) return;
@@ -947,14 +1052,14 @@ function setupResultsTextBuilder() {
 
     const textarea = document.createElement('textarea');
     textarea.rows = 10;
-    textarea.placeholder = activeDisciplineKey === 'flatland'
-      ? '1. Rider Name 83.83 24.5/30 24/30 18.7/20 16.7/20'
+    textarea.placeholder = isFlatland
+      ? '1. Rider Name\n2. Rider Name\n3. Rider Name'
       : '1. Rider Name 95.5 24 18\nRider Name 83 21';
     textarea.setAttribute('aria-label', `${gender} ${roundName} results`);
     panel.appendChild(textarea);
 
     const round = { button, panel, textarea };
-    panel.insertBefore(createCsvImportControl(gender, round, false), textarea);
+    panel.insertBefore(createCsvImportControl(gender, round, false, isFlatland), textarea);
     roundsByGender[gender].push(round);
     tabs.insertBefore(button, prelimByGender[gender]?.button || null);
     panels.appendChild(panel);
@@ -1029,6 +1134,7 @@ function setupResultsTextBuilder() {
   }
 
   function getScoreNames(gender) {
+    if (!scoreNameLists[gender]) return [];
     return Array.from(scoreNameLists[gender].querySelectorAll('input'))
       .map((input) => input.value.replace(/[,;|#]/g, ' ').trim())
       .map((name) => name || '?');
@@ -1068,7 +1174,7 @@ function setupResultsTextBuilder() {
   // Builds the score-name row between the round tabs and the input boxes of one gender.
   function setupScoreNames(gender) {
     const panels = document.getElementById(`${gender}-round-panels`);
-    if (!panels) return;
+    if (!panels || activeDisciplineKey === 'flatland') return;
     const bar = document.createElement('div');
     bar.className = 'score-names-builder';
     const label = document.createElement('strong');
@@ -1093,30 +1199,203 @@ function setupResultsTextBuilder() {
     } catch (e) {
       saved = null;
     }
-    const defaults = activeDisciplineKey === 'flatland'
-      ? ['Total', ...FLATLAND_RESULT_SCORE_CATEGORIES]
-      : [];
+    const defaults = [];
     (Array.isArray(saved) ? saved : defaults).forEach((name) => addScoreNameInput(gender, String(name)));
   }
 
   setupScoreNames('male');
   setupScoreNames('female');
 
+  // Flatland battles: the user chooses the score names (CSV header, single scores, or the defaults)
+  // and every battle line must then hold exactly one value per name for each rider.
+  const battleNameLists = {};
+  const battleNamesStorageKey = `results-builder-battle-score-names-${activeDisciplineKey}`;
+
+  function getBattleNames(gender) {
+    if (!battleNameLists[gender]) return [];
+    return Array.from(battleNameLists[gender].querySelectorAll('input'))
+      .map((input) => input.value.replace(/[,;|#]/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+  }
+
+  function saveBattleNames(gender) {
+    try {
+      localStorage.setItem(`${battleNamesStorageKey}-${gender}`, JSON.stringify(Array.from(battleNameLists[gender].querySelectorAll('input')).map((i) => i.value)));
+    } catch (e) {
+      // storage unavailable; names are still written to the generated file
+    }
+  }
+
+  function addBattleNameInput(gender, value = '') {
+    const list = battleNameLists[gender];
+    const row = document.createElement('div');
+    row.className = 'score-name-row';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.placeholder = 'Score name';
+    input.setAttribute('list', 'battle-score-suggestions');
+    input.setAttribute('aria-label', `${gender} battle score name`);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'ghost-button';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Remove score');
+    remove.addEventListener('click', () => {
+      row.remove();
+      saveBattleNames(gender);
+    });
+    input.addEventListener('input', () => saveBattleNames(gender));
+    row.append(input, remove);
+    list.appendChild(row);
+  }
+
+  function setBattleNames(gender, names) {
+    battleNameLists[gender].innerHTML = '';
+    names.forEach((name) => addBattleNameInput(gender, name));
+    saveBattleNames(gender);
+  }
+
+  // CSV layout: "Winner, Loser, <names>, <names>"; the first group holds the winner's scores,
+  // the second group the loser's. The score names are taken from the first group.
+  function parseBattleCsv(text) {
+    const rows = parseCsvRows(text);
+    if (rows.length < 2) throw new Error('The CSV needs a header row and at least one battle row.');
+    const header = rows[0].slice();
+    while (header.length && !header[header.length - 1]) header.pop();
+    const scoreColumns = header.length - 2;
+    if (scoreColumns < 2 || scoreColumns % 2 !== 0) {
+      throw new Error('The header must be: Winner, Loser, then the score names for the winner followed by the same score names for the loser.');
+    }
+    const count = scoreColumns / 2;
+    const names = header.slice(2, 2 + count).map((name, i) => name || header[2 + count + i] || '');
+    if (names.some((name) => !name)) throw new Error('Every score column in the CSV header needs a name.');
+    const cleanScore = (value) => {
+      const score = String(value || '').replace(/\s+/g, '').replace(/(\d),(\d)/g, '$1.$2');
+      return !score || /^noscore$/i.test(score) ? '/' : score;
+    };
+    const cleanName = (value) => String(value || '').replace(/[,;|#]/g, ' ').replace(/\s+/g, ' ').trim();
+    let skipped = 0;
+    const lines = rows.slice(1).map((cells) => {
+      const winner = cleanName(cells[0]);
+      const loser = cleanName(cells[1]);
+      if (!winner || !loser) {
+        skipped++;
+        return null;
+      }
+      const winnerScores = names.map((_, i) => cleanScore(cells[2 + i]));
+      const loserScores = names.map((_, i) => cleanScore(cells[2 + count + i]));
+      return `${winner}, ${loser}, ${winnerScores.join(' ')}, ${loserScores.join(' ')}`;
+    }).filter(Boolean);
+    return { names, lines, skipped };
+  }
+
+  async function importBattleCsv(gender, file) {
+    try {
+      const buffer = await file.arrayBuffer();
+      let text = new TextDecoder('utf-8').decode(buffer);
+      if (text.includes('\uFFFD')) text = new TextDecoder('windows-1252').decode(buffer);
+      const { names, lines, skipped } = parseBattleCsv(text);
+      if (!lines.length) throw new Error('No battles found in the CSV.');
+      setBattleNames(gender, names);
+      document.getElementById(`${gender}-battles-input`).value = lines.join('\n');
+      showStatus(`Imported ${lines.length} battle(s) from ${file.name} into ${genderLabel(gender)} battles with scores: ${names.join(', ')}.${skipped ? ` Skipped ${skipped} row(s) missing a winner or loser.` : ''}`, skipped > 0);
+    } catch (error) {
+      showStatus(`CSV import failed: ${error.message}`, true);
+    }
+  }
+
+  function setupBattleTools(gender) {
+    const container = document.getElementById(`${gender}-battle-tools`);
+    if (!container || activeDisciplineKey !== 'flatland') return;
+    const bar = document.createElement('div');
+    bar.className = 'score-names-builder';
+    const label = document.createElement('strong');
+    label.textContent = 'Battle scores';
+    const list = document.createElement('div');
+    list.className = 'score-names-list';
+    battleNameLists[gender] = list;
+
+    const makeButton = (text, onClick) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ghost-button';
+      button.textContent = text;
+      button.addEventListener('click', onClick);
+      return button;
+    };
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.tsv,.txt,text/csv';
+    fileInput.className = 'hidden';
+    fileInput.addEventListener('change', async () => {
+      const [file] = fileInput.files;
+      fileInput.value = '';
+      if (file) await importBattleCsv(gender, file);
+    });
+
+    if (!document.getElementById('battle-score-suggestions')) {
+      const suggestions = document.createElement('datalist');
+      suggestions.id = 'battle-score-suggestions';
+      BATTLE_DEFAULT_SCORE_NAMES.forEach((name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        suggestions.appendChild(option);
+      });
+      container.appendChild(suggestions);
+    }
+
+    bar.append(
+      label,
+      list,
+      makeButton('Add score', () => {
+        addBattleNameInput(gender);
+        saveBattleNames(gender);
+      }),
+      makeButton('Add default scores', () => setBattleNames(gender, BATTLE_DEFAULT_SCORE_NAMES)),
+      makeButton('Import CSV', () => fileInput.click()),
+      fileInput
+    );
+    container.appendChild(bar);
+
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(`${battleNamesStorageKey}-${gender}`) || 'null');
+    } catch (e) {
+      saved = null;
+    }
+    if (Array.isArray(saved)) saved.forEach((name) => addBattleNameInput(gender, String(name)));
+  }
+
+  setupBattleTools('male');
+  setupBattleTools('female');
+
   function buildBattleResults(gender) {
     if (!activeDiscipline.supportsBattles) return '';
     const input = document.getElementById(`${gender}-battles-input`);
     if (!input) return '';
+    const names = getBattleNames(gender);
 
-    return input.value.split(/\r?\n/).map((rawLine, index) => {
+    const lines = input.value.split(/\r?\n/).map((rawLine, index) => {
       const line = rawLine.trim();
       if (!line) return null;
       const parts = line.split(',').map((part) => part.trim());
       if (parts.length !== 4 || parts.some((part) => !part)) {
-        throw new Error(`${gender} battle line ${index + 1} must contain winner, winner scores, loser, and loser scores.`);
+        throw new Error(`${genderLabel(gender)} battle line ${index + 1} must contain winner, loser, winner scores, and loser scores.`);
       }
-      const [winner, winnerScores, loser, loserScores] = parts;
-      return `${winner},${loser},${winnerScores},${loserScores}`;
-    }).filter(Boolean).join('\r\n');
+      const [winner, loser, winnerScores, loserScores] = parts;
+      if (!names.length) return `${winner},${loser},${winnerScores},${loserScores}`;
+
+      const winnerValues = winnerScores.split(/\s+/);
+      const loserValues = loserScores.split(/\s+/);
+      if (winnerValues.length !== names.length || loserValues.length !== names.length) {
+        throw new Error(`${genderLabel(gender)} battle line ${index + 1} needs ${names.length} score(s) per rider (${names.join(', ')}), separated by spaces. Use / for a missing score.`);
+      }
+      return `${winner}, ${loser}, ${winnerValues.join(', ')}, ${loserValues.join(', ')}`;
+    }).filter(Boolean);
+
+    if (!lines.length) return '';
+    return `${names.length ? `@battle ${names.join(', ')}\r\n` : ''}${lines.join('\r\n')}`;
   }
 
   function showStatus(message, warning = false) {
@@ -1136,13 +1415,15 @@ function setupResultsTextBuilder() {
     if (!prelim) return '';
     const entries = parseRound(prelim.textarea.value);
     if (!entries.length) return '';
-    const names = prelim.namesInput.value.split(',').map((name) => name.replace(/[;|#]/g, ' ').trim()).filter(Boolean);
+    const names = prelim.namesInput.names;
+    if (!names.length) throw new Error(`Add at least one ${genderLabel(gender)} prelim score (or clear the prelim results).`);
     const lines = entries.map((entry) => `${entry.place}. ${entry.rider}${entry.scores.length ? `, ${entry.scores.join(', ')}` : ''}`);
-    return `${names.length ? `@prelim ${names.join(', ')}\r\n` : '@prelim Total\r\n'}${lines.join('\r\n')}`;
+    return `@prelim ${names.join(', ')}\r\n${lines.join('\r\n')}`;
   }
 
   ['male', 'female'].forEach((gender) => {
     const addRoundButton = document.getElementById(`add-${gender}-round`);
+    if (addRoundButton && activeDisciplineKey === 'flatland') addRoundButton.classList.add('hidden');
     if (addRoundButton) {
       addRoundButton.addEventListener('click', () => addRound(gender));
     }
@@ -1457,7 +1738,7 @@ async function loadRanking() {
           } else if (battleHeader) {
             battleNames = battleHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
           } else if (isPrelimLine(line)) {
-            const prelimEntry = parsePrelimLine(line, prelimNames ? prelimNames.slice(1) : PRELIM_SCORE_CATEGORIES);
+            const prelimEntry = parsePrelimLine(line, prelimNames);
             if (prelimEntry) inlinePrelim.push(prelimEntry);
           } else if (activeDiscipline.supportsBattles) {
             battleLines.push(line);
@@ -1477,12 +1758,12 @@ async function loadRanking() {
           const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
 
           const parts = dataLine.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
-          const detailedLength = 4 + battleNames.length * 2;
-          if (parts.length !== 2 && parts.length !== 4 && parts.length !== detailedLength) {
+          const detailedFields = parseDetailedBattleFields(parts.slice(2), battleNames);
+          if (parts.length !== 2 && parts.length !== 4 && !detailedFields) {
             throw new Error(`Invalid battle line in ${event.name}: ${line}`);
           }
 
-          const isDetailed = parts.length === detailedLength && parts.length !== 4;
+          const isDetailed = Boolean(detailedFields) && parts.length !== 4;
           const [rawWinner, rawLoser, rawWinnerScores = '', rawLoserScores = ''] = parts;
           const winner = aliasMap.get(normalizeName(rawWinner)) || rawWinner;
           const loser = aliasMap.get(normalizeName(rawLoser)) || rawLoser;
@@ -1503,14 +1784,11 @@ async function loadRanking() {
             videoUrl
           };
           if (isDetailed) {
-            const scores = parts.slice(4);
             battle.detail = {
               winner,
               loser,
-              votesWinner: Number(rawWinnerScores),
-              votesLoser: Number(rawLoserScores),
-              winnerScores: battleNames.map((label, i) => ({ label, ...parseBattleScoreField(scores[i]) })),
-              loserScores: battleNames.map((label, i) => ({ label, ...parseBattleScoreField(scores[i + battleNames.length]) })),
+              winnerScores: detailedFields.winnerScores,
+              loserScores: detailedFields.loserScores,
               videoUrl
             };
           }
@@ -2141,7 +2419,7 @@ function renderRiderPointsPage() {
     body.appendChild(row);
   });
 
-  summary.textContent = `${visibleHistory.length} events. Weighted total with type penalty: ${totalCounted.toFixed(2)} points (${currentGender} view, ${currentYearComparison}).`;
+  summary.textContent = `${visibleHistory.length} events. Weighted total with type penalty: ${totalCounted.toFixed(2)} points (${currentGender === 'male' ? 'male/open' : currentGender} view, ${currentYearComparison}).`;
 
   document.querySelectorAll('.rider-points-event-link').forEach((button) => {
     button.addEventListener('click', () => {
@@ -2176,7 +2454,7 @@ function setView(view) {
   const title = document.getElementById('ranking-title');
   const description = document.getElementById('ranking-description');
   if (!title || !description) return;
-  const genderText = currentGender === 'female' ? 'female ' : 'male ';
+  const genderText = currentGender === 'female' ? 'female ' : 'male/open ';
 
   if (view === 'world') {
     title.textContent = 'All';
@@ -2194,7 +2472,7 @@ function setView(view) {
 function updateGenderToggleText() {
   const button = document.getElementById('toggle-gender');
   if (!button) return;
-  button.textContent = currentGender === 'female' ? 'Show male view' : 'Show female view';
+  button.textContent = currentGender === 'female' ? 'Show male/open view' : 'Show female view';
 }
 
 function toggleGender() {
@@ -2563,6 +2841,7 @@ function renderEvent(eventName) {
     // Not every event's preliminary results include a per-category score breakdown
     // (e.g. Difficulty/Variety/Fullness/Style); only add those columns when present.
     const categoryLabels = prelimEntries.find((entry) => entry.categoryScores?.length)?.categoryScores.map((c) => c.label) || [];
+    const hasPrelimTotal = prelimEntries.some((entry) => Number.isFinite(entry.score));
     const hasPrelimVideos = prelimEntries.some((entry) => entry.videoUrl);
 
     const sortKey = prelimSort.key;
@@ -2588,7 +2867,7 @@ function renderEvent(eventName) {
         return `<th><button class="sort-button prelim-sort-button" data-key="${key}">${label}${arrow}</button></th>`;
       };
       const categoryHeaders = categoryLabels.map((label, i) => sortHeader(`cat-${i}`, label)).join('');
-      prelimHeadRow.innerHTML = `${sortHeader('place', 'Place')}<th>Rider</th>${sortHeader('score', 'Score')}${categoryHeaders}${hasPrelimVideos ? '<th>Video</th>' : ''}`;
+      prelimHeadRow.innerHTML = `${sortHeader('place', 'Place')}<th>Rider</th>${hasPrelimTotal ? sortHeader('score', 'Score') : ''}${categoryHeaders}${hasPrelimVideos ? '<th>Video</th>' : ''}`;
       if (!prelimHeadRow.dataset.sortBound) {
         prelimHeadRow.dataset.sortBound = 'true';
         prelimHeadRow.addEventListener('click', (e) => {
@@ -2615,7 +2894,7 @@ function renderEvent(eventName) {
         row.innerHTML = `
           <td class="rank">${entry.place}</td>
           <td><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
-          <td>${Number.isFinite(entry.score) ? entry.score.toFixed(1) : entry.score}</td>
+          ${hasPrelimTotal ? `<td>${Number.isFinite(entry.score) ? entry.score.toFixed(1) : '—'}</td>` : ''}
           ${categoryCells}
           ${hasPrelimVideos ? `<td>${entry.videoUrl ? `<a class="battle-video-link" href="${escapeXml(entry.videoUrl)}" target="_blank" rel="noopener noreferrer" title="Watch run video">🎥</a>` : ''}</td>` : ''}
         `;
@@ -2623,7 +2902,7 @@ function renderEvent(eventName) {
       });
       prelimWrapper.classList.remove('hidden');
     } else {
-      prelimBody.innerHTML = `<tr><td colspan="${3 + categoryLabels.length + (hasPrelimVideos ? 1 : 0)}" class="status">No preliminary results available.</td></tr>`;
+      prelimBody.innerHTML = `<tr><td colspan="${2 + (hasPrelimTotal ? 1 : 0) + categoryLabels.length + (hasPrelimVideos ? 1 : 0)}" class="status">No preliminary results available.</td></tr>`;
       prelimWrapper.classList.add('hidden');
     }
   }
@@ -2690,12 +2969,13 @@ function attachBattleDetailButtons(battles) {
 }
 
 function renderBattleDetailScoreRows(winnerScores, loserScores) {
-  return BATTLE_DETAIL_CATEGORIES.map((label, i) => {
-    const winnerCell = winnerScores[i] || {};
+  return winnerScores.map((winnerCell, i) => {
     const loserCell = loserScores[i] || {};
+    const label = winnerCell.label;
+    const cellClass = /^votes?$/i.test(label) ? ' class="battle-detail-votes"' : '';
     return `
       <tr>
-        <td>${label}</td>
+        <td${cellClass}>${label}</td>
         <td>${winnerCell.display ?? '—'}</td>
         <td>${loserCell.display ?? '—'}</td>
       </tr>
@@ -2718,15 +2998,7 @@ function openBattleDetailModal(battle) {
   if (winnerHeader) winnerHeader.textContent = battle.winner;
   if (loserHeader) loserHeader.textContent = battle.loser;
 
-  const votesRow = `
-    <tr>
-      <td class="battle-detail-votes">Votes</td>
-      <td class="battle-detail-votes">${detail.votesWinner}</td>
-      <td class="battle-detail-votes">${detail.votesLoser}</td>
-    </tr>
-  `;
-
-  detailBody.innerHTML = votesRow + renderBattleDetailScoreRows(detail.winnerScores, detail.loserScores);
+  detailBody.innerHTML = renderBattleDetailScoreRows(detail.winnerScores, detail.loserScores);
 
   overlay.classList.remove('hidden');
 }
@@ -2778,6 +3050,33 @@ function addRiderBattle(rider, eventName, round, opponent, result, gender = 'mal
 
 // Categories expected (in file order) for each side of a detailed battle line.
 const BATTLE_DETAIL_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Last trick'];
+// Default score names offered by the results builder for battles.
+const BATTLE_DEFAULT_SCORE_NAMES = ['Votes', 'Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Final Trick'];
+
+// Splits the fields after "winner, loser" of a detailed battle line into per-side scores.
+// Current layout: the winner's scores (one per name), then the loser's scores. Older files
+// listed the two vote counts first and had no "Votes" name; those are converted to the
+// current layout with a leading "Votes" score. Returns null if the field count fits neither.
+function parseDetailedBattleFields(fields, names) {
+  const count = names.length;
+  let labels = names;
+  let winnerRaw;
+  let loserRaw;
+  if (count && fields.length === count * 2) {
+    winnerRaw = fields.slice(0, count);
+    loserRaw = fields.slice(count);
+  } else if (count && fields.length === count * 2 + 2) {
+    labels = ['Votes', ...names];
+    winnerRaw = [fields[0], ...fields.slice(2, 2 + count)];
+    loserRaw = [fields[1], ...fields.slice(2 + count)];
+  } else {
+    return null;
+  }
+  return {
+    winnerScores: labels.map((label, i) => ({ label, ...parseBattleScoreField(winnerRaw[i]) })),
+    loserScores: labels.map((label, i) => ({ label, ...parseBattleScoreField(loserRaw[i]) }))
+  };
+}
 
 // Attempts to fetch a detailed-results file for an event (e.g. "detailed event PDF/GUC26_D.txt").
 // Returns the raw text, or null if no such file exists / it couldn't be loaded.
@@ -2820,7 +3119,11 @@ function isPrelimLine(line) {
 // - Simple: "<place> <name> <score>" (space-separated, no per-category breakdown).
 // - Detailed: "<place>. <name>, <score>, <category1>, <category2>, ..." (comma-separated,
 //   with a per-category score breakdown using PRELIM_SCORE_CATEGORIES order).
-function parsePrelimLine(rawLine, categoryNames = PRELIM_SCORE_CATEGORIES) {
+// `names` is the "@prelim" header: if its first name starts with "Total" the first value is the
+// total score; otherwise every value is a plain named score and the line has no total.
+function parsePrelimLine(rawLine, names = null) {
+  const hasTotal = !names || !names.length || /^total/i.test(names[0]);
+  const categoryNames = names && names.length ? (hasTotal ? names.slice(1) : names) : PRELIM_SCORE_CATEGORIES;
   // Optional video link after '#', e.g. "1 Name 84.7#https://youtu.be/..."
   const hashIndex = rawLine.indexOf('#');
   const videoUrl = hashIndex === -1 ? null : extractVideoUrl(rawLine.slice(hashIndex + 1));
@@ -2832,14 +3135,14 @@ function parsePrelimLine(rawLine, categoryNames = PRELIM_SCORE_CATEGORIES) {
     const firstPartMatch = parts[0].match(/^(\d+)\.?\s*(.+)$/);
     if (!firstPartMatch || parts.length < 2) return null;
     const canonical = aliasMap.get(normalizeName(firstPartMatch[2])) || firstPartMatch[2];
-    const categoryScores = parts.slice(2).map((raw, i) => ({
+    const categoryScores = parts.slice(hasTotal ? 2 : 1).map((raw, i) => ({
       label: categoryNames[i] || `Score ${i + 1}`,
       ...parseBattleScoreField(raw)
     }));
     return {
       place: Number(firstPartMatch[1]),
       rider: canonical,
-      score: Number(parts[1]),
+      score: hasTotal ? Number(parts[1]) : null,
       categoryScores,
       videoUrl
     };
@@ -2879,10 +3182,15 @@ function parseEventDetailText(text) {
     const lines = prelimNames ? allLines.slice(1) : allLines;
     const firstBattleIndex = lines.findIndex((line) => !isPrelimLine(line));
     const prelimLines = firstBattleIndex === -1 ? lines : lines.slice(0, firstBattleIndex);
-    const battleLines = firstBattleIndex === -1 ? [] : lines.slice(firstBattleIndex);
+    let detailBattleNames = BATTLE_DETAIL_CATEGORIES;
+    const battleLines = (firstBattleIndex === -1 ? [] : lines.slice(firstBattleIndex)).filter((line) => {
+      const header = line.match(/^@battle\s+(.*)$/i);
+      if (header) detailBattleNames = header[1].split(',').map((name) => name.trim()).filter(Boolean);
+      return !header;
+    });
 
     const prelim = prelimLines
-      .map((line) => parsePrelimLine(line, prelimNames ? prelimNames.slice(1) : PRELIM_SCORE_CATEGORIES))
+      .map((line) => parsePrelimLine(line, prelimNames))
       .filter(Boolean);
 
     const battleMap = new Map();
@@ -2895,29 +3203,17 @@ function parseEventDetailText(text) {
         const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
 
         const parts = dataLine.split(',').map((part) => part.trim());
-        // winner, loser, votesWinner, votesLoser, 6 winner scores, 6 loser scores
-        if (parts.length < 4 + BATTLE_DETAIL_CATEGORIES.length * 2) return;
+        const fields = parseDetailedBattleFields(parts.slice(2), detailBattleNames);
+        if (!fields) return;
 
-        const [rawWinner, rawLoser, votesWinnerRaw, votesLoserRaw, ...scores] = parts;
-        const winner = aliasMap.get(normalizeName(rawWinner)) || rawWinner;
-        const loser = aliasMap.get(normalizeName(rawLoser)) || rawLoser;
-
-        const winnerScores = BATTLE_DETAIL_CATEGORIES.map((label, i) => ({
-          label,
-          ...parseBattleScoreField(scores[i])
-        }));
-        const loserScores = BATTLE_DETAIL_CATEGORIES.map((label, i) => ({
-          label,
-          ...parseBattleScoreField(scores[i + BATTLE_DETAIL_CATEGORIES.length])
-        }));
+        const winner = aliasMap.get(normalizeName(parts[0])) || parts[0];
+        const loser = aliasMap.get(normalizeName(parts[1])) || parts[1];
 
         battleMap.set(`${winner}|||${loser}`, {
           winner,
           loser,
-          votesWinner: Number(votesWinnerRaw),
-          votesLoser: Number(votesLoserRaw),
-          winnerScores,
-          loserScores,
+          winnerScores: fields.winnerScores,
+          loserScores: fields.loserScores,
           videoUrl
         });
       });

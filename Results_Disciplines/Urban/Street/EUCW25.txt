@@ -1,0 +1,45 @@
+@scores run, best trick, total
+1. Tim Desmet, 58.92 21.80 80.72
+2. Auth Kornél, 51.74 22.28 74.02
+3. Jelle Dillen, 51.57 18.21 69.78
+4. Mario bel, 42.70 20.83 63.53
+5. Folke Schubert, 46.26 15.17 61.43;
+@prelim Total
+1. Auth Kornél, 78.50
+2. eddie DUCOL, 78.17
+3. Jelle Dillen, 76.50
+4. Tim Desmet, 66.50
+5. Mario bel, 63.17
+5. Folke Schubert, 63.17
+7. Stéphane Ranc, 62.33
+8. Wout Chauvaux, 61.17
+9. August Agerskov, 59.67
+10. Colby Thomas, 59.17
+11. Dao Shani, 55.83
+12. David Neeff, 54.83
+13. Louis Dubalen, 52.83
+14. Joos Machetanz, 50.33
+15. Cleden Guichard, 44.00
+16. Alexis Mercat, 42.17
+17. Jakob Eschlböck, 40.50
+18. Vitus Bieringer, 40.33
+19. Oliver Nielsen, 38.83
+20. Walker Orner, 36.83
+21. Jérôme Cauquil, 32.17
+21. Nathanael Bogdan, 32.17
+23. Tristan Jambon, 32.00
+|
+@scores run, best trick, total
+1. Nina Beckmann, 55.42 20.39 75.81
+2. Roos Seegers, 54.25 16.20 70.45
+3. Cora Schindele, 45.15 16.40 61.55;
+@prelim Total
+1. Roos Seegers, 75.58
+2. Nina Beckmann, 69.83
+3. Cora Schindele, 60.08
+4. Paula Marie Wache, 55.42
+5. Rebekka Wiedener, 52.17
+6. Marie Schlenker, 49.17
+7. Evelyn Rohn, 48.08
+8. Ariane Rohn, 42.75
+9. Khadija Compaoré, 28.50

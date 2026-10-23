@@ -1,0 +1,51 @@
+@scores Total
+1. Mimo Seedler, 82.89
+2. Clément Pujol, 75.19
+3. Jelle Dillen, 67.16
+4. Wout Chauvaux, 66.33
+5. Mario Bel, 64.67
+6. Eddie Ducol, 63.98
+7. Florian Rohe, 50.69
+8. Moses Hart, 40.46;
+@prelim Total
+1. Mimo Seedler, 88.1
+2. Jelle Dillen, 74.1
+3. Eddie Ducol, 70.4
+4. Mario Bel, 67.8
+5. Wout Chauvaux, 67.6
+6. Tim Desmet, 66.9
+7. Clément Pujol, 62.3
+8. Florian Rohe, 59.9
+9. Stéphane Ranc, 58.6
+10. Dao Shani, 58.4
+11. Edd Hawkes, 56.9
+12. Moses Hart, 52.7
+13. Paweł Matys, 52.6
+14. Colby Thomas, 52.5
+15. Ben Niediek, 44.5
+16. Jérôme CAUQUIL, 43.3
+17. Nicolas POTIER, 43.1
+18. emile themelin, 42.3
+19. Tiago MARANT, 42.0
+20. Szymon Jakubowski, 39.4
+21. Cristóbal Soto, 38.8
+22. Silas Pfund, 37.9
+23. Lars Van Asbroeck, 37.5
+24. Maciej Worwa, 36.0
+25. Brandon Penrod, 33.3
+26. Pol Sans, 33.2
+27. Tirryn Nankivell, 32.4
+28. Karel Dyselinck, 30.5
+29. Arnau Pardo, 30.4
+30. Pau Jurado, 27.1
+|
+@scores Total
+1. Roos Seegers, 70.89
+2. Nina Beckmann, 67.68
+3. Rebekka Wiedener, 62.22
+4. Laura Aguilera, 58.89;
+@prelim Total
+1. Roos Seegers, 82.2
+2. Nina Beckmann, 68.6
+3. Rebekka Wiedener, 67.3
+4. Laura Aguilera, 54.7

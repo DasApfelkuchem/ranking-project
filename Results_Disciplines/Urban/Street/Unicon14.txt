@@ -1,0 +1,61 @@
+@scores total
+1. Christian Huriwai, 27
+2. Jack Sebben, 16
+3. Maxwell Schulze, 15
+4. Josef Sjönneby, 10.5
+5. Raphael Pöham, 10
+6. Casper van Tielraden, 5.5;
+@prelim Total
+1. Raphael Pöham
+2. Christian Huriwai
+3. Maxwell Schulze
+4. Jack Sebben
+5. Josef Sjönneby
+6. Casper van Tielraden
+7. Colby Thomas
+8. Christian Brink
+9. Eli Brill
+10. Kyle Alviani
+11. Edmund Leduc
+12. Eddie Ducol
+13. Lorenz Pöham
+14. Adrien Delecroix
+15. Lars Anderson
+16. Elias Pöham
+17. Mario Bel
+18. Damien Dyonne
+19. Josef Brink
+20. Dan Colvin
+21. Pierre Sturny
+22. David Hackett
+23. Brandon Nankivell
+24. Matthew Manson
+25. Anton Juncher Jørgensen
+26. Cyril Mercat
+27. Armand Martinez
+28. Cody Shaide
+29. Gabe Seng
+30. Aidan Teleki
+31. Jérémy Bonzon
+32. Pierre-Olivier Hudon
+33. Philip Sanders
+34. Gerald Rosenkranz
+35. Isaac Schuler
+36. Manfred Fux
+37. Finn Harwege
+38. Tirryn Nankivell
+39. Malik Ghafary
+40. Theo Granier
+41. Rodrigue Bonnevie
+42. Charles-William Monette Paradis
+43. Simon Beaumier
+44. Jean-Sébastien Turcotte
+45. Erick Gonzalez
+46. Noli Ergas
+47. Benoit Lamoise
+48. Sean Minter
+49. Riley Millar
+|
+1. Sam La Hood
+2. Sophia Pellmann
+3. Maria Wegscheider;

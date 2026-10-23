@@ -102,7 +102,7 @@
           <section class="settings-card results-builder-card" aria-labelledby="results-builder-title">
             <div>
               <h3 id="results-builder-title">Generate results text file</h3>
-              <p class="settings-card-hint">Enter one rider per line as <code>Rider Rank,Rider Name</code>, <code>Rider Name Score1 Score2...</code></p>
+              <p id="results-builder-hint" class="settings-card-hint">For Final Rankings enter one rider per line as <code>Rider Rank. Rider Name Score1 Score2...</code></p>
               <p id="results-builder-score-format" class="settings-card-hint"></p>
             </div>
             <div class="round-tabs" role="tablist" aria-label="Result file sections">
@@ -117,8 +117,8 @@
               </div>
               <div class="results-builder-genders">
                 <section class="results-builder-gender" aria-labelledby="male-results-builder-title">
-                  <h4 id="male-results-builder-title">Male</h4>
-                  <div class="round-tabs" id="male-round-tabs" role="tablist" aria-label="Male result rounds"></div>
+                  <h4 id="male-results-builder-title">Male/Open</h4>
+                  <div class="round-tabs" id="male-round-tabs" role="tablist" aria-label="Male/Open result rounds"></div>
                   <div id="male-round-panels"></div>
                   <button id="add-male-round" class="ghost-button" type="button">Add lower round</button>
                 </section>
@@ -131,10 +131,10 @@
               </div>
             </div>
             <div id="results-builder-battles-panel" class="hidden" data-results-builder-panel="battles" data-battle-only>
-              <p class="settings-card-hint">Enter one battle per line as <code>Winning Rider, winning scores, Losing Rider, losing scores</code>. Scores in each group are Difficulty, Variety, Fullness, Style, Battling, Last trick.</p>
+              <p id="results-builder-battle-hint" class="settings-card-hint">Enter one battle per line as <code>Winning Rider, Losing Rider, winner scores, loser scores</code>. Scores in each group are Difficulty, Variety, Fullness, Style, Battling, Last trick.</p>
               <div class="results-builder-genders">
-                <label class="results-builder-gender"><span>Male battles</span><textarea id="male-battles-input" class="rider-sort-textarea" rows="8" placeholder="Winner Name, 95 24, Loser Name, 87 18"></textarea></label>
-                <label class="results-builder-gender"><span>Female battles</span><textarea id="female-battles-input" class="rider-sort-textarea" rows="8" placeholder="Winner Name, 95 24, Loser Name, 87 18"></textarea></label>
+                <section class="results-builder-gender"><h4>Male/Open battles</h4><div id="male-battle-tools"></div><pre class="battle-example">Example: Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21 13.1/14 10/14 6.1/16 11/14, 0 14.5/21 18.2/21 10.7/14 11.2/14 5.9/16 0/14</pre><textarea id="male-battles-input" class="rider-sort-textarea battle-lines-input" wrap="off" rows="8" placeholder="Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21 13.1/14 10/14 6.1/16 11/14, 0 14.5/21 18.2/21 10.7/14 11.2/14 5.9/16 0/14"></textarea></section>
+                <section class="results-builder-gender"><h4>Female battles</h4><div id="female-battle-tools"></div><pre class="battle-example">Example: Sofia van Veen, Cora Schindele, 3 18.2/21 14.4/21 11.4/14 10.3/14 11.5/16 10.3/14, 0 13.7/21 9.8/21 5.6/14 7.8/14 5.9/16 0/14</pre><textarea id="female-battles-input" class="rider-sort-textarea battle-lines-input" wrap="off" rows="8" placeholder="Sofia van Veen, Cora Schindele, 3 18.2/21 14.4/21 11.4/14 10.3/14 11.5/16 10.3/14, 0 13.7/21 9.8/21 5.6/14 7.8/14 5.9/16 0/14"></textarea></section>
               </div>
             </div>
             <div class="results-builder-actions">
@@ -146,11 +146,11 @@
             <textarea id="results-text-preview" class="rider-sort-textarea" rows="12" readonly placeholder="Generated results text will appear here"></textarea>
           </section>
           <div id="event-strength-wrapper" class="hidden" style="margin-top:16px;">
-            <h3>Male events</h3>
+            <h3>Male/Open events</h3>
             <div id="event-strength-chart-male" style="width:100%;overflow:auto;"></div>
             <h3 style="margin-top:16px;">Female events</h3>
             <div id="event-strength-chart-female" style="width:100%;overflow:auto;"></div>
-            <h3 style="margin-top:16px;">Current trailing average by event type (male)</h3>
+            <h3 style="margin-top:16px;">Current trailing average by event type (male/open)</h3>
             <div id="event-strength-summary-male" style="width:100%;overflow:auto;"></div>
             <h3 style="margin-top:16px;">Current trailing average by event type (female)</h3>
             <div id="event-strength-summary-female" style="width:100%;overflow:auto;"></div>
@@ -232,7 +232,7 @@
             </thead>
             <tbody id="ranking-body">
               <tr>
-                <td colspan="6" class="status">Loading rankings…</td>
+                <td colspan="6" class="status">Loading rankingsâ€¦</td>
               </tr>
             </tbody>
           </table>

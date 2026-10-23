@@ -1,0 +1,19 @@
+@scores Run ,Best trick,Total
+1. Mimo Seedler, 63.41 26.40 89.81
+2. Stéphane Ranc, 45.03 0.00 45.03
+3. Dao Shani, 44.28 0.00 44.28;
+@prelim Total
+1. Mimo Seedler, 88.25
+2. Stéphane Ranc, 63.25
+3. Dao Shani, 62.42
+4. Joos Machetanz, 56.33
+|
+@scores Run ,Best trick,Total
+1. Roos Seegers, 57.05 20.36 77.41
+2. Nina Beckmann, 49.70 20.20 69.90
+3. Paula Wache, 40.37 16.67 57.04;
+@prelim Total
+1. Roos Seegers, 73.75
+2. Nina Beckmann, 72.75
+3. Paula Wache, 45.75
+4. Louane Kachelhoffer, 37.42

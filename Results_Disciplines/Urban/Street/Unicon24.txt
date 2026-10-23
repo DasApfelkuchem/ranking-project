@@ -1,0 +1,43 @@
+@scores Total
+1. Mimo Seedler, 84.79
+2. Jack Sebben, 80.57
+3. Wout Chauvaux, 72.67
+4. Maxwell Schulze, 65.31
+5. Jelle Dillen, 61.93
+6. Abram Dostal, 57.48
+6. August Agerskov, 57.48
+8. Jakob Flansberry, 43.58;
+@prelim Total
+1. Jack Sebben, 85.67
+2. Maxwell Schulze, 77.5
+3. Wout Chauvaux, 71.5
+4. Jelle Dillen, 70.0
+5. August Agerskov, 65.5
+6. Mimo Seedler, 64.5
+7. Scott Julian, 63.5
+8. Abram Dostal, 63.33
+9. Jakob Flansberry, 60.5
+10. Stéphane Ranc, 57.92
+11. Hugo Duguay, 54.92
+12. Ivar Christenson, 50.97
+13. Roger Haun III, 50.5
+14. Oliver Robinson, 50.2
+15. Célien Zufferey, 49.58
+16. Nicholas Braun, 46.83
+17. Jonas Riis, 45.13
+18. Noli Ergas, 45.0
+19. Ben Niediek, 43.67
+20. Oliver Alexander Nielsen, 43.17
+21. Márk Fábián, 40.92
+22. Fabián Reyes Toledo, 40.58
+23. Louis Stevens, 37.25
+24. Nakul Mohakar, 31.5
+25. Walker Orner, 30.08
+26. Brandon Penrod, 25.7
+|
+@scores Total
+1. Roos Seegers, 82.88
+2. Nina Beckmann, 76.83
+3. Marie Schlenker, 70.27
+4. Evelyn Rohn, 60.09
+5. Khadija Compaoré, 51.02;

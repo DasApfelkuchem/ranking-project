@@ -1,0 +1,15 @@
+@scores Total
+1. Jan Niediek, 78.80
+2. Stéphane Ranc, 52.27
+3. Jérôme Cauquil, 48.03
+4. Ben Niediek, 39.67
+5. Folke Schubert, 32.08
+6. August Agerskov, 55.83
+7. David Neeff, 53.83
+8. Silas Pfund, 53.67
+9. Alex Ladikoff, 52.67
+10. Corentin Berset, 50.17;
+|
+@scores Total
+1. Roos Seegers, 54.12
+2. Julia Vonk, 38.93;
