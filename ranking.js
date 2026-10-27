@@ -25,64 +25,67 @@ const EVENT_MONTHS = {
   LAUCC: Number(LAUCC) || 0,
 };
 
-const FLATLAND_EVENT_FILES = [
-  { name: 'Unicon24', file: 'Flatland/Unicon24.txt', weight: 3 },
-  { name: 'Unicon26', file: 'Flatland/Unicon26.txt', weight: 3 },
-  { name: 'Unicon22', file: 'Flatland/Unicon22.txt', weight: 3 },
-  { name: 'Unicon18', file: 'Flatland/Unicon18.txt', weight: 3 },
-  { name: 'Unicon16', file: 'Flatland/Unicon16.txt', weight: 3 },
-  { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: 3 },
-  { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: 3 },
-  { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: 3 },
+// Optional region per event: '' (unknown) or one of EVENT_REGIONS. Fill in region: '' on any event below.
+const EVENT_REGIONS = ['NA', 'SA', 'EU', 'AS', 'AF', 'AU'];
 
-  { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: 2 },
-  { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: 2 },
-  { name: 'EUCW24', file: 'Flatland/EUCW24.txt', weight: 2 },
-  { name: 'EUCW20', file: 'Flatland/EUCW20.txt', weight: 2 },
-  { name: 'EUCW19', file: 'Flatland/EUCW19.txt', weight: 2 },
-  { name: 'EUCW18', file: 'Flatland/EUCW18.txt', weight: 2 },
-  { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: 2 },
-  { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: 2 },
-  { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: 2 },
+const FLATLAND_EVENT_FILES = [
+  { name: 'Unicon24', file: 'Flatland/Unicon24.txt', weight: 3, region: 'NA' },
+  { name: 'Unicon26', file: 'Flatland/Unicon26.txt', weight: 3, region: 'EU' },
+  { name: 'Unicon22', file: 'Flatland/Unicon22.txt', weight: 3, region: 'EU' },
+  { name: 'Unicon18', file: 'Flatland/Unicon18.txt', weight: 3, region: 'AS' },
+  { name: 'Unicon16', file: 'Flatland/Unicon16.txt', weight: 3, region: 'EU' },
+  { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: 3, region: 'NA' },
+  { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: 3, region: 'EU' },
+  { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: 3, region: 'AU' },
+
+  { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW24', file: 'Flatland/EUCW24.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW20', file: 'Flatland/EUCW20.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW19', file: 'Flatland/EUCW19.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW18', file: 'Flatland/EUCW18.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: 2, region: 'EU' },
    
 
-  { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: 2 },
-  { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: 2 },
-  { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: 2 },
+  { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: 2, region: 'EU' },
+  { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: 2, region: 'EU' },
+  { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: 2, region: 'EU ' },
 
-  { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: 1 },
-  { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: 1 },
+  { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: 1, region: 'EU' },
+  { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: 1, region: 'EU' },
 
-  { name: 'NAUCC26', file: 'Flatland/NAUCC26.txt', weight: 2 },
-  { name: 'NAUCC25', file: 'Flatland/NAUCC25.txt', weight: 2 },
-  { name: 'NAUCC23', file: 'Flatland/NAUCC23.txt', weight: 2 },
-  { name: 'NAUCC22', file: 'Flatland/NAUCC22.txt', weight: 2 },
-  { name: 'NAUCC19', file: 'Flatland/NAUCC19.txt', weight: 2 },
-  { name: 'NAUCC18', file: 'Flatland/NAUCC18.txt', weight: 2 },
-  { name: 'NAUCC17', file: 'Flatland/NAUCC17.txt', weight: 2 },
-  { name: 'NAUCC16', file: 'Flatland/NAUCC16.txt', weight: 2 },
-  { name: 'NAUCC15', file: 'Flatland/NAUCC15.txt', weight: 2 },
-  { name: 'NAUCC14', file: 'Flatland/NAUCC14.txt', weight: 2 },
-  { name: 'NAUCC13', file: 'Flatland/NAUCC13.txt', weight: 2 },
+  { name: 'NAUCC26', file: 'Flatland/NAUCC26.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC25', file: 'Flatland/NAUCC25.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC23', file: 'Flatland/NAUCC23.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC22', file: 'Flatland/NAUCC22.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC19', file: 'Flatland/NAUCC19.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC18', file: 'Flatland/NAUCC18.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC17', file: 'Flatland/NAUCC17.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC16', file: 'Flatland/NAUCC16.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC15', file: 'Flatland/NAUCC15.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC14', file: 'Flatland/NAUCC14.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC13', file: 'Flatland/NAUCC13.txt', weight: 2, region: 'NA' },
 
-  { name: 'LAUCC25', file: 'Flatland/LAUCC25.txt', weight: 2 },
+  { name: 'LAUCC25', file: 'Flatland/LAUCC25.txt', weight: 2, region: 'SA' },
 
-  { name: 'GUC25', file: 'Flatland/GUC25.txt', weight: 1 },
-  { name: 'GUC24', file: 'Flatland/GUC24.txt', weight: 1 },
-  { name: 'GUC23', file: 'Flatland/GUC23.txt', weight: 1 },
-  { name: 'GUC22', file: 'Flatland/GUC22.txt', weight: 1 },
-  { name: 'GUC26', file: 'Flatland/GUC26.txt', weight: 1 },
+  { name: 'GUC25', file: 'Flatland/GUC25.txt', weight: 1, region: 'EU' },
+  { name: 'GUC24', file: 'Flatland/GUC24.txt', weight: 1, region: 'EU' },
+  { name: 'GUC23', file: 'Flatland/GUC23.txt', weight: 1, region: 'EU' },
+  { name: 'GUC22', file: 'Flatland/GUC22.txt', weight: 1, region: 'EU' },
+  { name: 'GUC26', file: 'Flatland/GUC26.txt', weight: 1, region: 'EU' },
 
-  { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: 0.5 },
-  { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: 0.5 },
+  { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: 0.5, region: 'EU' },
+  { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: 0.5, region: 'EU' },
 
-  { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: 1 },
-  { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: 1 },
-  { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: 1 },
-  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1 },
-   { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: 1 },
+  { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: 1, region: 'EU' },
+  { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: 1, region: 'EU' },
+  { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: 1, region: 'EU' },
+  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1, region: 'EU' },
+   { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: 1, region: 'EU' },
 
-   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 1 }
+   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 1, region: 'AS' }
 ];
 
 const DISCIPLINES = {
@@ -96,19 +99,19 @@ const DISCIPLINES = {
   street: {
     label: 'Street',
     resultsDirectory: 'Results_Disciplines/Urban',
-    eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3 },
-      { name: 'Unicon24', file: 'Street/Unicon24.txt', weight: 3 },
-      { name: 'Unicon22', file: 'Street/Unicon22.txt', weight: 3 },
-      { name: 'Unicon16', file: 'Street/Unicon16.txt', weight: 3 },
-      { name: 'Unicon18', file: 'Street/Unicon18.txt', weight: 3 },
-      { name: 'Unicon14', file: 'Street/Unicon14.txt', weight: 3 },
-      { name: 'EUCW25', file: 'Street/EUCW25.txt', weight: 2 },
-       { name: 'EUCW24', file: 'Street/EUCW24.txt', weight: 2 },
-        { name: 'GUC22', file: 'Street/GUC22.txt', weight: 1 },
-           { name: 'GUC23', file: 'Street/GUC23.txt', weight: 1 },
-              { name: 'GUC24', file: 'Street/GUC24.txt', weight: 1 },
-                 { name: 'GUC25', file: 'Street/GUC25.txt', weight: 1 },
-                    { name: 'GUC26', file: 'Street/GUC26.txt', weight: 1 },
+    eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3, region: '' },
+      { name: 'Unicon24', file: 'Street/Unicon24.txt', weight: 3, region: '' },
+      { name: 'Unicon22', file: 'Street/Unicon22.txt', weight: 3, region: '' },
+      { name: 'Unicon16', file: 'Street/Unicon16.txt', weight: 3, region: '' },
+      { name: 'Unicon18', file: 'Street/Unicon18.txt', weight: 3, region: '' },
+      { name: 'Unicon14', file: 'Street/Unicon14.txt', weight: 3, region: '' },
+      { name: 'EUCW25', file: 'Street/EUCW25.txt', weight: 2, region: '' },
+       { name: 'EUCW24', file: 'Street/EUCW24.txt', weight: 2, region: '' },
+        { name: 'GUC22', file: 'Street/GUC22.txt', weight: 1, region: '' },
+           { name: 'GUC23', file: 'Street/GUC23.txt', weight: 1, region: '' },
+              { name: 'GUC24', file: 'Street/GUC24.txt', weight: 1, region: '' },
+                 { name: 'GUC25', file: 'Street/GUC25.txt', weight: 1, region: '' },
+                    { name: 'GUC26', file: 'Street/GUC26.txt', weight: 1, region: '' },
     ],
     usesSimpleResults: true,
     supportsBattles: false
@@ -116,7 +119,7 @@ const DISCIPLINES = {
   trial: {
     label: 'Trial',
     resultsDirectory: 'Results_Disciplines/Urban',
-    eventFiles: [{ name: 'Unicon26', file: 'Trial/Unicon26.txt', weight: 3 }],
+    eventFiles: [{ name: 'Unicon26', file: 'Trial/Unicon26.txt', weight: 3, region: '' }],
     usesSimpleResults: true,
     supportsBattles: false
   },
@@ -124,8 +127,8 @@ const DISCIPLINES = {
     label: 'X-Style',
     resultsDirectory: 'Results_Disciplines/Freestyle/X-Style',
     eventFiles: [
-      { name: 'Unicon24', file: 'Unicon24.txt', weight: 3 },
-      { name: 'Unicon22', file: 'Unicon22.txt', weight: 3 }
+      { name: 'Unicon24', file: 'Unicon24.txt', weight: 3, region: '' },
+      { name: 'Unicon22', file: 'Unicon22.txt', weight: 3, region: '' }
     ],
     usesSimpleResults: true,
     supportsBattles: false
