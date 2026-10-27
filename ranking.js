@@ -37,6 +37,8 @@ const FLATLAND_EVENT_FILES = [
   { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: 3, region: 'NA' },
   { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: 3, region: 'EU' },
   { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: 3, region: 'AU' },
+  { name: 'Unicon08', file: 'Flatland/Unicon08.txt', weight: 3, region: 'EU' },
+
 
   { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: 2, region: 'EU' },
   { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: 2, region: 'EU' },
@@ -85,7 +87,7 @@ const FLATLAND_EVENT_FILES = [
   { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1, region: 'EU' },
    { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: 1, region: 'EU' },
 
-   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 1, region: 'AS' }
+   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 2, region: 'AS' }
 ];
 
 const DISCIPLINES = {
