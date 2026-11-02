@@ -51,6 +51,144 @@
         </article>
       </section>
 
+      <section class="panel settings-panel hidden" id="settings-panel" aria-labelledby="settings-title">
+        <div class="toolbar">
+          <div>
+            <h2 id="settings-title">Settings</h2>
+            <p>Choose which columns to show, personalize colors, and use extra tools.</p>
+          </div>
+          <button id="close-settings" class="ghost-button" type="button">Close</button>
+        </div>
+        <div class="settings-tabs" role="tablist">
+          <button type="button" class="settings-tab-button active" data-tab="general" id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
+          <button type="button" class="settings-tab-button" data-tab="calculation" data-admin-only id="settings-tab-btn-calculation" role="tab" aria-selected="false">Calculation</button>
+          <button type="button" class="settings-tab-button" data-tab="tools" id="settings-tab-btn-tools" role="tab" aria-selected="false">Tools</button>
+        </div>
+        <div class="settings-tab-panel" id="settings-tab-general" data-tab-panel="general">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>Visible columns</h3>
+              <label class="setting-item"><input type="checkbox" id="show-points" /><span>Points</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
+              <label class="setting-item" data-battle-only><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
+            </div>
+            <div class="settings-card">
+              <h3>Colors</h3>
+              <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#f0f5fa" /></label>
+              <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#ffffff" /></label>
+            </div>
+          </div>
+        </div>
+        <div class="settings-tab-panel hidden" id="settings-tab-calculation" data-tab-panel="calculation">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>Scoring</h3>
+              <label class="setting-item"><span>Yearly decay multiplier (0-1)</span><input type="number" id="season-decay" min="0.01" max="1" step="0.01" value="0.9" /></label>
+              <label class="setting-item"><span>Type penalty multiplier (0-1)</span><input type="number" id="type-penalty" min="0.01" max="1" step="0.01" value="0.9" /></label>
+              <label class="setting-item"><span>Place points scaling</span><select id="scaling-mode"><option value="exponential">Exponential decay</option><option value="linear">Linear fall-off</option><option value="power" selected>100 × ((n − rank + 1) / n)^k</option><option value="custom">Custom formula</option></select></label>
+              <label class="setting-item"><span>Custom formula in rank and n (e.g. 100 * (1 - (rank - 1) / n))</span><input type="text" id="custom-formula" value="100 * ((n - rank + 1) / n) ** 2" spellcheck="false" /></label><div id="custom-formula-error" class="settings-card-hint hidden">Invalid formula. Use rank, n, numbers, + - * / % ^ (power) and Math.sqrt/log/exp/min/max/pow/abs/...</div>
+              <label class="setting-item"><span>Exponent k (power scaling only)</span><input type="number" id="scaling-power" min="0.01" step="0.1" value="5" /></label>
+              <label class="setting-item"><span>Last place points (1-99, exponential/linear)</span><input type="number" id="min-place-points" min="1" max="99" step="1" value="15" /></label>
+              <label class="setting-item"><span>Top event multipliers</span><input type="text" id="top-event-multipliers" value="1, 0.8, 0.6, 0.4, 0.2" /></label>
+              <label class="setting-item"><span>Battle score weight</span><input type="number" id="battle-weight" min="0" step="0.1" value="1" /></label>
+              <label class="setting-item"><span>Top 3 battle win factors</span><input type="text" id="battle-factors" value="0.03, 0.02, 0.01" placeholder="0.3, 0.2, 0.1" /></label>
+            </div>
+            <div class="settings-card event-weight-card">
+              <h3>Event category weights</h3>
+              <div id="event-weight-settings" class="event-weight-settings"></div>
+            </div>
+            <div class="settings-card" style="grid-column:1/-1">
+              <h3>Graph points</h3>
+              <label class="setting-item"><span>Number of riders</span><input type="number" id="graph-rider-count" min="1" step="1" value="30" /></label>
+              <div class="rider-sort-actions"><button id="graph-points-button" class="ghost-button" type="button">Plot</button></div>
+              <div style="position:relative;margin-top:8px"><canvas id="graph-points-canvas" width="900" height="520" style="width:100%;height:auto;display:block"></canvas><div id="graph-points-tooltip" class="hidden" style="position:absolute;pointer-events:none;background:#000c;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;white-space:nowrap"></div></div><ul id="graph-points-list" style="list-style:none;padding:0;margin:8px 0 0"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="settings-tab-panel hidden" id="settings-tab-tools" data-tab-panel="tools">
+          <div class="settings-grid">
+            <div class="settings-card" data-admin-only>
+              <h3>Event strength</h3>
+              <button id="show-event-strength" class="ghost-button" type="button">Show average event strength</button>
+            </div>
+            <div class="settings-card" data-admin-only>
+              <h3>Riders database</h3>
+              <button id="add-unknown-riders" class="ghost-button" type="button">Add unknown riders to riders_all</button>
+              <div id="add-unknown-result" style="margin-top:8px;color:var(--muted);font-size:0.9rem"></div>
+            </div>
+            <div class="settings-card rider-sort-card">
+              <h3>Sort riders by ranking</h3>
+              <p class="settings-card-hint">Paste a list of rider names (one per line, or comma-separated) to get them sorted by their current world ranking, lowest ranked first and highest ranked last.</p>
+              <label class="setting-item rider-sort-label"><span>Rider names</span></label>
+              <textarea id="rider-sort-input" class="rider-sort-textarea" rows="6" placeholder="Paste rider names here, one per line"></textarea>
+              <div class="rider-sort-actions">
+                <button id="rider-sort-button" class="ghost-button" type="button">Sort by ranking</button>
+              </div>
+              <label class="setting-item rider-sort-label"><span>Sorted result</span></label>
+              <textarea id="rider-sort-output" class="rider-sort-textarea" rows="6" readonly placeholder="Sorted list will appear here"></textarea>
+              <div id="rider-sort-note" class="rider-sort-note hidden"></div>
+            </div>
+          </div>
+          <section class="settings-card results-builder-card" aria-labelledby="results-builder-title">
+            <div>
+              <h3 id="results-builder-title">Generate results text file</h3>
+              <p id="results-builder-hint" class="settings-card-hint">For Final Rankings enter one rider per line as <code>Rider Rank. Rider Name Score1 Score2...</code></p>
+              <p id="results-builder-score-format" class="settings-card-hint"></p>
+            </div>
+            <div class="round-tabs" role="tablist" aria-label="Result file sections">
+              <button class="round-tab-button active" type="button" data-results-builder-tab="results" role="tab" aria-selected="true">Results</button>
+              <button class="round-tab-button" type="button" data-results-builder-tab="battles" role="tab" aria-selected="false" data-battle-only>Battles</button>
+            </div>
+            <div id="results-builder-results-panel" data-results-builder-panel="results">
+              <div class="results-builder-event-fields">
+                <label class="setting-item"><span>Event code</span><input id="results-event-code" type="text" list="known-event-codes" autocomplete="off" placeholder="Unicon" /></label>
+                <datalist id="known-event-codes"></datalist>
+                <label class="setting-item"><span>Year</span><input id="results-event-year" type="number" min="2000" max="9999" step="1" placeholder="2026" /></label>
+              </div>
+              <div class="results-builder-genders">
+                <section class="results-builder-gender" aria-labelledby="male-results-builder-title">
+                  <h4 id="male-results-builder-title">Male/Open</h4>
+                  <div class="round-tabs" id="male-round-tabs" role="tablist" aria-label="Male/Open result rounds"></div>
+                  <div id="male-round-panels"></div>
+                  <button id="add-male-round" class="ghost-button" type="button">Add lower round</button>
+                </section>
+                <section class="results-builder-gender" aria-labelledby="female-results-builder-title">
+                  <h4 id="female-results-builder-title">Female</h4>
+                  <div class="round-tabs" id="female-round-tabs" role="tablist" aria-label="Female result rounds"></div>
+                  <div id="female-round-panels"></div>
+                  <button id="add-female-round" class="ghost-button" type="button">Add lower round</button>
+                </section>
+              </div>
+            </div>
+            <div id="results-builder-battles-panel" class="hidden" data-results-builder-panel="battles" data-battle-only>
+              <p id="results-builder-battle-hint" class="settings-card-hint">Enter one battle per line as <code>Winning Rider, Losing Rider, winner scores, loser scores</code>. Scores in each group are Difficulty, Variety, Fullness, Style, Battling, Last trick.</p>
+              <div class="results-builder-genders">
+                <section class="results-builder-gender"><h4>Male/Open battles</h4><div id="male-battle-tools"></div><pre class="battle-example">Example: Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21 13.1/14 10/14 6.1/16 11/14, 0 14.5/21 18.2/21 10.7/14 11.2/14 5.9/16 0/14</pre><textarea id="male-battles-input" class="rider-sort-textarea battle-lines-input" wrap="off" rows="8" placeholder="Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21 13.1/14 10/14 6.1/16 11/14, 0 14.5/21 18.2/21 10.7/14 11.2/14 5.9/16 0/14"></textarea></section>
+                <section class="results-builder-gender"><h4>Female battles</h4><div id="female-battle-tools"></div><pre class="battle-example">Example: Sofia van Veen, Cora Schindele, 3 18.2/21 14.4/21 11.4/14 10.3/14 11.5/16 10.3/14, 0 13.7/21 9.8/21 5.6/14 7.8/14 5.9/16 0/14</pre><textarea id="female-battles-input" class="rider-sort-textarea battle-lines-input" wrap="off" rows="8" placeholder="Sofia van Veen, Cora Schindele, 3 18.2/21 14.4/21 11.4/14 10.3/14 11.5/16 10.3/14, 0 13.7/21 9.8/21 5.6/14 7.8/14 5.9/16 0/14"></textarea></section>
+              </div>
+            </div>
+            <div class="results-builder-actions">
+              <button id="generate-results-text" class="primary-button" type="button">Generate results text file</button>
+              <button id="send-results-text" class="ghost-button" type="button">Send to maintainer</button>
+              <span id="results-builder-status" class="rider-sort-note hidden" aria-live="polite"></span>
+            </div>
+            <label class="rider-sort-label" for="results-text-preview">Preview</label>
+            <textarea id="results-text-preview" class="rider-sort-textarea" rows="12" readonly placeholder="Generated results text will appear here"></textarea>
+          </section>
+          <div id="event-strength-wrapper" class="hidden" style="margin-top:16px;">
+            <h3>Male/Open events</h3>
+            <div id="event-strength-chart-male" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Female events</h3>
+            <div id="event-strength-chart-female" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Current trailing average by event type (male/open)</h3>
+            <div id="event-strength-summary-male" style="width:100%;overflow:auto;"></div>
+            <h3 style="margin-top:16px;">Current trailing average by event type (female)</h3>
+            <div id="event-strength-summary-female" style="width:100%;overflow:auto;"></div>
+          </div>
+        </div>
+      </section>
+
       <section class="panel hidden" id="profile-panel" aria-labelledby="profile-title">
         <div class="toolbar">
           <div>
@@ -58,6 +196,7 @@
             <p id="profile-description">Event results and battles.</p>
           </div>
           <div class="toolbar-controls">
+            <a id="profile-points-link" class="ghost-button hidden" href="rider_points.html">Detailed ranking points</a>
             <button id="close-profile" class="ghost-button" type="button">Close</button>
           </div>
         </div>
@@ -119,6 +258,11 @@
               <span>Event</span>
               <select id="view-select"></select>
             </label>
+            <button id="open-settings" class="icon-button" type="button" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.14.56-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.49.38 1.04.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.14-.56 1.63-.94l2.39.96c.24.1.46.02.6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>
+              </svg>
+            </button>
           </div>
         </div>
         <div class="table-wrapper">

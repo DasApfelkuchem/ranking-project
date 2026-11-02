@@ -56,22 +56,49 @@
           <button id="close-settings" class="ghost-button" type="button">Close</button>
         </div>
         <div class="settings-tabs" role="tablist">
-          <button type="button" class="settings-tab-button active" data-tab="general" data-admin-only id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
+          <button type="button" class="settings-tab-button active" data-tab="general" id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
+          <button type="button" class="settings-tab-button" data-tab="calculation" data-admin-only id="settings-tab-btn-calculation" role="tab" aria-selected="false">Calculation</button>
           <button type="button" class="settings-tab-button" data-tab="tools" id="settings-tab-btn-tools" role="tab" aria-selected="false">Tools</button>
         </div>
         <div class="settings-tab-panel" id="settings-tab-general" data-tab-panel="general">
           <div class="settings-grid">
             <div class="settings-card">
               <h3>Visible columns</h3>
-              <label class="setting-item"><input type="checkbox" id="show-points" checked /><span>Points</span></label>
+              <label class="setting-item"><input type="checkbox" id="show-points" /><span>Points</span></label>
               <label class="setting-item"><input type="checkbox" id="show-wins" checked /><span>Wins</span></label>
               <label class="setting-item" data-battle-only><input type="checkbox" id="show-battles" checked /><span>Battles</span></label>
               <label class="setting-item"><input type="checkbox" id="show-podiums" checked /><span>Podiums</span></label>
             </div>
             <div class="settings-card">
               <h3>Colors</h3>
-              <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#07111f" /></label>
-              <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#091423" /></label>
+              <label class="setting-item"><span>Page background</span><input type="color" id="background-color" value="#f0f5fa" /></label>
+              <label class="setting-item"><span>Panel background</span><input type="color" id="panel-color" value="#ffffff" /></label>
+            </div>
+          </div>
+        </div>
+        <div class="settings-tab-panel hidden" id="settings-tab-calculation" data-tab-panel="calculation">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>Scoring</h3>
+              <label class="setting-item"><span>Yearly decay multiplier (0-1)</span><input type="number" id="season-decay" min="0.01" max="1" step="0.01" value="0.9" /></label>
+              <label class="setting-item"><span>Type penalty multiplier (0-1)</span><input type="number" id="type-penalty" min="0.01" max="1" step="0.01" value="0.9" /></label>
+              <label class="setting-item"><span>Place points scaling</span><select id="scaling-mode"><option value="exponential">Exponential decay</option><option value="linear">Linear fall-off</option><option value="power" selected>100 × ((n − rank + 1) / n)^k</option><option value="custom">Custom formula</option></select></label>
+              <label class="setting-item"><span>Custom formula in rank and n (e.g. 100 * (1 - (rank - 1) / n))</span><input type="text" id="custom-formula" value="100 * ((n - rank + 1) / n) ** 2" spellcheck="false" /></label><div id="custom-formula-error" class="settings-card-hint hidden">Invalid formula. Use rank, n, numbers, + - * / % ^ (power) and Math.sqrt/log/exp/min/max/pow/abs/...</div>
+              <label class="setting-item"><span>Exponent k (power scaling only)</span><input type="number" id="scaling-power" min="0.01" step="0.1" value="5" /></label>
+              <label class="setting-item"><span>Last place points (1-99, exponential/linear)</span><input type="number" id="min-place-points" min="1" max="99" step="1" value="15" /></label>
+              <label class="setting-item"><span>Top event multipliers</span><input type="text" id="top-event-multipliers" value="1, 0.8, 0.6, 0.4, 0.2" /></label>
+              <label class="setting-item"><span>Battle score weight</span><input type="number" id="battle-weight" min="0" step="0.1" value="1" /></label>
+              <label class="setting-item"><span>Top 3 battle win factors</span><input type="text" id="battle-factors" value="0.03, 0.02, 0.01" placeholder="0.3, 0.2, 0.1" /></label>
+            </div>
+            <div class="settings-card event-weight-card">
+              <h3>Event category weights</h3>
+              <div id="event-weight-settings" class="event-weight-settings"></div>
+            </div>
+            <div class="settings-card" style="grid-column:1/-1">
+              <h3>Graph points</h3>
+              <label class="setting-item"><span>Number of riders</span><input type="number" id="graph-rider-count" min="1" step="1" value="30" /></label>
+              <div class="rider-sort-actions"><button id="graph-points-button" class="ghost-button" type="button">Plot</button></div>
+              <div style="position:relative;margin-top:8px"><canvas id="graph-points-canvas" width="900" height="520" style="width:100%;height:auto;display:block"></canvas><div id="graph-points-tooltip" class="hidden" style="position:absolute;pointer-events:none;background:#000c;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;white-space:nowrap"></div></div><ul id="graph-points-list" style="list-style:none;padding:0;margin:8px 0 0"></ul>
             </div>
           </div>
         </div>

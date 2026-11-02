@@ -119,8 +119,8 @@ const defaultSettings = {
   showWins: true,
   showBattles: true,
   showPodiums: true,
-  backgroundColor: '#07111f',
-  panelColor: '#091423',
+  backgroundColor: '#F0F5FA',
+  panelColor: '#ffffff',
   excludeUnicon: false
 };
 let settings = loadSettings();
@@ -128,8 +128,11 @@ let riderNotes = loadRiderNotes();
 
 function loadSettings() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
-    return { ...defaultSettings, ...(saved || {}) };
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null') || {};
+    // Drop the old dark-theme defaults so the new light colors apply
+    if (String(saved.backgroundColor).toLowerCase() === '#07111f') delete saved.backgroundColor;
+    if (String(saved.panelColor).toLowerCase() === '#091423') delete saved.panelColor;
+    return { ...defaultSettings, ...saved };
   } catch (error) {
     return { ...defaultSettings };
   }
@@ -1709,8 +1712,8 @@ function renderProfilePlacementChart(rider) {
   yLabels.forEach((lbl) => {
     const y = yForRank(lbl);
     if (y != null) {
-      svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
-      svg += `<text x="8" y="${y + 4}" fill="#cfeeff" font-size="11">${lbl}</text>`;
+      svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(30,41,59,0.12)" stroke-width="1"/>`;
+      svg += `<text x="8" y="${y + 4}" fill="#1e293b" font-size="11">${lbl}</text>`;
     }
   });
 
@@ -1726,7 +1729,7 @@ function renderProfilePlacementChart(rider) {
     const a = pts[i];
     const b = pts[i + 1];
     if (a.y != null && b.y != null) {
-      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#62c8ff" stroke-width="2" stroke-linecap="round"/>`;
+      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#046bd2" stroke-width="2" stroke-linecap="round"/>`;
     }
   }
 
@@ -1736,15 +1739,15 @@ function renderProfilePlacementChart(rider) {
     if (y != null) {
       // include a <title> inside the circle for native SVG hover tooltip showing the event
       // add data-event and classes so we can style and attach click handlers after insertion
-      svg += `<circle class="chart-point present" data-event="${escapeXml(p.event || '')}" data-rank="${p.rank ?? ''}" cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#2b8cff" stroke-width="2"><title>${escapeXml(p.event || '')}</title></circle>`;
-      svg += `<text x="${x}" y="${y - 8}" fill="#cfeeff" font-size="10" text-anchor="middle">${p.rank}</text>`;
+      svg += `<circle class="chart-point present" data-event="${escapeXml(p.event || '')}" data-rank="${p.rank ?? ''}" cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#045cb4" stroke-width="2"><title>${escapeXml(p.event || '')}</title></circle>`;
+      svg += `<text x="${x}" y="${y - 8}" fill="#1e293b" font-size="10" text-anchor="middle">${p.rank}</text>`;
     } else {
       // show a distinct, small hollow circle for missing rank (did not compete)
       const gy = padding.top + innerH / 2;
       const titleText = `Did not compete — ${escapeXml(p.event || '')}`;
       svg += `<g class="chart-point missing" data-event="${escapeXml(p.event || '')}" transform="translate(${x},${gy})">`;
       svg += `<title>${titleText}</title>`;
-      svg += `<circle cx="0" cy="0" r="3" fill="none" stroke="#9aa6b3" stroke-width="1.25"/>`;
+      svg += `<circle cx="0" cy="0" r="3" fill="none" stroke="#64748b" stroke-width="1.25"/>`;
       svg += `</g>`;
     }
   });
@@ -1753,7 +1756,7 @@ function renderProfilePlacementChart(rider) {
   points.forEach((pt, i) => {
     const x = padding.left + i * xStep;
     const label = pt.monthInt ? monthNames[pt.monthInt - 1] : '';
-    svg += `<text x="${x}" y="${height - 8}" fill="#95a7c7" font-size="11" text-anchor="middle">${label}</text>`;
+    svg += `<text x="${x}" y="${height - 8}" fill="#475569" font-size="11" text-anchor="middle">${label}</text>`;
   });
 
   // Year markers: draw a vertical line and year label once per year at the first snapshot for that year
@@ -1765,9 +1768,9 @@ function renderProfilePlacementChart(rider) {
     yearsSeen.add(year);
     const x = padding.left + i * xStep;
     // vertical marker
-    svg += `<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    svg += `<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>`;
     // year label above chart (fixed higher to avoid colliding with rank-1 markers)
-    svg += `<text x="${x}" y="14" fill="#cfeeff" font-size="12" font-weight="600" text-anchor="middle">${year}</text>`;
+    svg += `<text x="${x}" y="14" fill="#1e293b" font-size="12" font-weight="600" text-anchor="middle">${year}</text>`;
   });
 
   svg += `</svg>`;

@@ -1,4 +1,28 @@
-const seasondecay = 0.9;
+// Scoring tunables; overwritten from saved settings by applyScoringSettings().
+let seasondecay = 0.9;
+let minPlacePoints = 15;
+let scalingMode = 'power';
+let scalingPower = 5;
+let typePenalty = 0.9;
+let customFormulaText = '100 * ((n - rank + 1) / n) ** 2';
+let customFormulaFn = null;
+
+// Compiles a formula in rank and n; only numbers, operators and whitelisted Math functions are allowed.
+function compileCustomFormula(text) {
+  const source = String(text || '').trim().replace(/\^/g, '**');
+  if (!source || source.length > 300) return null;
+  const mathNames = ['abs', 'min', 'max', 'pow', 'sqrt', 'exp', 'log', 'log2', 'log10', 'floor', 'ceil', 'round', 'sin', 'cos', 'tan', 'PI', 'E'];
+  const stripped = source.replace(/\bMath\.([A-Za-z0-9]+)/g, (m, name) => (mathNames.includes(name) ? ' ' : '#'));
+  if (!/^[\s\d.+\-*/%(),]*$/.test(stripped.replace(/\b(rank|n)\b/g, ' ').replace(/\*\*/g, ' '))) return null;
+  try {
+    const fn = new Function('rank', 'n', `"use strict"; return (${source});`);
+    const probe = fn(1, 10);
+    return Number.isFinite(probe) ? fn : null;
+  } catch (error) {
+    return null;
+  }
+}
+let battleWeight = 1;
 const currentyear = 26;
 const Unicon = 7.5;
 const GUC = 6.5;
@@ -8,8 +32,14 @@ const EUCW = 2.5;
 const BUC = 10;
 const CFM = 10.5;
 const LAUCC = 1;
-const ROC = 0;
+const ROC = 0.5;
 const JUC = 10.3;
+
+const UNICON_WEIGHT = 4;
+const STREET_UNICON_WEIGHT = 3;
+const National_WEIGHT = 2;  
+const Continental_WEIGHT = 3; 
+const Local_WEIGHT = 1;
 
 // Map event code -> typical month (decimal allowed, e.g. 7.5)
 const EVENT_MONTHS = {
@@ -29,65 +59,65 @@ const EVENT_MONTHS = {
 const EVENT_REGIONS = ['NA', 'SA', 'EU', 'AS', 'AF', 'AU'];
 
 const FLATLAND_EVENT_FILES = [
-  { name: 'Unicon24', file: 'Flatland/Unicon24.txt', weight: 3, region: 'NA' },
-  { name: 'Unicon26', file: 'Flatland/Unicon26.txt', weight: 3, region: 'EU' },
-  { name: 'Unicon22', file: 'Flatland/Unicon22.txt', weight: 3, region: 'EU' },
-  { name: 'Unicon18', file: 'Flatland/Unicon18.txt', weight: 3, region: 'AS' },
-  { name: 'Unicon16', file: 'Flatland/Unicon16.txt', weight: 3, region: 'EU' },
-  { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: 3, region: 'NA' },
-  { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: 3, region: 'EU' },
-  { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: 3, region: 'AU' },
-  { name: 'Unicon08', file: 'Flatland/Unicon08.txt', weight: 3, region: 'EU' },
+  { name: 'Unicon24', file: 'Flatland/Unicon24.txt', weight: UNICON_WEIGHT, region: 'NA' },
+  { name: 'Unicon26', file: 'Flatland/Unicon26.txt', weight: UNICON_WEIGHT, region: 'EU' },
+  { name: 'Unicon22', file: 'Flatland/Unicon22.txt', weight: UNICON_WEIGHT, region: 'EU' },
+  { name: 'Unicon18', file: 'Flatland/Unicon18.txt', weight: UNICON_WEIGHT, region: 'AS' },
+  { name: 'Unicon16', file: 'Flatland/Unicon16.txt', weight: UNICON_WEIGHT, region: 'EU' },
+  { name: 'Unicon14', file: 'Flatland/Unicon14.txt', weight: UNICON_WEIGHT, region: 'NA' },
+  { name: 'Unicon12', file: 'Flatland/Unicon12.txt', weight: UNICON_WEIGHT, region: 'EU' },
+  { name: 'Unicon10', file: 'Flatland/Unicon10.txt', weight: UNICON_WEIGHT, region: 'AU' },
+  { name: 'Unicon08', file: 'Flatland/Unicon08.txt', weight: UNICON_WEIGHT, region: 'EU' },
 
 
-  { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW24', file: 'Flatland/EUCW24.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW20', file: 'Flatland/EUCW20.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW19', file: 'Flatland/EUCW19.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW18', file: 'Flatland/EUCW18.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: 2, region: 'EU' },
-  { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: 2, region: 'EU' },
+  { name: 'EUCW26', file: 'Flatland/EUCW26.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW25', file: 'Flatland/EUCW25.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW24', file: 'Flatland/EUCW24.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW20', file: 'Flatland/EUCW20.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW19', file: 'Flatland/EUCW19.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW18', file: 'Flatland/EUCW18.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW17', file: 'Flatland/EUCW17.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW16', file: 'Flatland/EUCW16.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCW14', file: 'Flatland/EUCW14.txt', weight: Continental_WEIGHT, region: 'EU' },
    
 
-  { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: 2, region: 'EU' },
-  { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: 2, region: 'EU' },
-  { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: 2, region: 'EU ' },
+  { name: 'EUCS23', file: 'Flatland/EUCS23.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: Continental_WEIGHT, region: 'EU' },
+  { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: Continental_WEIGHT, region: 'EU ' },
 
-  { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: 1, region: 'EU' },
-  { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: 1, region: 'EU' },
+  { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: National_WEIGHT, region: 'EU' },
 
-  { name: 'NAUCC26', file: 'Flatland/NAUCC26.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC25', file: 'Flatland/NAUCC25.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC23', file: 'Flatland/NAUCC23.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC22', file: 'Flatland/NAUCC22.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC19', file: 'Flatland/NAUCC19.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC18', file: 'Flatland/NAUCC18.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC17', file: 'Flatland/NAUCC17.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC16', file: 'Flatland/NAUCC16.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC15', file: 'Flatland/NAUCC15.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC14', file: 'Flatland/NAUCC14.txt', weight: 2, region: 'NA' },
-  { name: 'NAUCC13', file: 'Flatland/NAUCC13.txt', weight: 2, region: 'NA' },
+  { name: 'NAUCC26', file: 'Flatland/NAUCC26.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC25', file: 'Flatland/NAUCC25.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC23', file: 'Flatland/NAUCC23.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC22', file: 'Flatland/NAUCC22.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC19', file: 'Flatland/NAUCC19.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC18', file: 'Flatland/NAUCC18.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC17', file: 'Flatland/NAUCC17.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC16', file: 'Flatland/NAUCC16.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC15', file: 'Flatland/NAUCC15.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC14', file: 'Flatland/NAUCC14.txt', weight: Continental_WEIGHT, region: 'NA' },
+  { name: 'NAUCC13', file: 'Flatland/NAUCC13.txt', weight: Continental_WEIGHT, region: 'NA' },
 
-  { name: 'LAUCC25', file: 'Flatland/LAUCC25.txt', weight: 2, region: 'SA' },
+  { name: 'LAUCC25', file: 'Flatland/LAUCC25.txt', weight: Continental_WEIGHT, region: 'SA' },
 
-  { name: 'GUC25', file: 'Flatland/GUC25.txt', weight: 1, region: 'EU' },
-  { name: 'GUC24', file: 'Flatland/GUC24.txt', weight: 1, region: 'EU' },
-  { name: 'GUC23', file: 'Flatland/GUC23.txt', weight: 1, region: 'EU' },
-  { name: 'GUC22', file: 'Flatland/GUC22.txt', weight: 1, region: 'EU' },
-  { name: 'GUC26', file: 'Flatland/GUC26.txt', weight: 1, region: 'EU' },
+  { name: 'GUC25', file: 'Flatland/GUC25.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'GUC24', file: 'Flatland/GUC24.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'GUC23', file: 'Flatland/GUC23.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'GUC22', file: 'Flatland/GUC22.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'GUC26', file: 'Flatland/GUC26.txt', weight: National_WEIGHT, region: 'EU' },
 
-  { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: 0.5, region: 'EU' },
-  { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: 0.5, region: 'EU' },
+  { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: Local_WEIGHT, region: 'EU' },
+  { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: Local_WEIGHT, region: 'EU' },
 
-  { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: 1, region: 'EU' },
-  { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: 1, region: 'EU' },
-  { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: 1, region: 'EU' },
-  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: 1, region: 'EU' },
-   { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: 1, region: 'EU' },
+  { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: National_WEIGHT, region: 'EU' },
+  { name: 'BUC22', file: 'Flatland/BUC22.txt', weight: National_WEIGHT, region: 'EU' },
+   { name: 'BUC21', file: 'Flatland/BUC21.txt', weight: National_WEIGHT, region: 'EU' },
 
-   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: 2, region: 'AS' }
+   { name: 'JUC26', file: 'Flatland/JUC26.txt', weight: Continental_WEIGHT, region: 'AS' }
 ];
 
 const DISCIPLINES = {
@@ -102,18 +132,18 @@ const DISCIPLINES = {
     label: 'Street',
     resultsDirectory: 'Results_Disciplines/Urban',
     eventFiles: [{ name: 'Unicon26', file: 'Street/Unicon26.txt', weight: 3, region: '' },
-      { name: 'Unicon24', file: 'Street/Unicon24.txt', weight: 3, region: '' },
-      { name: 'Unicon22', file: 'Street/Unicon22.txt', weight: 3, region: '' },
-      { name: 'Unicon16', file: 'Street/Unicon16.txt', weight: 3, region: '' },
-      { name: 'Unicon18', file: 'Street/Unicon18.txt', weight: 3, region: '' },
-      { name: 'Unicon14', file: 'Street/Unicon14.txt', weight: 3, region: '' },
-      { name: 'EUCW25', file: 'Street/EUCW25.txt', weight: 2, region: '' },
-       { name: 'EUCW24', file: 'Street/EUCW24.txt', weight: 2, region: '' },
-        { name: 'GUC22', file: 'Street/GUC22.txt', weight: 1, region: '' },
-           { name: 'GUC23', file: 'Street/GUC23.txt', weight: 1, region: '' },
-              { name: 'GUC24', file: 'Street/GUC24.txt', weight: 1, region: '' },
-                 { name: 'GUC25', file: 'Street/GUC25.txt', weight: 1, region: '' },
-                    { name: 'GUC26', file: 'Street/GUC26.txt', weight: 1, region: '' },
+      { name: 'Unicon24', file: 'Street/Unicon24.txt', weight: STREET_UNICON_WEIGHT, region: '' },
+      { name: 'Unicon22', file: 'Street/Unicon22.txt', weight: STREET_UNICON_WEIGHT, region: '' },
+      { name: 'Unicon16', file: 'Street/Unicon16.txt', weight: STREET_UNICON_WEIGHT, region: '' },
+      { name: 'Unicon18', file: 'Street/Unicon18.txt', weight: STREET_UNICON_WEIGHT, region: '' },
+      { name: 'Unicon14', file: 'Street/Unicon14.txt', weight: STREET_UNICON_WEIGHT, region: '' },
+      { name: 'EUCW25', file: 'Street/EUCW25.txt', weight: Continental_WEIGHT, region: '' },
+       { name: 'EUCW24', file: 'Street/EUCW24.txt', weight: Continental_WEIGHT, region: '' },
+        { name: 'GUC22', file: 'Street/GUC22.txt', weight: National_WEIGHT, region: '' },
+           { name: 'GUC23', file: 'Street/GUC23.txt', weight: National_WEIGHT, region: '' },
+              { name: 'GUC24', file: 'Street/GUC24.txt', weight: National_WEIGHT, region: '' },
+                 { name: 'GUC25', file: 'Street/GUC25.txt', weight: National_WEIGHT, region: '' },
+                    { name: 'GUC26', file: 'Street/GUC26.txt', weight: National_WEIGHT, region: '' },
     ],
     usesSimpleResults: true,
     supportsBattles: false
@@ -143,10 +173,99 @@ const activeDisciplineKey = Object.prototype.hasOwnProperty.call(DISCIPLINES, re
   : 'flatland';
 const activeDiscipline = DISCIPLINES[activeDisciplineKey];
 const EVENT_FILES = activeDiscipline.eventFiles;
+const DEFAULT_EVENT_WEIGHTS = new Map(EVENT_FILES.map((event) => [event.name, event.weight]));
+const EVENT_WEIGHT_CLASSES = [
+  { key: 'unicon', label: 'Unicon', pattern: /^Unicon/i },
+  { key: 'continental', label: 'Continental', pattern: /^(EUCW|EUCS|NAUCC|LAUCC|JUC)/i },
+  { key: 'national', label: 'National', pattern: /^(CFM|GUC)/i },
+  { key: 'local', label: 'Local', pattern: /^(ROC|BUC)/i }
+];
+
+function getEventWeightClass(eventName) {
+  return EVENT_WEIGHT_CLASSES.find((weightClass) => weightClass.pattern.test(eventName)) || null;
+}
+
+function getDefaultWeightForClass(weightClass) {
+  const event = EVENT_FILES.find((item) => getEventWeightClass(item.name)?.key === weightClass.key);
+  return event ? DEFAULT_EVENT_WEIGHTS.get(event.name) : 1;
+}
 
 const FLATLAND_RESULT_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style'];
 const FLATLAND_BATTLE_SCORE_CATEGORIES = ['Difficulty', 'Variety', 'Fullness', 'Style', 'Battling', 'Last trick'];
-const BEST_RESULT_MULTIPLIERS = [1,0.8,0.6,0.4,0.2];
+const DEFAULT_BEST_RESULT_MULTIPLIERS = [1, 0.8, 0.6, 0.4, 0.2];
+let BEST_RESULT_MULTIPLIERS = [...DEFAULT_BEST_RESULT_MULTIPLIERS];
+// Bonus factors for a rider's three best battle wins, applied to the beaten opponent's event points.
+const DEFAULT_BATTLE_BONUS_FACTORS = [0.03, 0.02, 0.01];
+let BATTLE_BONUS_FACTORS = [...DEFAULT_BATTLE_BONUS_FACTORS];
+const BATTLE_BONUS_ROUNDS = new Set(['Quarter-final', 'Semi-final', 'Third place', 'Final']);
+// Without battle data, places 1-4 are assumed to have won this many battles against 100-point riders.
+const ASSUMED_BATTLE_WINS = [3, 2, 2, 1];
+
+function getPlacePoints(place, competitorCount) {
+  if (scalingMode === 'custom' && customFormulaFn) {
+    const value = Number(customFormulaFn(place, competitorCount));
+    return Number.isFinite(value) ? Math.max(0, value) : 0;
+  }
+  if (scalingMode === 'linear') {
+    if (competitorCount <= 1) return 100;
+    const t = Math.min(1, Math.max(0, (place - 1) / (competitorCount - 1)));
+    return 100 - t * (100 - minPlacePoints);
+  }
+  if (scalingMode === 'power') {
+    const n = Math.max(1, competitorCount);
+    const ratio = Math.min(1, Math.max(0, (n - place + 1) / n));
+    return 100 * Math.pow(ratio, scalingPower);
+  }
+  const exponent = competitorCount > 1 ? Math.log(100 / minPlacePoints) / Math.log(competitorCount) : 1;
+  return Math.max(minPlacePoints, 100 / Math.pow(place, exponent));
+}
+
+function calculateBattleBonus(opponentWins) {
+  const details = [...opponentWins]
+    .sort((a, b) => b.rankingPoints - a.rankingPoints)
+    .slice(0, BATTLE_BONUS_FACTORS.length)
+    .map((win, index) => {
+      const factor = BATTLE_BONUS_FACTORS[index];
+      return {
+        ...win,
+        factor,
+        battleWeight,
+        points: win.rankingPoints * factor * battleWeight
+      };
+    });
+  const bonus = details.reduce((sum, detail) => sum + detail.rankingPoints * detail.factor * battleWeight, 0);
+  return { bonus, details };
+}
+
+// Returns Map(rider -> { bonus, details }) using post-placement, pre-battle ranking points.
+function computeBattleBonuses(entries, battles, postEventPointsByRider) {
+  const bonuses = new Map();
+  const winsByRider = new Map();
+  if (battles.length > 0) {
+    battles.filter((battle) => BATTLE_BONUS_ROUNDS.has(battle.round)).forEach((battle) => {
+      if (!winsByRider.has(battle.winner)) winsByRider.set(battle.winner, []);
+      winsByRider.get(battle.winner).push({
+        opponent: battle.loser,
+        rankingPoints: postEventPointsByRider.get(battle.loser) || 0,
+        round: battle.round
+      });
+    });
+  } else {
+    entries.forEach((entry) => {
+      const wins = ASSUMED_BATTLE_WINS[entry.place - 1] || 0;
+      if (wins) {
+        winsByRider.set(entry.rider, Array.from({ length: wins }, (_, index) => ({
+          opponent: `Assumed opponent ${index + 1}`,
+          rankingPoints: 100,
+          round: 'Assumed',
+          assumed: true
+        })));
+      }
+    });
+  }
+  winsByRider.forEach((wins, rider) => bonuses.set(rider, calculateBattleBonus(wins)));
+  return bonuses;
+}
 
 // Given a list of { score, event } contributions, halve scores that aren't a rider's best
 // result within the same event type (e.g. multiple GUC results), then sum the top 5
@@ -169,7 +288,7 @@ function computeRiderTotalPoints(scoreEntries) {
     const typeKey = String(prefix || '').toLowerCase();
     if (!typeKey || typeKey === 'unicon') return score;
     const bestForType = bestByType.get(typeKey);
-    const penaltyMultiplier = (bestForType != null && score < (bestForType - 1e-9)) ? (2 / 3) : 1;
+    const penaltyMultiplier = (bestForType != null && score < (bestForType - 1e-9)) ? typePenalty : 1;
     return score * penaltyMultiplier;
   });
 
@@ -260,21 +379,36 @@ const prelimSort = { key: 'place', direction: 'asc' };
 const SETTINGS_STORAGE_KEY = 'ranking-settings-v1';
 const RIDER_NOTES_STORAGE_KEY = 'ranking-rider-notes-v1';
 const defaultSettings = {
-  showPoints: true,
+  showPoints: false,
   showWins: true,
   showBattles: true,
   showPodiums: true,
-  backgroundColor: '#07111f',
-  panelColor: '#091423',
-  excludeUnicon: false
+  backgroundColor: '#F0F5FA',
+  panelColor: '#ffffff',
+  excludeUnicon: false,
+  seasonDecay: 0.9,
+  minPlacePoints: 15,
+  scalingMode: 'power',
+  scalingPower: 5,
+  customFormula: '100 * ((n - rank + 1) / n) ** 2',
+  typePenalty: 0.9,
+  topEventMultipliers: '1, 0.8, 0.6, 0.4, 0.2',
+  battleWeight: 1,
+  battleBonusFactors: [...DEFAULT_BATTLE_BONUS_FACTORS],
+  eventWeightClasses: {}
 };
 let settings = loadSettings();
+applyScoringSettings();
+applyEventWeights();
 let riderNotes = loadRiderNotes();
 
 function loadSettings() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
-    return { ...defaultSettings, ...(saved || {}) };
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null') || {};
+    // Drop the old dark-theme defaults so the new light colors apply
+    if (String(saved.backgroundColor).toLowerCase() === '#07111f') delete saved.backgroundColor;
+    if (String(saved.panelColor).toLowerCase() === '#091423') delete saved.panelColor;
+    return { ...defaultSettings, ...saved };
   } catch (error) {
     return { ...defaultSettings };
   }
@@ -282,6 +416,42 @@ function loadSettings() {
 
 function saveSettings() {
   localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+}
+
+function parseMultiplierList(text) {
+  const values = String(text || '').split(/[\s,;]+/).filter(Boolean).map(Number);
+  return values.length > 0 && values.every((v) => Number.isFinite(v) && v >= 0) ? values : null;
+}
+
+function applyScoringSettings() {
+  const decay = Number(settings.seasonDecay);
+  const minPoints = Number(settings.minPlacePoints);
+  const weight = Number(settings.battleWeight);
+  const typePen = Number(settings.typePenalty);
+  typePenalty = Number.isFinite(typePen) && typePen > 0 && typePen <= 1 ? typePen : defaultSettings.typePenalty;
+  seasondecay = Number.isFinite(decay) && decay > 0 && decay <= 1 ? decay : defaultSettings.seasonDecay;
+  minPlacePoints = Number.isFinite(minPoints) && minPoints >= 1 && minPoints < 100 ? minPoints : defaultSettings.minPlacePoints;
+  battleWeight = Number.isFinite(weight) && weight >= 0 ? weight : defaultSettings.battleWeight;
+  scalingMode = ['exponential', 'linear', 'power', 'custom'].includes(settings.scalingMode) ? settings.scalingMode : defaultSettings.scalingMode;
+  customFormulaFn = compileCustomFormula(settings.customFormula);
+  customFormulaText = customFormulaFn ? String(settings.customFormula).trim() : defaultSettings.customFormula;
+  if (scalingMode === 'custom' && !customFormulaFn) scalingMode = defaultSettings.scalingMode;
+  const power = Number(settings.scalingPower);
+  scalingPower = Number.isFinite(power) && power > 0 ? power : defaultSettings.scalingPower;
+  BEST_RESULT_MULTIPLIERS = parseMultiplierList(settings.topEventMultipliers) || [...DEFAULT_BEST_RESULT_MULTIPLIERS];
+  const battleFactors = parseMultiplierList(settings.battleBonusFactors);
+  BATTLE_BONUS_FACTORS = battleFactors?.length === 3 ? battleFactors : [...DEFAULT_BATTLE_BONUS_FACTORS];
+}
+
+function applyEventWeights() {
+  const savedWeights = settings.eventWeightClasses?.[activeDisciplineKey] || {};
+  EVENT_FILES.forEach((event) => {
+    const weightClass = getEventWeightClass(event.name);
+    const savedWeight = Number(weightClass ? savedWeights[weightClass.key] : NaN);
+    event.weight = Number.isFinite(savedWeight) && savedWeight >= 0
+      ? savedWeight
+      : DEFAULT_EVENT_WEIGHTS.get(event.name);
+  });
 }
 
 function loadRiderNotes() {
@@ -319,12 +489,29 @@ function applySettingsToDom() {
   if (showPodiumsInput) showPodiumsInput.checked = settings.showPodiums;
   if (backgroundInput) backgroundInput.value = settings.backgroundColor;
   if (panelInput) panelInput.value = settings.panelColor;
+
+  const scoringValues = {
+    'season-decay': settings.seasonDecay,
+    'type-penalty': settings.typePenalty,
+    'min-place-points': settings.minPlacePoints,
+    'scaling-mode': settings.scalingMode,
+    'scaling-power': settings.scalingPower,
+    'custom-formula': settings.customFormula,
+    'top-event-multipliers': settings.topEventMultipliers,
+    'battle-weight': settings.battleWeight,
+    'battle-factors': BATTLE_BONUS_FACTORS.join(', ')
+  };
+  Object.entries(scoringValues).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input && document.activeElement !== input) input.value = value;
+  });
+  renderEventWeightSettings();
 }
 
 function getVisibleWorldColumns() {
   return [
     { key: 'events', label: 'Events', visible: true, sortable: true },
-    { key: 'points', label: 'Points', visible: settings.showPoints, sortable: true },
+    { key: 'points', label: 'Points',     visible: true, sortable: true },
     { key: 'wins', label: 'Wins', visible: settings.showWins, sortable: true },
     { key: 'podiums', label: 'Podiums', visible: settings.showPodiums, sortable: true },
     { key: 'battles', label: 'Battles', visible: activeDiscipline.supportsBattles && settings.showBattles, sortable: true }
@@ -488,10 +675,24 @@ function sortRiderNamesByRanking(names, year) {
   return { matched, unmatched };
 }
 
+function updateViewDescription(view) {
+  const title = document.getElementById('ranking-title');
+  const description = document.getElementById('ranking-description');
+  if (!title || !description) return;
+  const genderText = currentGender === 'female' ? 'female ' : 'male/open ';
+  if (view === 'world') {
+    title.textContent = 'All';
+    description.textContent = `Weighted ${genderText}results from your competition files`;
+  } else {
+    title.textContent = `${view} results`;
+    description.textContent = `Place-by-place ${genderText}results for ${view}`;
+  }
+}
+
 function refreshRankingView() {
   const viewSelect = document.getElementById('view-select');
   const activeView = viewSelect ? viewSelect.value : 'world';
-
+  updateViewDescription(activeView);
   if (activeView === 'world') {
     setRankingHeaders('world');
     renderWorldForYear(Number(currentYearComparison));
@@ -524,6 +725,99 @@ function updateSettingsFromInputs() {
   refreshRankingView();
 }
 
+function updateScoringSettingsFromInputs() {
+  const read = (id) => document.getElementById(id)?.value;
+  const decay = Number(read('season-decay'));
+  const minPoints = Number(read('min-place-points'));
+  const weight = Number(read('battle-weight'));
+  const multipliers = read('top-event-multipliers');
+  const battleFactors = parseMultiplierList(read('battle-factors'));
+  const next = { ...settings };
+  if (read('season-decay') !== '' && decay > 0 && decay <= 1) next.seasonDecay = decay;
+  const typePen = Number(read('type-penalty'));
+  if (read('type-penalty') !== '' && typePen > 0 && typePen <= 1) next.typePenalty = typePen;
+  if (read('min-place-points') !== '' && minPoints >= 1 && minPoints < 100) next.minPlacePoints = minPoints;
+  const mode = read('scaling-mode');
+  const power = Number(read('scaling-power'));
+  if (['exponential', 'linear', 'power', 'custom'].includes(mode)) next.scalingMode = mode;
+  const formula = read('custom-formula');
+  const formulaValid = formula != null && compileCustomFormula(formula) !== null;
+  if (formulaValid) next.customFormula = formula.trim();
+  const formulaError = document.getElementById('custom-formula-error');
+  if (formulaError) formulaError.classList.toggle('hidden', formulaValid || !formula);
+  if (next.scalingMode === 'custom' && !compileCustomFormula(next.customFormula)) next.scalingMode = settings.scalingMode;
+  if (read('scaling-power') !== '' && power > 0) next.scalingPower = power;
+  if (read('battle-weight') !== '' && weight >= 0) next.battleWeight = weight;
+  if (multipliers != null && parseMultiplierList(multipliers)) next.topEventMultipliers = multipliers;
+  if (battleFactors?.length === 3) {
+    next.battleBonusFactors = battleFactors;
+  }
+  settings = next;
+  saveSettings();
+  applyScoringSettings();
+  recalculateRankings();
+}
+
+let recalcChain = Promise.resolve();
+function recalculateRankings() {
+  recalcChain = recalcChain.then(async () => {
+    try {
+      await loadRanking({ preserveView: true });
+      if (document.getElementById('rider-points-body')) {
+        renderRiderPointsPage();
+      } else {
+        refreshRankingView();
+      }
+    } catch (error) {
+      console.error('Could not recalculate rankings.', error);
+    }
+  });
+  return recalcChain;
+}
+
+function updateEventWeightClassFromInput(input) {
+  const weight = Number(input.value);
+  if (input.value === '' || !Number.isFinite(weight) || weight < 0) return;
+  const weights = { ...(settings.eventWeightClasses?.[activeDisciplineKey] || {}) };
+  weights[input.dataset.eventWeightClass] = weight;
+  settings = {
+    ...settings,
+    eventWeightClasses: { ...settings.eventWeightClasses, [activeDisciplineKey]: weights }
+  };
+  saveSettings();
+  applyEventWeights();
+  recalculateRankings();
+}
+
+function renderEventWeightSettings() {
+  const container = document.getElementById('event-weight-settings');
+  if (!container) return;
+  container.innerHTML = '';
+  const savedWeights = settings.eventWeightClasses?.[activeDisciplineKey] || {};
+  const availableClasses = EVENT_WEIGHT_CLASSES.filter((weightClass) =>
+    EVENT_FILES.some((event) => getEventWeightClass(event.name)?.key === weightClass.key)
+  );
+  availableClasses.forEach((weightClass) => {
+    const label = document.createElement('label');
+    label.className = 'setting-item event-weight-setting';
+    const name = document.createElement('span');
+    name.textContent = `${weightClass.label} weight`;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.step = '0.1';
+    const savedWeight = Number(savedWeights[weightClass.key]);
+    input.value = String(Number.isFinite(savedWeight) && savedWeight >= 0
+      ? savedWeight
+      : getDefaultWeightForClass(weightClass));
+    input.dataset.eventWeightClass = weightClass.key;
+    input.setAttribute('aria-label', `${weightClass.label} event weight`);
+    input.addEventListener('change', () => updateEventWeightClassFromInput(input));
+    label.append(name, input);
+    container.appendChild(label);
+  });
+}
+
 function attachSettingsEvents() {
   const openSettingsButton = document.getElementById('open-settings');
   const closeSettingsButton = document.getElementById('close-settings');
@@ -554,9 +848,24 @@ function attachSettingsEvents() {
     if (isHost) {
       const eventStrength = document.getElementById('event-strength-wrapper');
       if (eventStrength) eventStrength.classList.add('hidden');
-      const toolsTab = document.getElementById('settings-tab-btn-tools');
-      if (toolsTab) toolsTab.click();
     }
+  }
+
+  let pendingTab = null;
+  function canAccessTab(tab) {
+    if (tab === 'tools') return settingsRole === 'admin' || settingsRole === 'host';
+    if (tab === 'calculation') return settingsRole === 'admin';
+    return true;
+  }
+  function activateTab(targetTab) {
+    document.querySelectorAll('.settings-tab-button').forEach((btn) => {
+      const isActive = btn.getAttribute('data-tab') === targetTab;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    document.querySelectorAll('.settings-tab-panel').forEach((panel) => {
+      panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== targetTab);
+    });
   }
 
   function openSettingsPanel() {
@@ -580,13 +889,7 @@ function attachSettingsEvents() {
   }
 
   if (openSettingsButton && settingsPanel) {
-    openSettingsButton.addEventListener('click', () => {
-      if (settingsRole) {
-        openSettingsPanel();
-      } else {
-        showLoginModal();
-      }
-    });
+    openSettingsButton.addEventListener('click', openSettingsPanel);
   }
 
   if (loginForm) {
@@ -601,6 +904,8 @@ function attachSettingsEvents() {
         sessionStorage.setItem('settingsUser', account.username);
         hideLoginModal();
         openSettingsPanel();
+        if (pendingTab && canAccessTab(pendingTab)) activateTab(pendingTab);
+        pendingTab = null;
       } else if (loginError) {
         loginError.classList.remove('hidden');
       }
@@ -608,12 +913,12 @@ function attachSettingsEvents() {
   }
 
   if (loginCancelButton) {
-    loginCancelButton.addEventListener('click', hideLoginModal);
+    loginCancelButton.addEventListener('click', () => { pendingTab = null; hideLoginModal(); });
   }
 
   if (loginOverlay) {
     loginOverlay.addEventListener('click', (e) => {
-      if (e.target === loginOverlay) hideLoginModal();
+      if (e.target === loginOverlay) { pendingTab = null; hideLoginModal(); }
     });
   }
 
@@ -627,6 +932,13 @@ function attachSettingsEvents() {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('change', updateSettingsFromInputs);
+    }
+  });
+
+  ['season-decay', 'type-penalty', 'min-place-points', 'scaling-mode', 'scaling-power', 'custom-formula', 'top-event-multipliers', 'battle-weight', 'battle-factors'].forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener('input', updateScoringSettingsFromInputs);
     }
   });
 
@@ -676,20 +988,144 @@ function attachSettingsEvents() {
     });
   }
 
-  // Settings tabs (General / Tools)
-  const tabButtons = Array.from(document.querySelectorAll('.settings-tab-button'));
-  const tabPanels = Array.from(document.querySelectorAll('.settings-tab-panel'));
-  tabButtons.forEach((button) => {
+  // Graph points: plot place points for the selected scaling function
+  const graphButton = document.getElementById('graph-points-button');
+  const graphCanvas = document.getElementById('graph-points-canvas');
+  if (graphButton && graphCanvas) {
+    const graphList = document.getElementById('graph-points-list');
+    const graphTooltip = document.getElementById('graph-points-tooltip');
+    const COLORS = ['#4da3ff', '#ff8a4d', '#4dd08a', '#e05fd0', '#f2d34d', '#4dd6e0', '#ff5f6d', '#a58bff'];
+    const plots = [];
+    let nextPlotId = 1;
+    const pad = { l: 48, r: 16, t: 16, b: 40 };
+
+    const describePlot = (n) => {
+      const mode = scalingMode === 'power'
+        ? `Power k=${scalingPower}`
+        : scalingMode === 'custom'
+          ? `Custom: ${customFormulaText}`
+          : `${scalingMode === 'linear' ? 'Linear' : 'Exponential'}, last ${minPlacePoints}`;
+      return `${mode}, ${n} riders`;
+    };
+
+    const geometry = () => {
+      const maxN = Math.max(2, ...plots.map((p) => p.n));
+      const pw = graphCanvas.width - pad.l - pad.r;
+      const ph = graphCanvas.height - pad.t - pad.b;
+      return {
+        maxN,
+        x: (place) => pad.l + ((place - 1) / (maxN - 1)) * pw,
+        y: (value) => pad.t + ph - (Math.max(0, Math.min(100, value)) / 100) * ph
+      };
+    };
+
+    const drawPlots = () => {
+      const ctx = graphCanvas.getContext('2d');
+      const w = graphCanvas.width;
+      const h = graphCanvas.height;
+      const { maxN, x, y } = geometry();
+      ctx.clearRect(0, 0, w, h);
+      ctx.font = '14px sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.strokeStyle = 'rgba(30,41,59,0.15)';
+      ctx.lineWidth = 1;
+      for (let v = 0; v <= 100; v += 20) {
+        ctx.beginPath(); ctx.moveTo(pad.l, y(v)); ctx.lineTo(w - pad.r, y(v)); ctx.stroke();
+        ctx.fillText(String(v), 14, y(v) + 5);
+      }
+      ctx.fillText('1', x(1) - 4, h - 20);
+      ctx.fillText(String(maxN), x(maxN) - 10, h - 20);
+      ctx.fillText('Place', pad.l + (w - pad.l - pad.r) / 2 - 18, h - 3);
+      plots.forEach((plot) => {
+        ctx.strokeStyle = plot.color;
+        ctx.fillStyle = plot.color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        plot.points.forEach((value, i) => (i === 0 ? ctx.moveTo(x(1), y(value)) : ctx.lineTo(x(i + 1), y(value))));
+        ctx.stroke();
+        if (plot.n <= 60) plot.points.forEach((value, i) => { ctx.beginPath(); ctx.arc(x(i + 1), y(value), 3.5, 0, Math.PI * 2); ctx.fill(); });
+      });
+    };
+
+    const renderPlotList = () => {
+      if (!graphList) return;
+      graphList.innerHTML = '';
+      plots.forEach((plot) => {
+        const item = document.createElement('li');
+        item.style.cssText = 'display:flex;align-items:center;gap:8px;margin:4px 0';
+        const swatch = document.createElement('span');
+        swatch.style.cssText = `width:12px;height:12px;border-radius:50%;background:${plot.color};flex:none`;
+        const label = document.createElement('span');
+        label.textContent = plot.name;
+        label.style.flex = '1';
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'ghost-button';
+        del.title = 'Delete plot';
+        del.setAttribute('aria-label', `Delete plot ${plot.name}`);
+        del.textContent = '🗑';
+        del.addEventListener('click', () => {
+          plots.splice(plots.indexOf(plot), 1);
+          renderPlotList();
+          drawPlots();
+        });
+        item.append(swatch, label, del);
+        graphList.appendChild(item);
+      });
+    };
+
+    graphButton.addEventListener('click', () => {
+      const n = Math.max(1, Math.floor(Number(document.getElementById('graph-rider-count')?.value) || 0));
+      const usedColors = new Set(plots.map((p) => p.color));
+      const color = COLORS.find((c) => !usedColors.has(c)) || COLORS[nextPlotId % COLORS.length];
+      plots.push({
+        id: nextPlotId++,
+        n,
+        color,
+        name: describePlot(n),
+        points: Array.from({ length: n }, (_, i) => getPlacePoints(i + 1, n))
+      });
+      renderPlotList();
+      drawPlots();
+    });
+
+    graphCanvas.addEventListener('mousemove', (event) => {
+      if (!graphTooltip) return;
+      const rect = graphCanvas.getBoundingClientRect();
+      const scale = graphCanvas.width / rect.width;
+      const mx = (event.clientX - rect.left) * scale;
+      const my = (event.clientY - rect.top) * scale;
+      const { x, y } = geometry();
+      let best = null;
+      plots.forEach((plot) => plot.points.forEach((value, i) => {
+        const dist = Math.hypot(x(i + 1) - mx, y(value) - my);
+        if (dist <= 12 && (!best || dist < best.dist)) best = { dist, plot, place: i + 1, value };
+      }));
+      if (!best) {
+        graphTooltip.classList.add('hidden');
+        return;
+      }
+      graphTooltip.textContent = `${best.plot.name} - place ${best.place}: ${best.value.toFixed(2)} pts`;
+      graphTooltip.classList.remove('hidden');
+      const px = x(best.place) / scale;
+      const py = y(best.value) / scale;
+      graphTooltip.style.left = `${Math.min(px + 10, rect.width - graphTooltip.offsetWidth - 4)}px`;
+      graphTooltip.style.top = `${Math.max(py - 30, 0)}px`;
+    });
+    graphCanvas.addEventListener('mouseleave', () => graphTooltip?.classList.add('hidden'));
+    drawPlots();
+  }
+
+  // Settings tabs (General / Calculation / Tools)
+  document.querySelectorAll('.settings-tab-button').forEach((button) => {
     button.addEventListener('click', () => {
       const targetTab = button.getAttribute('data-tab');
-      tabButtons.forEach((btn) => {
-        const isActive = btn === button;
-        btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      });
-      tabPanels.forEach((panel) => {
-        panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== targetTab);
-      });
+      if (canAccessTab(targetTab)) {
+        activateTab(targetTab);
+      } else {
+        pendingTab = targetTab;
+        showLoginModal();
+      }
     });
   });
 
@@ -1607,7 +2043,17 @@ async function addUnknownRidersToRidersAll() {
   return toAdd.length;
 }
 
-async function loadRanking() {
+const eventTextCache = new Map();
+const eventDetailTextCache = new Map();
+
+async function getCachedEventDetailText(eventName) {
+  if (!eventDetailTextCache.has(eventName)) {
+    eventDetailTextCache.set(eventName, await loadEventDetailText(eventName));
+  }
+  return eventDetailTextCache.get(eventName);
+}
+
+async function loadRanking({ preserveView = false } = {}) {
   // Load aliases from `riders_all.txt` if present in project root.
   await loadAliasesFile();
 
@@ -1626,12 +2072,15 @@ async function loadRanking() {
 
   for (const event of EVENT_FILES) {
     const eventFile = `${activeDiscipline.resultsDirectory}/${event.file}`;
-    const response = await fetch(eventFile);
-    if (!response.ok) {
-      throw new Error(`Unable to load ${eventFile}`);
+    let text = eventTextCache.get(eventFile);
+    if (text === undefined) {
+      const response = await fetch(eventFile);
+      if (!response.ok) {
+        throw new Error(`Unable to load ${eventFile}`);
+      }
+      text = await response.text();
+      eventTextCache.set(eventFile, text);
     }
-
-    const text = await response.text();
     // Interpret event name year suffix as 20xx (e.g. '24' -> 2024).
     // Decay will be applied later relative to a snapshot or the current year (only to events older than the snapshot year).
     const yearMatch = String(event.name || '').match(/(\d{2})$/);
@@ -1705,17 +2154,16 @@ async function loadRanking() {
       });
 
       const competitorCount = parsed.length;
-      // Compute exponent so top place -> 100 points and last place -> 15 points
-      const exponent = competitorCount > 1 ? Math.log(100 / 15) / Math.log(competitorCount) : 1;
       const eventEntries = parsed.map((item, index) => {
         // Use the explicit place if provided, otherwise fall back to list order.
         const place = item.explicitPlace ?? (index + 1);
-        const baseRaw = Math.max(15, 100 / Math.pow(place, exponent)) * event.weight;
+        const basePointsBeforeWeight = getPlacePoints(place, competitorCount);
         const canonical = aliasMap.get(normalizeName(item.name)) || item.name;
         return {
           place,
           rider: canonical,
-          rawPointsBeforeDecay: baseRaw,
+          basePointsBeforeWeight,
+          rawPointsBeforeDecay: basePointsBeforeWeight * event.weight,
           decayMultiplier: null,
           originalName: item.name,
           eventYear,
@@ -1806,49 +2254,6 @@ async function loadRanking() {
         eventBattlesByGenderForEvent[gender] = battles;
       }
 
-      eventEntries.forEach((entry) => {
-        const name = entry.rider;
-        const place = entry.place;
-        const baseRaw = entry.rawPointsBeforeDecay;
-        // compute decay relative to current year for the live rankings
-        const referenceYear = new Date().getFullYear();
-        const yearsOfDecayLocal = entry.eventYear ? Math.max(0, referenceYear - entry.eventYear) : 0;
-        const decayMultiplierLocal = Math.pow(seasondecay, yearsOfDecayLocal);
-        const rawPoints = (baseRaw || 0) * decayMultiplierLocal;
-        if (!ridersByGender[gender].has(name)) {
-          ridersByGender[gender].set(name, {
-            event_scores: [],
-            points: 0,
-            events: 0,
-            wins: 0,
-            podiums: 0,
-            battles: 0
-          });
-        }
-
-        const stats = ridersByGender[gender].get(name);
-        const basePoints = Math.max(15, 100 / Math.pow(place, exponent));
-        const eventScore = basePoints * event.weight * decayMultiplierLocal;
-
-        stats.event_scores.push({ score: eventScore, event: event.name });
-        stats.events += 1;
-
-        if (place === 1) {
-          stats.wins += 1;
-        }
-
-        if (place <= 3) {
-          stats.podiums += 1;
-        }
-
-        const riderBattleCount = (riderBattlesByGender[gender].get(name) || []).length;
-        stats.battles = riderBattleCount;
-
-        const history = riderHistoryByGender[gender].get(name) || [];
-        // Store both decayed and pre-decay raw points plus the decay multiplier so UI can show decay.
-        history.push({ event: event.name, place, weight: event.weight, rawPoints, rawPointsBeforeDecay: entry.rawPointsBeforeDecay, decayMultiplier: decayMultiplierLocal, eventYear: entry.eventYear });
-        riderHistoryByGender[gender].set(name, history);
-      });
     });
 
     eventResults.set(event.name, eventEntriesByGender);
@@ -1860,7 +2265,7 @@ async function loadRanking() {
     // Optionally enrich with per-battle vote/score breakdowns and preliminary results,
     // loaded from an event-specific "detailed event PDF/<Event>_D.txt" file when present.
     const detailText = activeDiscipline.supportsBattles
-      ? await loadEventDetailText(event.name)
+      ? await getCachedEventDetailText(event.name)
       : null;
     if (detailText) {
       try {
@@ -1888,12 +2293,39 @@ async function loadRanking() {
     }
   }
 
-  GENDERS.forEach((gender) => {
-    globalRowsByGender[gender] = [...ridersByGender[gender].entries()].map(([rider, stats]) => {
-      const points = computeRiderTotalPoints(stats.event_scores);
-      return { rider, ...stats, points };
-    });
+  computeRankingSnapshots();
 
+  EVENT_FILES.forEach((event) => {
+    const entriesByGender = eventResults.get(event.name) || { male: [], female: [] };
+    GENDERS.forEach((gender) => {
+      entriesByGender[gender].forEach((entry) => {
+        const name = entry.rider;
+        const yearsOfDecay = entry.eventYear ? Math.max(0, new Date().getFullYear() - entry.eventYear) : 0;
+        const decayMultiplier = Math.pow(seasondecay, yearsOfDecay);
+        const rawPoints = entry.rawPointsBeforeDecay * decayMultiplier;
+        if (!ridersByGender[gender].has(name)) {
+          ridersByGender[gender].set(name, { event_scores: [], events: 0, wins: 0, podiums: 0, battles: 0 });
+        }
+        const stats = ridersByGender[gender].get(name);
+        stats.event_scores.push({ score: rawPoints, event: event.name });
+        stats.events += 1;
+        if (entry.place === 1) stats.wins += 1;
+        if (entry.place <= 3) stats.podiums += 1;
+        stats.battles = (riderBattlesByGender[gender].get(name) || []).length;
+
+        const history = riderHistoryByGender[gender].get(name) || [];
+        history.push({ event: event.name, place: entry.place, weight: event.weight, basePointsBeforeWeight: entry.basePointsBeforeWeight, rawPoints, rawPointsBeforeDecay: entry.rawPointsBeforeDecay, battlePointsBeforeDecay: entry.battlePointsBeforeDecay, battlePointDetails: entry.battlePointDetails || [], decayMultiplier, eventYear: entry.eventYear });
+        riderHistoryByGender[gender].set(name, history);
+      });
+    });
+  });
+
+  GENDERS.forEach((gender) => {
+    globalRowsByGender[gender] = [...ridersByGender[gender].entries()].map(([rider, stats]) => ({
+      rider,
+      ...stats,
+      points: computeRiderTotalPoints(stats.event_scores)
+    }));
     globalRowsByGender[gender].sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.wins !== a.wins) return b.wins - a.wins;
@@ -1903,11 +2335,9 @@ async function loadRanking() {
   });
 
   updateSummaryStats();
+  if (preserveView) return;
   populateViewSelector();
   setView('world');
-
-  // After parsing all events, compute ranking snapshots (rankings after each past event)
-  computeRankingSnapshots();
 }
 
 // Holds snapshots: array of { event, dateValue, rowsByGender: { male: [...], female: [...] } }
@@ -1929,12 +2359,18 @@ function computeRankingSnapshots() {
 
     const entriesByGender = eventResults.get(event.name) || { male: [], female: [] };
 
-    // Compute each rider's points as of just BEFORE this event (using only strictly earlier
-    // contributions, decayed relative to this event's year). Used for event strength stats.
+    // Compute pre-event rankings from strictly earlier event contributions.
     // Compare using month-aware sort values so events earlier in the same calendar year are
     // correctly treated as "before" (year-only comparison would wrongly exclude them).
     const preEventPointsByGender = { male: new Map(), female: new Map() };
+    const postEventPointsByGender = { male: new Map(), female: new Map() };
     GENDERS.forEach((gender) => {
+      const currentEntries = entriesByGender[gender] || [];
+      const currentEntryByRider = new Map(currentEntries.map((entry) => [entry.rider, entry]));
+      const ridersForPostEventPoints = new Set([
+        ...contributions[gender].keys(),
+        ...currentEntryByRider.keys()
+      ]);
       contributions[gender].forEach((contribs, rider) => {
         const decayedScores = contribs.map((c) => {
           const years = Math.max(0, snapshotYear - c.eventYear);
@@ -1946,19 +2382,43 @@ function computeRankingSnapshots() {
         const points = computeRiderTotalPoints(visible.map((d) => ({ score: d.score, event: d.eventName })));
         preEventPointsByGender[gender].set(rider, points);
       });
+      ridersForPostEventPoints.forEach((rider) => {
+        const earlierScores = (contributions[gender].get(rider) || [])
+          .filter((contribution) => getEventSortValue(contribution.eventName) < eventSortValue)
+          .map((contribution) => ({
+            score: contribution.valueBase * Math.pow(seasondecay, Math.max(0, snapshotYear - contribution.eventYear)),
+            event: contribution.eventName
+          }));
+        const currentEntry = currentEntryByRider.get(rider);
+        if (currentEntry) {
+          earlierScores.push({
+            score: currentEntry.basePointsBeforeWeight * event.weight,
+            event: event.name
+          });
+        }
+        if (earlierScores.length) {
+          postEventPointsByGender[gender].set(rider, computeRiderTotalPoints(earlierScores));
+        }
+      });
     });
 
     GENDERS.forEach((gender) => {
       const entries = entriesByGender[gender] || [];
-      const competitorCount = entries.length;
-      // Compute exponent so top place -> 100 points and last place -> 15 points
-      const exponent = competitorCount > 1 ? Math.log(100 / 15) / Math.log(competitorCount) : 1;
-
+      const eventBattlesByGender = eventBattles.get(event.name) || { male: [], female: [] };
+      const battleBonuses = computeBattleBonuses(
+        entries,
+        eventBattlesByGender[gender] || [],
+        postEventPointsByGender[gender]
+      );
       entries.forEach((entry) => {
         const name = entry.rider;
         const place = entry.place;
-        const basePoints = Math.max(15, 100 / Math.pow(place, exponent));
-        const valueBase = basePoints * event.weight; // pre-decay value
+        const battleBonus = battleBonuses.get(name) || { bonus: 0, details: [] };
+        entry.battleBonus = battleBonus.bonus;
+        entry.battlePointDetails = battleBonus.details;
+        entry.battlePointsBeforeDecay = entry.battleBonus;
+        entry.rawPointsBeforeDecay = entry.basePointsBeforeWeight * event.weight + entry.battleBonus;
+        const valueBase = entry.rawPointsBeforeDecay;
         if (!contributions[gender].has(name)) contributions[gender].set(name, []);
         contributions[gender].get(name).push({ valueBase, eventYear: entry.eventYear || snapshotYear, place, eventName: event.name });
       });
@@ -2317,7 +2777,7 @@ function renderRiderPointsPage() {
   if (!rider) {
     title.textContent = 'Rider points details';
     summary.textContent = 'No rider selected.';
-    body.innerHTML = '<tr><td colspan="9" class="status">Open a rider profile first, then click "Detailed ranking points".</td></tr>';
+    body.innerHTML = '<tr><td colspan="11" class="status">Open a rider profile first, then click "Detailed ranking points".</td></tr>';
     return;
   }
 
@@ -2337,7 +2797,7 @@ function renderRiderPointsPage() {
 
   if (visibleHistory.length === 0) {
     summary.textContent = 'No event history available.';
-    body.innerHTML = '<tr><td colspan="9" class="status">No event history available.</td></tr>';
+    body.innerHTML = '<tr><td colspan="12" class="status">No event history available.</td></tr>';
     return;
   }
 
@@ -2353,10 +2813,12 @@ function renderRiderPointsPage() {
     const yearsOfDecay = eventYear ? Math.max(0, referenceYear - eventYear) : 0;
     const decayMultiplier = Math.pow(seasondecay, yearsOfDecay);
     const decayedPoints = rawPointsBeforeDecay * decayMultiplier;
+    const battlePoints = Number(entry.battlePointsBeforeDecay || 0);
     return {
       ...entry,
       sourceIndex,
-      points: Number(entry.weight) > 0 ? rawPointsBeforeDecay / Number(entry.weight) : rawPointsBeforeDecay,
+      points: Number(entry.basePointsBeforeWeight ?? 0),
+      battlePoints,
       rawPoints: rawPointsBeforeDecay,
       decayedPoints,
       decay: decayMultiplier
@@ -2381,9 +2843,30 @@ function renderRiderPointsPage() {
       entry.typePenaltyMultiplier = 1;
     } else {
       const bestForType = bestDecayedByType.get(typeKey);
-      entry.typePenaltyMultiplier = (bestForType != null && entry.decayedPoints < (bestForType - 1e-9)) ? (2 / 3) : 1;
+      entry.typePenaltyMultiplier = (bestForType != null && entry.decayedPoints < (bestForType - 1e-9)) ? typePenalty : 1;
     }
-    entry.penalizedDecayedPoints = entry.decayedPoints * entry.typePenaltyMultiplier;
+  });
+
+  // Region penalty: within one region, the best event is untouched, the 2nd gets one extra decay step, the 3rd two, etc.
+  const entriesByRegion = new Map();
+  detailedEntries.forEach((entry) => {
+    const eventFile = EVENT_FILES.find((file) => file.name === entry.event);
+    const region = String(eventFile?.region || '').trim().toUpperCase();
+    entry.regionPenaltyMultiplier = 1;
+    if (!region) return;
+    if (!entriesByRegion.has(region)) entriesByRegion.set(region, []);
+    entriesByRegion.get(region).push(entry);
+  });
+  entriesByRegion.forEach((entries) => {
+    entries
+      .sort((a, b) => (b.decayedPoints * b.typePenaltyMultiplier) - (a.decayedPoints * a.typePenaltyMultiplier))
+      .forEach((entry, index) => {
+        entry.regionPenaltyMultiplier = Math.pow(seasondecay, index);
+      });
+  });
+
+  detailedEntries.forEach((entry) => {
+    entry.penalizedDecayedPoints = entry.decayedPoints * entry.typePenaltyMultiplier * entry.regionPenaltyMultiplier;
   });
 
   const scoreOrder = detailedEntries
@@ -2410,21 +2893,29 @@ function renderRiderPointsPage() {
   sortedEntries.forEach((entry) => {
     totalCounted += entry.countedPoints;
     const row = document.createElement('tr');
+    const battleCalculation = entry.battlePointDetails.length
+      ? entry.battlePointDetails.map((detail) => {
+        return `<div>${escapeXml(detail.opponent)}: ${detail.rankingPoints.toFixed(2)} pts → +${detail.points.toFixed(2)} pts</div>`;
+      }).join('')
+      : '—';
     row.innerHTML = `
       <td><button class="rider-link rider-points-event-link" data-event="${entry.event}">${entry.event}</button></td>
       <td>${entry.place}</td>
       <td>${entry.points.toFixed(2)}</td>
+      <td>${entry.battlePoints.toFixed(2)}</td>
+      <td>${battleCalculation}</td>
       <td>${entry.rawPoints.toFixed(2)}</td>
       <td>×${entry.decay.toFixed(2)}</td>
       <td>${entry.decayedPoints.toFixed(2)}</td>
       <td>×${entry.typePenaltyMultiplier.toFixed(2)}</td>
+      <td>×${entry.regionPenaltyMultiplier.toFixed(2)}</td>
       <td>×${entry.bestFiveMultiplier.toFixed(2)}</td>
       <td>${entry.countedPoints.toFixed(2)}</td>
     `;
     body.appendChild(row);
   });
 
-  summary.textContent = `${visibleHistory.length} events. Weighted total with type penalty: ${totalCounted.toFixed(2)} points (${currentGender === 'male' ? 'male/open' : currentGender} view, ${currentYearComparison}).`;
+  summary.textContent = `${visibleHistory.length} events. Weighted total with type and region penalties: ${totalCounted.toFixed(2)} points (${currentGender === 'male' ? 'male/open' : currentGender} view, ${currentYearComparison}).`;
 
   document.querySelectorAll('.rider-points-event-link').forEach((button) => {
     button.addEventListener('click', () => {
@@ -2459,16 +2950,12 @@ function setView(view) {
   const title = document.getElementById('ranking-title');
   const description = document.getElementById('ranking-description');
   if (!title || !description) return;
-  const genderText = currentGender === 'female' ? 'female ' : 'male/open ';
+  updateViewDescription(view);
 
   if (view === 'world') {
-    title.textContent = 'All';
-    description.textContent = `Weighted ${genderText}results from your competition files`;
     setRankingHeaders('world');
     renderWorldForYear(Number(currentYearComparison));
   } else {
-    title.textContent = `${view} results`;
-    description.textContent = `Place-by-place ${genderText}results for ${view}`;
     setRankingHeaders('event');
     renderEvent(view);
   }
@@ -2803,7 +3290,8 @@ function renderEvent(eventName) {
     const thead = document.getElementById('ranking-thead');
     if (thead) {
       const scoreHeaders = scoreLabels.map((label) => `<th>${label}</th>`).join('');
-      thead.innerHTML = `<tr>${Array.from({ length: colCount }, (_, i) => `<th class="${i > 0 ? 'col-sep' : ''}">Place</th><th>Rider</th>${scoreHeaders}`).join('')}</tr>`;
+      const pointsHeader = settings.showPoints ? '<th>Points</th>' : '';
+      thead.innerHTML = `<tr>${Array.from({ length: colCount }, (_, i) => `<th class="${i > 0 ? 'col-sep' : ''}">Place</th><th>Rider</th>${pointsHeader}${scoreHeaders}`).join('')}</tr>`;
     }
     const rowsPerCol = Math.ceil(visibleEntries.length / colCount);
     for (let r = 0; r < rowsPerCol; r++) {
@@ -2811,7 +3299,8 @@ function renderEvent(eventName) {
       for (let c = 0; c < colCount; c++) {
         const entry = visibleEntries[c * rowsPerCol + r];
         if (!entry) {
-          row.innerHTML += `<td class="${c > 0 ? 'col-sep' : ''}"></td><td></td>${scoreLabels.map(() => '<td></td>').join('')}`;
+          const pointsCell = settings.showPoints ? '<td></td>' : '';
+          row.innerHTML += `<td class="${c > 0 ? 'col-sep' : ''}"></td><td></td>${pointsCell}${scoreLabels.map(() => '<td></td>').join('')}`;
           continue;
         }
         const placeClass = entry.place === 1
@@ -2828,9 +3317,13 @@ function renderEvent(eventName) {
             const score = entry.scores?.[index];
             return `<td class="${roundSeparatorClass}">${score === '/' ? '—' : (score || '')}</td>`;
           }).join('');
+        const pointsCell = settings.showPoints
+          ? `<td class="${roundSeparatorClass}">${Number(entry.rawPointsBeforeDecay || 0).toFixed(2)}</td>`
+          : '';
         row.innerHTML += `
           <td class="rank ${placeClass} ${roundSeparatorClass} ${c > 0 ? 'col-sep' : ''}">${entry.place}</td>
           <td class="${roundSeparatorClass}"><button class="rider-link" data-rider="${entry.rider}">${entry.rider}</button></td>
+          ${pointsCell}
           ${scoreCells}
         `;
       }
@@ -3362,6 +3855,7 @@ function showRiderProfile(rider) {
 
   const detailedPointsLink = document.getElementById('profile-points-link');
   if (detailedPointsLink) {
+    detailedPointsLink.classList.toggle('hidden', !settings.showPoints);
     detailedPointsLink.href = buildRiderPointsUrl(resolvedRider, {
       view: getCurrentViewSelection(),
       gender: currentGender,
@@ -3493,8 +3987,8 @@ function renderProfilePlacementChart(rider) {
   yLabels.forEach((lbl) => {
     const y = yForRank(lbl);
     if (y != null) {
-      svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
-      svg += `<text x="8" y="${y + 4}" fill="#cfeeff" font-size="11">${lbl}</text>`;
+      svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(30,41,59,0.12)" stroke-width="1"/>`;
+      svg += `<text x="8" y="${y + 4}" fill="#1e293b" font-size="11">${lbl}</text>`;
     }
   });
 
@@ -3510,7 +4004,7 @@ function renderProfilePlacementChart(rider) {
     const a = pts[i];
     const b = pts[i + 1];
     if (a.y != null && b.y != null) {
-      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#62c8ff" stroke-width="2" stroke-linecap="round"/>`;
+      svg += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#046bd2" stroke-width="2" stroke-linecap="round"/>`;
     }
   }
 
@@ -3520,15 +4014,15 @@ function renderProfilePlacementChart(rider) {
     if (y != null) {
       // include a <title> inside the circle for native SVG hover tooltip showing the event
       // add data-event and classes so we can style and attach click handlers after insertion
-      svg += `<circle class="chart-point present" data-event="${escapeXml(p.event || '')}" data-rank="${p.rank ?? ''}" cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#2b8cff" stroke-width="2"><title>${escapeXml(p.event || '')}</title></circle>`;
-      svg += `<text x="${x}" y="${y - 8}" fill="#cfeeff" font-size="10" text-anchor="middle">${p.rank}</text>`;
+      svg += `<circle class="chart-point present" data-event="${escapeXml(p.event || '')}" data-rank="${p.rank ?? ''}" cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#045cb4" stroke-width="2"><title>${escapeXml(p.event || '')}</title></circle>`;
+      svg += `<text x="${x}" y="${y - 8}" fill="#1e293b" font-size="10" text-anchor="middle">${p.rank}</text>`;
     } else {
       // show a distinct, small hollow circle for missing rank (did not compete)
       const gy = padding.top + innerH / 2;
       const titleText = `Did not compete — ${escapeXml(p.event || '')}`;
       svg += `<g class="chart-point missing" data-event="${escapeXml(p.event || '')}" transform="translate(${x},${gy})">`;
       svg += `<title>${titleText}</title>`;
-      svg += `<circle cx="0" cy="0" r="3" fill="none" stroke="#9aa6b3" stroke-width="1.25"/>`;
+      svg += `<circle cx="0" cy="0" r="3" fill="none" stroke="#64748b" stroke-width="1.25"/>`;
       svg += `</g>`;
     }
   });
@@ -3537,7 +4031,7 @@ function renderProfilePlacementChart(rider) {
   points.forEach((pt, i) => {
     const x = padding.left + i * xStep;
     const label = pt.monthInt ? monthNames[pt.monthInt - 1] : '';
-    svg += `<text x="${x}" y="${height - 8}" fill="#95a7c7" font-size="11" text-anchor="middle">${label}</text>`;
+    svg += `<text x="${x}" y="${height - 8}" fill="#475569" font-size="11" text-anchor="middle">${label}</text>`;
   });
 
   // Year markers: draw all labels; scale text down when years are dense.
@@ -3563,9 +4057,9 @@ function renderProfilePlacementChart(rider) {
 
   yearMarkers.forEach((marker) => {
     // vertical marker
-    svg += `<line x1="${marker.x}" y1="${padding.top}" x2="${marker.x}" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    svg += `<line x1="${marker.x}" y1="${padding.top}" x2="${marker.x}" y2="${height - padding.bottom}" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>`;
     const shortYear = String(marker.year).slice(-2);
-    svg += `<text x="${marker.x}" y="14" fill="#cfeeff" font-size="${computedYearFontSize.toFixed(1)}" font-weight="600" text-anchor="middle">${shortYear}</text>`;
+    svg += `<text x="${marker.x}" y="14" fill="#1e293b" font-size="${computedYearFontSize.toFixed(1)}" font-weight="600" text-anchor="middle">${shortYear}</text>`;
   });
 
   svg += `</svg>`;
