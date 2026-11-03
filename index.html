@@ -59,7 +59,15 @@
           <button type="button" class="settings-tab-button active" data-tab="general" id="settings-tab-btn-general" role="tab" aria-selected="true">General</button>
           <button type="button" class="settings-tab-button" data-tab="calculation" data-admin-only id="settings-tab-btn-calculation" role="tab" aria-selected="false">Calculation</button>
           <button type="button" class="settings-tab-button" data-tab="tools" id="settings-tab-btn-tools" role="tab" aria-selected="false">Tools</button>
-        </div>
+                    <button type="button" class="settings-tab-button" data-tab="overview" data-admin-only id="settings-tab-btn-overview" role="tab" aria-selected="false">Data overview</button>
+                  </div>
+                  <div class="settings-tab-panel hidden" id="settings-tab-overview" data-tab-panel="overview">
+                    <div class="settings-card">
+                      <h3>Data overview</h3>
+                      <p class="settings-card-hint">Which data is available for each event of the current discipline. Events of the same type are listed next to each other. The number in the top row is how many events have that data.</p>
+                      <div id="data-overview" class="table-wrapper"><p class="settings-card-hint">Loading…</p></div>
+                    </div>
+                  </div>
         <div class="settings-tab-panel" id="settings-tab-general" data-tab-panel="general">
           <div class="settings-grid">
             <div class="settings-card">

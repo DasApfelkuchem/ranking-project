@@ -408,6 +408,12 @@ function loadSettings() {
     // Drop the old dark-theme defaults so the new light colors apply
     if (String(saved.backgroundColor).toLowerCase() === '#07111f') delete saved.backgroundColor;
     if (String(saved.panelColor).toLowerCase() === '#091423') delete saved.panelColor;
+    // One-time reset so a previously saved panel colour no longer overrides the white default.
+    if (!saved.panelColorReset) {
+      delete saved.panelColor;
+      saved.panelColorReset = true;
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(saved));
+    }
     return { ...defaultSettings, ...saved };
   } catch (error) {
     return { ...defaultSettings };
@@ -854,7 +860,7 @@ function attachSettingsEvents() {
   let pendingTab = null;
   function canAccessTab(tab) {
     if (tab === 'tools') return settingsRole === 'admin' || settingsRole === 'host';
-    if (tab === 'calculation') return settingsRole === 'admin';
+    if (tab === 'calculation' || tab === 'overview') return settingsRole === 'admin';
     return true;
   }
   function activateTab(targetTab) {
@@ -866,6 +872,7 @@ function attachSettingsEvents() {
     document.querySelectorAll('.settings-tab-panel').forEach((panel) => {
       panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== targetTab);
     });
+    if (targetTab === 'overview') renderDataOverview();
   }
 
   function openSettingsPanel() {
@@ -3523,6 +3530,152 @@ function attachBattleDetailModalEvents() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeBattleDetailModal();
   });
+}
+
+// ---- Data overview (settings tab): which data exists for every event of every discipline ----
+const DATA_OVERVIEW_COLUMNS = [
+  { key: 'female', label: 'Has Female Results' },
+  { key: 'battles', label: 'Has Battling Results' },
+  { key: 'scores', label: 'Has Scores' },
+  { key: 'prelim', label: 'Has Prelim Results' },
+  { key: 'videos', label: 'Has Videos' }
+];
+// Battling results count as available once more than this many battles are recorded for male/open.
+const DATA_OVERVIEW_MIN_BATTLES = 2;
+let dataOverviewRows = null;
+let dataOverviewLoading = false;
+
+// Reads a raw results file the same way loadRanking() does, only checking what data it contains.
+function analyzeEventData(text, discipline) {
+  const info = { female: false, battles: false, scores: false, prelim: false, videos: false };
+  info.videos = /#[^\r\n]*https?:\/\//i.test(text);
+
+  const hasGenderSplit = text.includes('|');
+  const blocks = hasGenderSplit
+    ? text.split('|').map((part) => part.trim()).filter(Boolean)
+    : [text.trim()];
+  const splitsSections = hasGenderSplit || !discipline.usesSimpleResults;
+
+  blocks.slice(0, GENDERS.length).forEach((block, index) => {
+    const sectionDelimiter = splitsSections ? block.indexOf(';') : -1;
+    const resultsText = sectionDelimiter === -1 ? block : block.slice(0, sectionDelimiter);
+    const extraText = sectionDelimiter === -1 ? '' : block.slice(sectionDelimiter + 1);
+
+    const resultLines = resultsText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && line !== '-' && !parseScoreNamesLine(line));
+    if (index === 1 && resultLines.length > 0) info.female = true;
+    if (resultLines.some((line) => {
+      const placeMatch = line.match(/^\s*(\d+)[\.)]?\s*(.+)$/);
+      const riderAndScores = placeMatch ? removePlacementRiderId(placeMatch[2].trim()) : line;
+      return splitRiderAndScores(riderAndScores).scores.length > 0;
+    })) {
+      info.scores = true;
+    }
+
+    let prelimNames = null;
+    let battleCount = 0;
+    extraText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).forEach((line) => {
+      const prelimHeader = line.match(/^@prelim\s+(.*)$/i);
+      if (prelimHeader) {
+        prelimNames = prelimHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
+      } else if (/^@battle\s/i.test(line)) {
+        // Only names the battle score columns.
+      } else if (isPrelimLine(line)) {
+        const entry = parsePrelimLine(line, prelimNames);
+        if (!entry) return;
+        info.prelim = true;
+        if (Number.isFinite(entry.score) || entry.categoryScores.length > 0) info.scores = true;
+      } else if (discipline.supportsBattles) {
+        const hashIndex = line.indexOf('#');
+        const dataLine = hashIndex === -1 ? line : line.slice(0, hashIndex);
+        const parts = dataLine.split(/[,;]+/).map((part) => part.trim()).filter(Boolean);
+        if (parts.length === 0) return;
+        if (index === 0) battleCount++;
+        if (parts.length > 2) info.scores = true;
+      }
+    });
+    if (index === 0 && battleCount > DATA_OVERVIEW_MIN_BATTLES) info.battles = true;
+  });
+  return info;
+}
+
+async function loadDataOverviewRows() {
+  const discipline = activeDiscipline;
+  const jobs = discipline.eventFiles.map(async (event) => {
+    const type = event.name.replace(/\d+$/, '');
+    const year = Number(event.name.slice(type.length)) || 0;
+    const row = { event: event.name, type, year, error: false };
+    try {
+      const path = `${discipline.resultsDirectory}/${event.file}`;
+      let text = eventTextCache.get(path);
+      if (text === undefined) {
+        const response = await fetch(path);
+        if (!response.ok) throw new Error(`Unable to load ${path}`);
+        text = await response.text();
+        eventTextCache.set(path, text);
+      }
+      Object.assign(row, analyzeEventData(text, discipline));
+
+      // Optional "detailed event PDF/<Event>_D.txt" adds prelim results and battle scores.
+      const detailText = discipline.supportsBattles ? await getCachedEventDetailText(event.name) : null;
+      if (detailText) {
+        const detail = parseEventDetailText(detailText);
+        GENDERS.forEach((gender) => {
+          if (detail[gender].prelim.length) {
+            row.prelim = true;
+            if (detail[gender].prelim.some((entry) => Number.isFinite(entry.score) || entry.categoryScores.length)) row.scores = true;
+          }
+          if (detail[gender].battles.size) row.scores = true;
+        });
+      }
+    } catch (error) {
+      console.warn(`Data overview: ${event.name} (${discipline.label})`, error);
+      row.error = true;
+    }
+    return row;
+  });
+  const rows = await Promise.all(jobs);
+  rows.sort((a, b) => a.type.localeCompare(b.type, undefined, { sensitivity: 'base' }) || a.year - b.year);
+  return rows;
+}
+
+function renderDataOverviewTable(container, rows) {
+  const counts = DATA_OVERVIEW_COLUMNS.map((column) => rows.filter((row) => row[column.key]).length);
+  const headCells = DATA_OVERVIEW_COLUMNS.map((column, i) =>
+    `<th><span class="data-overview-count">${counts[i]} <span>/ ${rows.length}</span></span>${escapeXml(column.label)}</th>`).join('');
+  const bodyRows = rows.map((row) => {
+    const label = row.year ? `${row.type} ${String(row.year).padStart(2, '0')}` : row.event;
+    const cells = row.error
+      ? `<td class="data-no" colspan="${DATA_OVERVIEW_COLUMNS.length}">Unable to load results file</td>`
+      : DATA_OVERVIEW_COLUMNS.map((column) => row[column.key]
+        ? '<td class="data-yes" title="Available" aria-label="Available">✔</td>'
+        : '<td class="data-no" title="Not available" aria-label="Not available">✘</td>').join('');
+    return `<tr><th scope="row">${escapeXml(label)}</th>${cells}</tr>`;
+  }).join('');
+  container.innerHTML = `
+    <table class="data-overview-table">
+      <thead>
+        <tr><th>Event</th>${headCells}</tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>`;
+}
+
+async function renderDataOverview() {
+  const container = document.getElementById('data-overview');
+  if (!container || dataOverviewLoading) return;
+  if (dataOverviewRows) return;
+  dataOverviewLoading = true;
+  try {
+    dataOverviewRows = await loadDataOverviewRows();
+    renderDataOverviewTable(container, dataOverviewRows);
+  } catch (error) {
+    container.innerHTML = `<p class="settings-card-hint">Unable to load the data overview: ${escapeXml(error.message || error)}</p>`;
+  } finally {
+    dataOverviewLoading = false;
+  }
 }
 
 // Pulls an absolute http(s) URL out of the text after a '#', tolerating stray '#' or spaces
