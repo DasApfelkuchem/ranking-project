@@ -308,6 +308,7 @@ let currentSearch = '';
 const eventResults = new Map();
 const eventBattles = new Map();
 const eventPrelimResults = new Map(); // eventName -> { male: [{place, rider, score}], female: [...] }
+const riderStrengthCache = { male: null, female: null };
 const riderHistoryByGender = { male: new Map(), female: new Map() };
 const riderBattlesByGender = { male: new Map(), female: new Map() };
 const aliasMap = new Map(); // maps normalized alias -> canonical display name
@@ -383,6 +384,7 @@ const defaultSettings = {
   showWins: true,
   showBattles: true,
   showPodiums: true,
+  showRiderStrength: false,
   backgroundColor: '#F0F5FA',
   panelColor: '#ffffff',
   excludeUnicon: false,
@@ -486,6 +488,7 @@ function applySettingsToDom() {
   const showWinsInput = document.getElementById('show-wins');
   const showBattlesInput = document.getElementById('show-battles');
   const showPodiumsInput = document.getElementById('show-podiums');
+  const showRiderStrengthInput = document.getElementById('show-rider-strength');
   const backgroundInput = document.getElementById('background-color');
   const panelInput = document.getElementById('panel-color');
 
@@ -493,6 +496,7 @@ function applySettingsToDom() {
   if (showWinsInput) showWinsInput.checked = settings.showWins;
   if (showBattlesInput) showBattlesInput.checked = settings.showBattles;
   if (showPodiumsInput) showPodiumsInput.checked = settings.showPodiums;
+  if (showRiderStrengthInput) showRiderStrengthInput.checked = settings.showRiderStrength;
   if (backgroundInput) backgroundInput.value = settings.backgroundColor;
   if (panelInput) panelInput.value = settings.panelColor;
 
@@ -713,6 +717,7 @@ function updateSettingsFromInputs() {
   const showWinsInput = document.getElementById('show-wins');
   const showBattlesInput = document.getElementById('show-battles');
   const showPodiumsInput = document.getElementById('show-podiums');
+  const showRiderStrengthInput = document.getElementById('show-rider-strength');
   const backgroundInput = document.getElementById('background-color');
   const panelInput = document.getElementById('panel-color');
 
@@ -722,6 +727,7 @@ function updateSettingsFromInputs() {
     showWins: showWinsInput ? showWinsInput.checked : settings.showWins,
     showBattles: showBattlesInput ? showBattlesInput.checked : settings.showBattles,
     showPodiums: showPodiumsInput ? showPodiumsInput.checked : settings.showPodiums,
+    showRiderStrength: showRiderStrengthInput ? showRiderStrengthInput.checked : settings.showRiderStrength,
     backgroundColor: backgroundInput ? backgroundInput.value : settings.backgroundColor,
     panelColor: panelInput ? panelInput.value : settings.panelColor
   };
@@ -729,6 +735,7 @@ function updateSettingsFromInputs() {
   saveSettings();
   applySettingsToDom();
   refreshRankingView();
+  if (currentProfileRider) renderRiderStrength(currentProfileRider);
 }
 
 function updateScoringSettingsFromInputs() {
@@ -935,7 +942,7 @@ function attachSettingsEvents() {
     });
   }
 
-  ['show-points', 'show-wins', 'show-battles', 'show-podiums'].forEach((id) => {
+  ['show-points', 'show-wins', 'show-battles', 'show-podiums', 'show-rider-strength'].forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('change', updateSettingsFromInputs);
@@ -2072,6 +2079,8 @@ async function loadRanking({ preserveView = false } = {}) {
   eventResults.clear();
   eventBattles.clear();
   eventPrelimResults.clear();
+  riderStrengthCache.male = null;
+  riderStrengthCache.female = null;
   riderHistoryByGender.male.clear();
   riderHistoryByGender.female.clear();
   riderBattlesByGender.male.clear();
@@ -3920,6 +3929,129 @@ function compareBattles(a, b, key) {
   return 0;
 }
 
+// ---- Rider strength: 1-5 star ratings per score category, built from the per-event scores ----
+const STRENGTH_CATEGORIES = [
+  { key: 'difficulty', label: 'Difficulty', pattern: /difficult/i },
+  { key: 'variety', label: 'Variety', pattern: /variet/i },
+  { key: 'fullness', label: 'Fullness / Consistency', pattern: /fullness|consisten/i },
+  { key: 'style', label: 'Style / Flow', pattern: /style|flow/i },
+  { key: 'lastTrick', label: 'Last Trick', pattern: /(last|final)\s*trick/i },
+  { key: 'battling', label: 'Battling', pattern: /battling/i }
+];
+
+function getStrengthCategoryKey(label) {
+  return STRENGTH_CATEGORIES.find((category) => category.pattern.test(String(label || '')))?.key || null;
+}
+
+// A score as a 0-1 share of its maximum, so "15/20" and "15/16" are comparable; null if unusable.
+function getScoreRatio(score) {
+  const value = Number(score?.value);
+  const max = Number(score?.max);
+  return score && score.value != null && Number.isFinite(value) && Number.isFinite(max) && max > 0 ? value / max : null;
+}
+
+// Per event and category: each rider's best ratio is ranked (best = 5 stars, worst = 1 star, ties share
+// the average position, in-between ranks scale linearly), then ratings are averaged over events weighted by event weight.
+function computeRiderStrength(gender) {
+  const totals = new Map(); // rider -> categoryKey -> { weighted, weight, events }
+
+  EVENT_FILES.forEach((event) => {
+    const weight = Number(event.weight);
+    if (!(weight > 0)) return;
+
+    const best = new Map(); // categoryKey -> rider -> best ratio
+    const record = (rider, label, score) => {
+      const key = getStrengthCategoryKey(label);
+      const ratio = getScoreRatio(score);
+      if (!rider || !key || ratio === null) return;
+      if (!best.has(key)) best.set(key, new Map());
+      const riders = best.get(key);
+      if (!riders.has(rider) || ratio > riders.get(rider)) riders.set(rider, ratio);
+    };
+
+    (eventPrelimResults.get(event.name)?.[gender] || []).forEach((entry) => {
+      (entry.categoryScores || []).forEach((score) => record(entry.rider, score.label, score));
+    });
+    (eventBattles.get(event.name)?.[gender] || []).forEach((battle) => {
+      (battle.detail?.winnerScores || []).forEach((score) => record(battle.winner, score.label, score));
+      (battle.detail?.loserScores || []).forEach((score) => record(battle.loser, score.label, score));
+    });
+    (eventResults.get(event.name)?.[gender] || []).forEach((entry) => {
+      (entry.scoreNames || []).forEach((name, index) => {
+        if (entry.scores?.[index] !== undefined) record(entry.rider, name, parseBattleScoreField(entry.scores[index]));
+      });
+    });
+
+    best.forEach((riders, key) => {
+      if (riders.size < 2) return;
+      const sorted = [...riders.entries()].sort((a, b) => b[1] - a[1]);
+      let start = 0;
+      while (start < sorted.length) {
+        let end = start;
+        while (end + 1 < sorted.length && Math.abs(sorted[end + 1][1] - sorted[start][1]) < 1e-9) end++;
+        const averagePosition = (start + end) / 2; // 0 = best
+        const stars = 5 - 4 * (averagePosition / (sorted.length - 1));
+        for (let i = start; i <= end; i++) {
+          const rider = sorted[i][0];
+          if (!totals.has(rider)) totals.set(rider, new Map());
+          const categoryTotals = totals.get(rider);
+          const current = categoryTotals.get(key) || { weighted: 0, weight: 0, events: 0 };
+          current.weighted += stars * weight;
+          current.weight += weight;
+          current.events += 1;
+          categoryTotals.set(key, current);
+        }
+        start = end + 1;
+      }
+    });
+  });
+
+  const ratings = new Map();
+  totals.forEach((categoryTotals, rider) => {
+    const byCategory = new Map();
+    categoryTotals.forEach((total, key) => byCategory.set(key, { stars: total.weighted / total.weight, events: total.events }));
+    ratings.set(rider, byCategory);
+  });
+  return ratings;
+}
+
+function getRiderStrength(gender) {
+  if (!riderStrengthCache[gender]) riderStrengthCache[gender] = computeRiderStrength(gender);
+  return riderStrengthCache[gender];
+}
+
+// Stars partly filled in proportion to the rating (e.g. 3.5 fills three and a half stars).
+function buildStarsHtml(stars) {
+  const percent = Math.max(0, Math.min(5, stars)) / 5 * 100;
+  const text = `${stars.toFixed(1)} out of 5`;
+  return `<span class="stars" role="img" aria-label="${text}" title="${text}"><span class="stars-empty" aria-hidden="true">★★★★★</span><span class="stars-fill" aria-hidden="true" style="width:${percent.toFixed(1)}%">★★★★★</span></span>`;
+}
+
+function renderRiderStrength(rider) {
+  const container = document.getElementById('profile-strength');
+  if (!container) return;
+  container.classList.toggle('hidden', !settings.showRiderStrength);
+  if (!settings.showRiderStrength) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const ratings = getRiderStrength(currentGender).get(rider);
+  if (!ratings || ratings.size === 0) {
+    container.innerHTML = '<h3>Rider strength</h3><p class="settings-card-hint">No score data available for this rider.</p>';
+    return;
+  }
+
+  const rows = STRENGTH_CATEGORIES.map((category) => {
+    const rating = ratings.get(category.key);
+    const ratingHtml = rating
+      ? `${buildStarsHtml(rating.stars)}<span class="strength-value">${rating.stars.toFixed(1)}</span><span class="strength-events">${rating.events} event${rating.events === 1 ? '' : 's'}</span>`
+      : '<span class="strength-events">No data</span>';
+    return `<div class="strength-row"><span class="strength-label">${category.label}</span>${ratingHtml}</div>`;
+  }).join('');
+  container.innerHTML = `<h3>Rider strength</h3>${rows}`;
+}
+
 function renderProfileBattleHistory(rider) {
   const battleHistory = riderBattlesByGender[currentGender].get(rider) || [];
   const profileBattleBody = document.getElementById('profile-battle-body');
@@ -4077,6 +4209,7 @@ function showRiderProfile(rider) {
   }
 
   currentProfileRider = resolvedRider;
+  renderRiderStrength(resolvedRider);
   renderProfileBattleHistory(resolvedRider);
   setRankingPanelVisibility(false);
 
