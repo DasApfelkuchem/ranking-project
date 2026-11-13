@@ -1240,3 +1240,6 @@ a { color: var(--accent); }
   color: var(--muted);
   font-size: 0.85rem;
 }
+.gender-switch { display: inline-flex; gap: 4px; }
+.gender-switch .ghost-button.active,
+.gender-switch .ghost-button.active:hover { background: var(--accent); border-color: var(--accent); color: #ffffff; }

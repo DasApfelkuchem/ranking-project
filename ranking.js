@@ -1,9 +1,10 @@
 // Scoring tunables; overwritten from saved settings by applyScoringSettings().
 let seasondecay = 0.9;
+let yearDecay = 0.9;
+let regionPenalty = 0.8;
 let minPlacePoints = 15;
 let scalingMode = 'power';
 let scalingPower = 5;
-let typePenalty = 0.9;
 let customFormulaText = '100 * ((n - rank + 1) / n) ** 2';
 let customFormulaFn = null;
 
@@ -34,6 +35,7 @@ const CFM = 10.5;
 const LAUCC = 1;
 const ROC = 0.5;
 const JUC = 10.3;
+const UFO = 0.5;  
 
 const UNICON_WEIGHT = 4;
 const STREET_UNICON_WEIGHT = 3;
@@ -53,6 +55,7 @@ const EVENT_MONTHS = {
   CFM: Number(CFM) || 0,
   JUC: Number(JUC) || 0,
   LAUCC: Number(LAUCC) || 0,
+   UFO: Number(UFO) || 0,
 };
 
 // Optional region per event: '' (unknown) or one of EVENT_REGIONS. Fill in region: '' on any event below.
@@ -85,6 +88,7 @@ const FLATLAND_EVENT_FILES = [
   { name: 'EUCS25', file: 'Flatland/EUCS25.txt', weight: Continental_WEIGHT, region: 'EU' },
   { name: 'EUCS15', file: 'Flatland/EUCS15.txt', weight: Continental_WEIGHT, region: 'EU ' },
 
+    { name: 'CFM26', file: 'Flatland/CFM26.txt', weight: National_WEIGHT, region: 'EU' },
   { name: 'CFM25', file: 'Flatland/CFM25.txt', weight: National_WEIGHT, region: 'EU' },
   { name: 'CFM24', file: 'Flatland/CFM24.txt', weight: National_WEIGHT, region: 'EU' },
 
@@ -110,7 +114,13 @@ const FLATLAND_EVENT_FILES = [
 
   { name: 'ROC18', file: 'Flatland/ROC18.txt', weight: Local_WEIGHT, region: 'EU' },
   { name: 'ROC20', file: 'Flatland/ROC20.txt', weight: Local_WEIGHT, region: 'EU' },
+  { name: 'UFO24', file: 'Flatland/UFO24.txt', weight: Local_WEIGHT, region: 'EU' },
+  { name: 'UFO25', file: 'Flatland/UFO25.txt', weight: Local_WEIGHT, region: 'EU' },
+  { name: 'UFO26', file: 'Flatland/UFO26.txt', weight: Local_WEIGHT, region: 'EU' },
 
+
+
+    { name: 'BUC26', file: 'Flatland/BUC26.txt', weight: National_WEIGHT, region: 'EU' },
   { name: 'BUC24', file: 'Flatland/BUC24.txt', weight: National_WEIGHT, region: 'EU' },
   { name: 'BUC25', file: 'Flatland/BUC25.txt', weight: National_WEIGHT, region: 'EU' },
   { name: 'BUC23', file: 'Flatland/BUC23.txt', weight: National_WEIGHT, region: 'EU' },
@@ -201,6 +211,11 @@ const BATTLE_BONUS_ROUNDS = new Set(['Quarter-final', 'Semi-final', 'Third place
 // Without battle data, places 1-4 are assumed to have won this many battles against 100-point riders.
 const ASSUMED_BATTLE_WINS = [3, 2, 2, 1];
 
+function exponentialPlacePoints(place, competitorCount, minimum) {
+  const exponent = competitorCount > 1 ? Math.log(100 / minimum) / Math.log(competitorCount) : 1;
+  return Math.max(minimum, 100 / Math.pow(place, exponent));
+}
+
 function getPlacePoints(place, competitorCount) {
   if (scalingMode === 'custom' && customFormulaFn) {
     const value = Number(customFormulaFn(place, competitorCount));
@@ -216,8 +231,7 @@ function getPlacePoints(place, competitorCount) {
     const ratio = Math.min(1, Math.max(0, (n - place + 1) / n));
     return 100 * Math.pow(ratio, scalingPower);
   }
-  const exponent = competitorCount > 1 ? Math.log(100 / minPlacePoints) / Math.log(competitorCount) : 1;
-  return Math.max(minPlacePoints, 100 / Math.pow(place, exponent));
+  return exponentialPlacePoints(place, competitorCount, minPlacePoints);
 }
 
 function calculateBattleBonus(opponentWins) {
@@ -267,51 +281,60 @@ function computeBattleBonuses(entries, battles, postEventPointsByRider) {
   return bonuses;
 }
 
-// Given a list of { score, event } contributions, halve scores that aren't a rider's best
-// result within the same event type (e.g. multiple GUC results), then sum the top 5
-// (by penalized score) using BEST_RESULT_MULTIPLIERS. Mirrors the logic shown on the
-// detailed rider points page so totals stay consistent everywhere.
-function computeRiderTotalPoints(scoreEntries) {
-  const bestByType = new Map();
-  scoreEntries.forEach(({ score, event }) => {
-    const { prefix } = parseEventNameYearPrefix(event);
-    const typeKey = String(prefix || '').toLowerCase();
-    if (!typeKey || typeKey === 'unicon') return;
-    const currentBest = bestByType.get(typeKey);
-    if (currentBest == null || score > currentBest) {
-      bestByType.set(typeKey, score);
-    }
+// Given a list of { score, event } contributions, apply the region penalty (within one region the
+// best score is untouched, the 2nd is multiplied by regionPenalty, the 3rd by regionPenalty^2, ...),
+// then sum the top scores using BEST_RESULT_MULTIPLIERS. Mirrors the detailed rider points page.
+function computeRiderPointDetails(scoreEntries, multipliers = BEST_RESULT_MULTIPLIERS, penalty = regionPenalty) {
+  const byRegion = new Map();
+  const penalizedScores = scoreEntries.map((entry) => {
+    const { score, event } = entry;
+    const region = String(EVENT_FILES.find((file) => file.name === event)?.region || '').trim().toUpperCase();
+    return { ...entry, region, regionMultiplier: 1, penalizedScore: score };
+  });
+  penalizedScores.forEach((entry) => {
+    if (!entry.region) return;
+    if (!byRegion.has(entry.region)) byRegion.set(entry.region, []);
+    byRegion.get(entry.region).push(entry);
+  });
+  byRegion.forEach((entries) => {
+    entries.sort((a, b) => b.score - a.score).forEach((entry, index) => {
+      entry.regionMultiplier = Math.pow(penalty, index);
+      entry.penalizedScore = entry.score * entry.regionMultiplier;
+    });
   });
 
-  const penalizedScores = scoreEntries.map(({ score, event }) => {
-    const { prefix } = parseEventNameYearPrefix(event);
-    const typeKey = String(prefix || '').toLowerCase();
-    if (!typeKey || typeKey === 'unicon') return score;
-    const bestForType = bestByType.get(typeKey);
-    const penaltyMultiplier = (bestForType != null && score < (bestForType - 1e-9)) ? typePenalty : 1;
-    return score * penaltyMultiplier;
+  return penalizedScores.sort((a, b) => b.penalizedScore - a.penalizedScore).map((entry, index) => {
+    const topMultiplier = multipliers[index] ?? 0;
+    return { ...entry, topMultiplier, contribution: entry.penalizedScore * topMultiplier };
   });
-
-  const sortedScores = [...penalizedScores].sort((a, b) => b - a);
-  return sortedScores.reduce((total, score, index) => total + score * (BEST_RESULT_MULTIPLIERS[index] ?? 0), 0);
 }
-// 'ranking' (index.html, rider_points.html) or 'results' (results.html); set via <body data-site>.
+
+function computeRiderTotalPoints(scoreEntries) {
+  return computeRiderPointDetails(scoreEntries).reduce((total, entry) => total + entry.contribution, 0);
+}// 'ranking' (index.html, rider_points.html) or 'results' (results.html); set via <body data-site>.
 const IS_RESULTS_SITE = document.body?.dataset?.site === 'results';
-const GENDERS = ['male', 'female'];
-const genderLabel = (gender) => (gender === 'male' ? 'male/open' : gender);
-let currentGender = 'male';
+const GENDERS = ['male', 'female']; // result sections found in event files
+const RANKING_GENDERS = ['male', 'female', 'combined']; // rankings that can be viewed
+const COMBINED_FEMALE_DIVISOR = 2.89; // female-category points are divided by this in the combined ranking
+const genderLabel = (gender) => gender;
+const isRankingGender = (gender) => RANKING_GENDERS.includes(gender);
+const isFemaleRider = (name) => Boolean(riderInfoMap.get(name)?.female);
+let currentGender = 'combined';
 let currentYearComparison = '2026'; // default to 2026
-let globalRowsByGender = { male: [], female: [] };
+let globalRowsByGender = { male: [], female: [], combined: [] };
 let currentSort = { key: 'points', direction: 'desc' };
 const riderPointsSort = { key: 'event', direction: 'desc' };
 let currentSearch = '';
 const eventResults = new Map();
 const eventBattles = new Map();
 const eventPrelimResults = new Map(); // eventName -> { male: [{place, rider, score}], female: [...] }
-const riderStrengthCache = { male: null, female: null };
-const riderHistoryByGender = { male: new Map(), female: new Map() };
-const riderBattlesByGender = { male: new Map(), female: new Map() };
+const riderStrengthCache = { male: null, female: null, combined: null };
+const riderHistoryByGender = { male: new Map(), female: new Map(), combined: new Map() };
+const maleBattleHistory = new Map();
+// Battles are only recorded for male/open and female results; combined reuses the male/open ones.
+const riderBattlesByGender = { male: maleBattleHistory, female: new Map(), combined: maleBattleHistory };
 const aliasMap = new Map(); // maps normalized alias -> canonical display name
+const riderInfoMap = new Map(); // canonical name -> { female, region } from riders_all.txt
 
 function normalizeName(name) {
   if (!name) return '';
@@ -389,11 +412,12 @@ const defaultSettings = {
   panelColor: '#ffffff',
   excludeUnicon: false,
   seasonDecay: 0.9,
+  onlyCurrentYear: false,
   minPlacePoints: 15,
   scalingMode: 'power',
   scalingPower: 5,
   customFormula: '100 * ((n - rank + 1) / n) ** 2',
-  typePenalty: 0.9,
+  regionPenalty: 0.8,
   topEventMultipliers: '1, 0.8, 0.6, 0.4, 0.2',
   battleWeight: 1,
   battleBonusFactors: [...DEFAULT_BATTLE_BONUS_FACTORS],
@@ -435,9 +459,10 @@ function applyScoringSettings() {
   const decay = Number(settings.seasonDecay);
   const minPoints = Number(settings.minPlacePoints);
   const weight = Number(settings.battleWeight);
-  const typePen = Number(settings.typePenalty);
-  typePenalty = Number.isFinite(typePen) && typePen > 0 && typePen <= 1 ? typePen : defaultSettings.typePenalty;
   seasondecay = Number.isFinite(decay) && decay > 0 && decay <= 1 ? decay : defaultSettings.seasonDecay;
+  const regionPen = Number(settings.regionPenalty);
+  regionPenalty = Number.isFinite(regionPen) && regionPen > 0 && regionPen <= 1 ? regionPen : defaultSettings.regionPenalty;
+  yearDecay = settings.onlyCurrentYear ? 0 : seasondecay;
   minPlacePoints = Number.isFinite(minPoints) && minPoints >= 1 && minPoints < 100 ? minPoints : defaultSettings.minPlacePoints;
   battleWeight = Number.isFinite(weight) && weight >= 0 ? weight : defaultSettings.battleWeight;
   scalingMode = ['exponential', 'linear', 'power', 'custom'].includes(settings.scalingMode) ? settings.scalingMode : defaultSettings.scalingMode;
@@ -500,9 +525,12 @@ function applySettingsToDom() {
   if (backgroundInput) backgroundInput.value = settings.backgroundColor;
   if (panelInput) panelInput.value = settings.panelColor;
 
+  const onlyCurrentYearInput = document.getElementById('only-current-year');
+  if (onlyCurrentYearInput) onlyCurrentYearInput.checked = !!settings.onlyCurrentYear;
+
   const scoringValues = {
     'season-decay': settings.seasonDecay,
-    'type-penalty': settings.typePenalty,
+    'region-penalty': settings.regionPenalty,
     'min-place-points': settings.minPlacePoints,
     'scaling-mode': settings.scalingMode,
     'scaling-power': settings.scalingPower,
@@ -689,7 +717,7 @@ function updateViewDescription(view) {
   const title = document.getElementById('ranking-title');
   const description = document.getElementById('ranking-description');
   if (!title || !description) return;
-  const genderText = currentGender === 'female' ? 'female ' : 'male/open ';
+  const genderText = `${currentGender} `;
   if (view === 'world') {
     title.textContent = 'All';
     description.textContent = `Weighted ${genderText}results from your competition files`;
@@ -746,9 +774,11 @@ function updateScoringSettingsFromInputs() {
   const multipliers = read('top-event-multipliers');
   const battleFactors = parseMultiplierList(read('battle-factors'));
   const next = { ...settings };
+  const onlyCurrentYearInput = document.getElementById('only-current-year');
+  if (onlyCurrentYearInput) next.onlyCurrentYear = onlyCurrentYearInput.checked;
   if (read('season-decay') !== '' && decay > 0 && decay <= 1) next.seasonDecay = decay;
-  const typePen = Number(read('type-penalty'));
-  if (read('type-penalty') !== '' && typePen > 0 && typePen <= 1) next.typePenalty = typePen;
+  const regionPen = Number(read('region-penalty'));
+  if (read('region-penalty') !== '' && regionPen > 0 && regionPen <= 1) next.regionPenalty = regionPen;
   if (read('min-place-points') !== '' && minPoints >= 1 && minPoints < 100) next.minPlacePoints = minPoints;
   const mode = read('scaling-mode');
   const power = Number(read('scaling-power'));
@@ -831,6 +861,495 @@ function renderEventWeightSettings() {
   });
 }
 
+function modelNormalRandom(random) {
+  let u = 0;
+  let v = 0;
+  while (u === 0) u = random();
+  while (v === 0) v = random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function modelRankCorrelation(left, right) {
+  if (left.length < 2 || left.length !== right.length) return null;
+  const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const leftMean = mean(left);
+  const rightMean = mean(right);
+  let numerator = 0;
+  let leftVariance = 0;
+  let rightVariance = 0;
+  left.forEach((value, index) => {
+    const leftDelta = value - leftMean;
+    const rightDelta = right[index] - rightMean;
+    numerator += leftDelta * rightDelta;
+    leftVariance += leftDelta ** 2;
+    rightVariance += rightDelta ** 2;
+  });
+  return leftVariance && rightVariance ? numerator / Math.sqrt(leftVariance * rightVariance) : null;
+}
+
+function modelWeightedRankSkillCorrelation(ranking) {
+  if (ranking.length < 2) return null;
+  const weights = ranking.map((entry, index) => 1 / Math.sqrt(index + 1));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const meanRank = weights.reduce((sum, weight, index) => sum + weight * (index + 1), 0) / totalWeight;
+  const meanSkill = ranking.reduce((sum, entry, index) => sum + entry.skill * weights[index], 0) / totalWeight;
+  let covariance = 0;
+  let rankVariance = 0;
+  let skillVariance = 0;
+  ranking.forEach((entry, index) => {
+    const rank = index + 1;
+    const weight = weights[index];
+    const rankDelta = rank - meanRank;
+    const skillDelta = entry.skill - meanSkill;
+    covariance += weight * rankDelta * skillDelta;
+    rankVariance += weight * rankDelta ** 2;
+    skillVariance += weight * skillDelta ** 2;
+  });
+  return rankVariance && skillVariance ? covariance / Math.sqrt(rankVariance * skillVariance) : null;
+}
+
+function calibrateModelParticipation(skills, rosters, attendance, unicons, random) {
+  const riders = [...skills.keys()];
+  const count = riders.length;
+  const skillSum = riders.reduce((sum, rider) => sum + skills.get(rider), 0);
+  const skillVariance = riders.reduce((sum, rider) => sum + skills.get(rider) ** 2, 0) - skillSum ** 2 / count;
+  const attendanceSum = riders.reduce((sum, rider) => sum + attendance.get(rider), 0);
+  const uniconSets = unicons.map(({ event }) => new Set(rosters.get(event.name)));
+  const sortedSkills = [...skills.values()].sort((a, b) => b - a);
+  const uniconDenominators = uniconSets.map((set) =>
+    Math.sqrt(skillVariance * set.size * (1 - set.size / count)));
+  const maxCorrelations = uniconSets.map((set, index) => uniconDenominators[index]
+    ? (sortedSkills.slice(0, set.size).reduce((sum, skill) => sum + skill, 0) - skillSum * set.size / count) / uniconDenominators[index]
+    : null);
+  const uniconTargets = maxCorrelations.map((max) => max == null ? null : Math.min(0.4, max));
+  let attendanceSquares = riders.reduce((sum, rider) => sum + attendance.get(rider) ** 2, 0);
+  let attendanceSkill = riders.reduce((sum, rider) => sum + attendance.get(rider) * skills.get(rider), 0);
+  let uniconSkills = uniconSets.map((set) => [...set].reduce((sum, rider) => sum + skills.get(rider), 0));
+  const correlations = (squares, skillTotal, eventSkills) => ({
+    attendance: squares > attendanceSum ** 2 / count
+      ? (skillTotal - skillSum * attendanceSum / count) / Math.sqrt(skillVariance * (squares - attendanceSum ** 2 / count))
+      : null,
+    unicons: eventSkills.map((sum, index) => uniconDenominators[index]
+      ? (sum - skillSum * uniconSets[index].size / count) / uniconDenominators[index]
+      : null)
+  });
+  const loss = (values) => (values.attendance == null ? 0 : 4 * (values.attendance - 0.5) ** 2) +
+    values.unicons.reduce((sum, value, index) =>
+      sum + (value == null ? 0 : (value - uniconTargets[index]) ** 2), 0);
+  let values = correlations(attendanceSquares, attendanceSkill, uniconSkills);
+  let currentLoss = loss(values);
+  let bestLoss = currentLoss;
+  let bestSkills = new Map(skills);
+  let bestRosters = uniconSets.map((set) => new Set(set));
+  const iterations = 150000;
+  for (let attempt = 0; attempt < iterations; attempt++) {
+    let a;
+    let b;
+    let eventIndex = -1;
+    let nextSquares = attendanceSquares;
+    let nextAttendanceSkill = attendanceSkill;
+    const nextUniconSkills = [...uniconSkills];
+    if (uniconSets.length && random() < 0.5) {
+      eventIndex = Math.floor(random() * uniconSets.length);
+      const roster = rosters.get(unicons[eventIndex].event.name);
+      if (!roster.length || roster.length === count) continue;
+      a = roster[Math.floor(random() * roster.length)];
+      b = riders[Math.floor(random() * count)];
+      if (a === b || uniconSets[eventIndex].has(b) || attendance.get(a) <= 1) continue;
+      const countA = attendance.get(a);
+      const countB = attendance.get(b);
+      nextSquares += 2 * (countB - countA + 1);
+      nextAttendanceSkill += skills.get(b) - skills.get(a);
+      nextUniconSkills[eventIndex] += skills.get(b) - skills.get(a);
+    } else {
+      a = riders[Math.floor(random() * count)];
+      b = riders[Math.floor(random() * count)];
+      if (a === b) continue;
+      const skillDifference = skills.get(b) - skills.get(a);
+      nextAttendanceSkill += skillDifference * (attendance.get(a) - attendance.get(b));
+      uniconSets.forEach((set, index) => {
+        nextUniconSkills[index] += skillDifference * (Number(set.has(a)) - Number(set.has(b)));
+      });
+    }
+    const nextValues = correlations(nextSquares, nextAttendanceSkill, nextUniconSkills);
+    const nextLoss = loss(nextValues);
+    const temperature = 0.0005 * (1 - attempt / iterations);
+    if (nextLoss > currentLoss && random() >= Math.exp((currentLoss - nextLoss) / temperature)) continue;
+    if (eventIndex >= 0) {
+      const roster = rosters.get(unicons[eventIndex].event.name);
+      roster[roster.indexOf(a)] = b;
+      uniconSets[eventIndex].delete(a);
+      uniconSets[eventIndex].add(b);
+      attendance.set(a, attendance.get(a) - 1);
+      attendance.set(b, attendance.get(b) + 1);
+    } else {
+      const skill = skills.get(a);
+      skills.set(a, skills.get(b));
+      skills.set(b, skill);
+    }
+    attendanceSquares = nextSquares;
+    attendanceSkill = nextAttendanceSkill;
+    uniconSkills = nextUniconSkills;
+    values = nextValues;
+    currentLoss = nextLoss;
+    if (currentLoss < bestLoss) {
+      bestLoss = currentLoss;
+      bestSkills = new Map(skills);
+      bestRosters = uniconSets.map((set) => new Set(set));
+    }
+  }
+  bestSkills.forEach((skill, rider) => skills.set(rider, skill));
+  bestRosters.forEach((set, index) => rosters.set(unicons[index].event.name, [...set]));
+  riders.forEach((rider) => attendance.set(rider, 0));
+  rosters.forEach((roster) => roster.forEach((rider) => attendance.set(rider, attendance.get(rider) + 1)));
+  return {
+    attendance: modelRankCorrelation(riders.map((rider) => skills.get(rider)), riders.map((rider) => attendance.get(rider))),
+    unicons: bestRosters.map((set, index) => ({
+      event: unicons[index].event.name,
+      correlation: modelRankCorrelation(riders.map((rider) => skills.get(rider)), riders.map((rider) => Number(set.has(rider)))),
+      maximum: maxCorrelations[index]
+    }))
+  };
+}
+
+function modelEventMultipliers(count) {
+  return Array.from({ length: count }, (_, index) => count === 1 ? 1 : (count - 1 - index) / (count - 1));
+}
+
+function modelRandomGenerator(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state = (1664525 * state + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function modelWeightedNormalizedRankError(rank, skillRank, riderCount) {
+  return Math.abs(rank - skillRank) / riderCount / Math.sqrt(rank);
+}
+
+function modelMaxWeightedNormalizedRankError(ranking, hiddenRank) {
+  return ranking.reduce((maximum, entry, index) =>
+    Math.max(maximum, modelWeightedNormalizedRankError(index + 1, hiddenRank.get(entry.rider), ranking.length)), 0);
+}
+
+const MODEL_K_VALUES = Array.from({ length: 41 }, (_, index) => (index + 10) / 10);
+const MODEL_N_VALUES = [3, 4, 5, 6, 7];
+const MODEL_SCORINGS = [
+  { key: 'power', label: 'Power scoring', axis: 'Scoring exponent k', values: MODEL_K_VALUES, ticks: [1, 2, 3, 4, 5], format: (value) => value.toFixed(1) },
+  { key: 'exponential', label: 'Exponential scoring', axis: 'Last-place points', values: Array.from({ length: 30 }, (_, index) => index + 1), ticks: [1, 5, 10, 15, 20, 25, 30], format: (value) => String(value) }
+];
+const MODEL_TOP_COUNTS = [15, 5, 30];
+const MODEL_METRICS = [
+  { key: 'maxError', label: 'Maximum rank error', color: '#d34a4a', format: (value) => value.toFixed(2) + ' ranks' },
+  { key: 'maxRelativeError', label: 'Maximum relative rank error', color: '#b57800', format: (value) => (100 * value).toFixed(2) + '%' },
+  { key: 'maxWeightedError', label: 'Maximum weighted normalized rank error', color: '#9853bc', format: (value) => (100 * value).toFixed(2) + '%' },
+  { key: 'correlation', label: 'Rank–skill correlation match', color: '#0075c9', maximize: true, format: (value) => value.toFixed(3) },
+  { key: 'weightedCorrelation', label: 'Weighted rank–skill correlation match', color: '#16845a', maximize: true, format: (value) => value.toFixed(3) },
+  ...MODEL_TOP_COUNTS.flatMap((count, index) => [
+    { key: `top${count}Correlation`, label: `Top ${count} rank–skill correlation match`, color: ['#bd3978', '#376bb5', '#008b8b'][index], maximize: true, format: (value) => value.toFixed(3) },
+    { key: `top${count}MaxError`, label: `Top ${count} maximum rank deviation`, color: ['#c15318', '#9c4a60', '#806600'][index], format: (value) => value.toFixed(2) + ' ranks' }
+  ])
+];
+
+function modelRankingMetrics(ranking, hiddenRank) {
+  const ranks = ranking.map((entry, index) => index + 1);
+  const correlation = modelRankCorrelation(ranks, ranking.map((entry) => entry.skill));
+  const weightedCorrelation = modelWeightedRankSkillCorrelation(ranking);
+  if (correlation == null || weightedCorrelation == null) {
+    throw new Error('Rank–skill correlation is undefined for this simulation.');
+  }
+  const metrics = {
+    maxError: ranking.reduce((max, entry, index) => Math.max(max, Math.abs(index + 1 - hiddenRank.get(entry.rider))), 0),
+    maxRelativeError: ranking.reduce((max, entry, index) =>
+      Math.max(max, Math.abs(index + 1 - hiddenRank.get(entry.rider)) / hiddenRank.get(entry.rider)), 0),
+    maxWeightedError: modelMaxWeightedNormalizedRankError(ranking, hiddenRank),
+    correlation: -correlation,
+    weightedCorrelation: -weightedCorrelation
+  };
+  MODEL_TOP_COUNTS.forEach((count) => {
+    const top = ranking.slice(0, count);
+    const topCorrelation = modelRankCorrelation(ranks.slice(0, count), top.map((entry) => entry.skill));
+    if (topCorrelation == null) throw new Error(`Top ${count} rank–skill correlation is undefined for this simulation.`);
+    metrics[`top${count}Correlation`] = -topCorrelation;
+    metrics[`top${count}MaxError`] = top.reduce((max, entry, index) =>
+      Math.max(max, Math.abs(index + 1 - hiddenRank.get(entry.rider))), 0);
+  });
+  return metrics;
+}
+
+function evaluateModelSimulation(modelEvents, skills, rosters, noise, shift, decayRate, penalty, hiddenRank, visit, selection = null, scoring = MODEL_SCORINGS[0]) {
+  const placements = new Map([...skills.keys()].map((rider) => [rider, []]));
+  modelEvents.forEach(({ event, year }) => {
+    const participants = rosters.get(event.name).map((rider) => ({
+      rider,
+      performance: skills.get(rider) + shift * Math.abs(skills.get(rider)) * noise.get(event.name).get(rider)
+    })).sort((a, b) => b.performance - a.performance || a.rider.localeCompare(b.rider));
+    participants.forEach(({ rider }, index) => {
+      placements.get(rider).push({
+        event: event.name, place: index + 1, competitorCount: participants.length,
+        eventWeight: event.weight, decay: Math.pow(decayRate, Math.max(0, 2026 - year))
+      });
+    });
+  });
+  for (const parameter of scoring.values) {
+    if (selection && selection.parameter !== parameter) continue;
+    const riders = [...placements.entries()].map(([rider, entries]) => {
+      const scores = entries.map((entry) => {
+        const placePoints = scoring.key === 'power'
+          ? 100 * Math.pow((entry.competitorCount - entry.place + 1) / entry.competitorCount, parameter)
+          : exponentialPlacePoints(entry.place, entry.competitorCount, parameter);
+        const rawPoints = placePoints * entry.eventWeight;
+        return { ...entry, placePoints, rawPoints, score: rawPoints * entry.decay };
+      });
+      return { rider, skill: skills.get(rider), scores, penalized: computeRiderPointDetails(scores, [], penalty) };
+    });
+    for (const n of MODEL_N_VALUES) {
+      if (selection && selection.n !== n) continue;
+      const multipliers = modelEventMultipliers(n);
+      const ranking = riders.map((entry) => ({
+        ...entry,
+        points: entry.penalized.reduce((sum, detail, index) =>
+          sum + detail.penalizedScore * (multipliers[index] ?? 0), 0)
+      })).sort((a, b) => b.points - a.points || a.rider.localeCompare(b.rider));
+      const metrics = modelRankingMetrics(ranking, hiddenRank);
+      visit(parameter, n, metrics, ranking, multipliers);
+    }
+  }
+}
+
+function modelOptimalCurves(totals, runCount, values = MODEL_K_VALUES) {
+  return MODEL_METRICS.map((metric) => ({
+    ...metric,
+    points: totals.map((byN, kIndex) => {
+      let best = null;
+      byN.forEach((sums, nIndex) => {
+        const value = sums[metric.key] / runCount;
+        if (!best || (metric.maximize ? value > best.value + 1e-12 : value < best.value - 1e-12)) {
+          best = { parameter: values[kIndex], n: MODEL_N_VALUES[nIndex], value };
+        }
+      });
+      return best;
+    })
+  })).map((metric) => ({
+    ...metric,
+    best: metric.points.reduce((best, point) =>
+      (metric.maximize ? point.value > best.value + 1e-12 : point.value < best.value - 1e-12) ? point : best)
+  }));
+}
+
+function drawModelCurves(canvas, curves, scoring) {
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const left = 95;
+  const right = width - 25;
+  const bandHeight = 105;
+  const style = getComputedStyle(document.documentElement);
+  const text = style.getPropertyValue('--text').trim() || '#222';
+  const muted = style.getPropertyValue('--muted').trim() || '#888';
+  ctx.clearRect(0, 0, width, canvas.height);
+  ctx.font = '13px sans-serif';
+  curves.forEach((metric, index) => {
+    const top = 25 + index * bandHeight;
+    const bottom = top + 65;
+    const values = metric.points.map((point) => point.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const x = (value) => left + (value - scoring.values[0]) * (right - left) / (scoring.values[scoring.values.length - 1] - scoring.values[0]);
+    const y = (value) => max === min ? (top + bottom) / 2 : bottom - (value - min) / (max - min) * (bottom - top);
+    ctx.fillStyle = text;
+    ctx.textAlign = 'left';
+    ctx.fillText(metric.label, left, top - 7);
+    ctx.strokeStyle = muted;
+    ctx.strokeRect(left, top, right - left, bottom - top);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = muted;
+    ctx.fillText(metric.format(max), left - 6, top + 5);
+    ctx.fillText(metric.format(min), left - 6, bottom);
+    ctx.strokeStyle = metric.color;
+    ctx.fillStyle = metric.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    metric.points.forEach((point, i) => {
+      if (i === 0) ctx.moveTo(x(point.parameter), y(point.value));
+      else ctx.lineTo(x(point.parameter), y(point.value));
+    });
+    ctx.stroke();
+    metric.points.forEach((point) => {
+      ctx.beginPath();
+      ctx.arc(x(point.parameter), y(point.value), 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+  });
+  ctx.fillStyle = text;
+  ctx.textAlign = 'center';
+  scoring.ticks.forEach((value) => ctx.fillText(String(value), left + (value - scoring.values[0]) * (right - left) / (scoring.values[scoring.values.length - 1] - scoring.values[0]), 25 + (curves.length - 1) * bandHeight + 84));
+  ctx.fillText(scoring.axis, (left + right) / 2, canvas.height - 4);
+}
+
+function renderModelSimulation(simulation, shift) {
+  const container = document.getElementById('model-selected-ranking');
+  if (!container) return;
+  const correlationText = simulation.participation.attendance == null
+    ? 'unavailable (no variation in event counts)'
+    : simulation.participation.attendance.toFixed(3);
+  const uniconRows = simulation.participation.unicons.map((item) =>
+    `<tr><td>${escapeXml(item.event)}</td><td>${item.correlation == null ? 'Unavailable' : item.correlation.toFixed(3)}</td><td>${item.maximum == null ? 'Unavailable' : item.maximum.toFixed(3)}</td></tr>`).join('');
+  const uniconReport = uniconRows
+    ? `<h4>Unicon participation correlations</h4><p class="settings-card-hint">Target: 0.4. The maximum is the theoretical limit for this event size and skill sample; other constraints can reduce the achievable value further.</p><table><thead><tr><th>Event</th><th>Skill–participation correlation</th><th>Theoretical maximum</th></tr></thead><tbody>${uniconRows}</tbody></table>`
+    : '<p class="settings-card-hint">No Unicon events are available in this period.</p>';
+  const rankingRows = simulation.ranking.map((entry, index) => {
+    const skillRank = simulation.hiddenRank.get(entry.rider);
+    const rankError = modelWeightedNormalizedRankError(index + 1, skillRank, simulation.ranking.length);
+    const detailRows = entry.details.map((detail) =>
+      `<tr><td>${escapeXml(detail.event)}</td><td>${detail.place}/${detail.competitorCount}</td><td>${detail.placePoints.toFixed(2)}</td><td>${detail.eventWeight}</td><td>${detail.rawPoints.toFixed(2)}</td><td>${detail.decay.toFixed(3)}</td><td>${detail.score.toFixed(2)}</td><td>${escapeXml(detail.region || '—')}</td><td>${detail.regionMultiplier.toFixed(3)}</td><td>${detail.topMultiplier.toFixed(3)}</td><td>${detail.contribution.toFixed(2)}</td></tr>`).join('');
+    return `<tr><td>${index + 1}</td><td><button type="button" class="ghost-button model-detail-toggle" data-model-detail="${index}" aria-expanded="false" aria-controls="model-detail-${index}">${entry.rider}</button></td><td>${skillRank}</td><td>${(rankError * 100).toFixed(2)}%</td><td>${entry.skill.toFixed(3)}</td><td>${simulation.attendance.get(entry.rider)}</td><td>${entry.points.toFixed(2)}</td></tr><tr id="model-detail-${index}" class="hidden"><td colspan="7"><h4>${entry.rider} points breakdown</h4><div class="table-wrapper"><table><thead><tr><th>Event</th><th>Place / riders</th><th>Place points</th><th>Event weight</th><th>Weighted points</th><th>Year decay</th><th>Decayed points</th><th>Region</th><th>Region multiplier</th><th>Top-event multiplier</th><th>Contribution</th></tr></thead><tbody>${detailRows}</tbody><tfoot><tr><th colspan="10">Total</th><th>${entry.points.toFixed(2)}</th></tr></tfoot></table></div></td></tr>`;
+  }).join('');
+  container.innerHTML = `<h4>Simulation ${simulation.run}, shift ${shift * 100}% (seed ${simulation.seed}, ${simulation.objective}, ${simulation.scoring.label}, ${simulation.scoring.axis} ${simulation.scoring.format(simulation.parameter)}, n ${simulation.n})</h4><p class="settings-card-hint">Maximum weighted normalized rank error: ${(simulation.metrics.maxWeightedError * 100).toFixed(2)}%. Skill–event count correlation: ${correlationText} (target 0.5).</p>${uniconReport}<h4>Test ranking</h4><table><thead><tr><th>Test rank</th><th>Rider</th><th>Hidden skill rank</th><th>Weighted normalized rank error</th><th>Hidden skill</th><th>Events</th><th>Test points</th></tr></thead><tbody>${rankingRows}</tbody></table>`;
+  container.querySelectorAll('.model-detail-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+      const detailRow = document.getElementById(`model-detail-${button.dataset.modelDetail}`);
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      detailRow.classList.toggle('hidden', expanded);
+      button.setAttribute('aria-expanded', String(!expanded));
+    });
+  });
+}
+
+async function runHiddenSkillModel() {
+  const summary = document.getElementById('model-summary');
+  const results = document.getElementById('model-results');
+  const button = document.getElementById('model-run-button');
+  const seedInput = document.getElementById('model-seed');
+  if (!summary || !results || !button || !seedInput) return;
+  const seedValue = Number(seedInput.value);
+  if (seedInput.value.trim() === '' || !Number.isSafeInteger(seedValue) || seedValue < 0 || seedValue > 4294967196) {
+    summary.textContent = 'Enter an integer seed between 0 and 4294967196.';
+    results.innerHTML = '';
+    return;
+  }
+  if (!eventResults.size) {
+    summary.textContent = 'Event data is still loading. Try again when the rankings are visible.';
+    results.innerHTML = '';
+    return;
+  }
+
+  const modelEvents = EVENT_FILES.map((event) => {
+    const yearMatch = String(event.name).match(/(\d{2})$/);
+    const year = yearMatch ? 2000 + Number(yearMatch[1]) : null;
+    return { event: { ...event }, year, entries: eventResults.get(event.name)?.male || [] };
+  }).filter((item) => item.year >= 2022 && item.year <= 2026 && item.entries.length > 0);
+  const realRiders = [];
+  const riderKeys = new Set();
+  modelEvents.forEach(({ entries }) => {
+    entries.forEach((entry) => {
+      const key = normalizeName(entry.rider);
+      if (key && !riderKeys.has(key)) {
+        riderKeys.add(key);
+        realRiders.push(entry.rider);
+      }
+    });
+  });
+  if (realRiders.length < 2 || !modelEvents.length) {
+    summary.textContent = 'There are not enough 2022–2026 male/open event results to run the model.';
+    results.innerHTML = '';
+    return;
+  }
+
+  const dummyByRider = new Map(realRiders.map((rider, index) => [normalizeName(rider), `Rider${index + 1}`]));
+  const shifts = [0.05, 0.1, 0.2, 0.3];
+  const runCount = 100;
+  const simulations = shifts.map(() => ({
+    first: null,
+    scorings: MODEL_SCORINGS.map((scoring) => ({
+      totals: scoring.values.map(() => MODEL_N_VALUES.map(() =>
+        Object.fromEntries(MODEL_METRICS.map((metric) => [metric.key, 0]))))
+    }))
+  }));
+  const decayRate = yearDecay;
+  const penalty = regionPenalty;
+  button.disabled = true;
+  results.innerHTML = '';
+  try {
+    for (let run = 0; run < runCount; run++) {
+      summary.textContent = `Running simulation ${run + 1} of ${runCount}…`;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const random = modelRandomGenerator(seedValue + run);
+      const skills = new Map(realRiders.map((rider) => [dummyByRider.get(normalizeName(rider)), modelNormalRandom(random)]));
+      const rosters = new Map();
+      const attendance = new Map([...skills.keys()].map((rider) => [rider, 0]));
+      modelEvents.forEach(({ event, entries }) => {
+        const riders = [...new Set(entries.map((entry) => dummyByRider.get(normalizeName(entry.rider))).filter(Boolean))];
+        rosters.set(event.name, riders);
+        riders.forEach((rider) => attendance.set(rider, attendance.get(rider) + 1));
+      });
+      const unicons = modelEvents.filter(({ event }) => /^unicon/i.test(event.name));
+      const participation = calibrateModelParticipation(skills, rosters, attendance, unicons, random);
+      const hiddenOrder = [...skills.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([rider]) => rider);
+      const hiddenRank = new Map(hiddenOrder.map((rider, index) => [rider, index + 1]));
+      const noise = new Map();
+      rosters.forEach((riders, event) => noise.set(event, new Map(riders.map((rider) => [rider, 2 * random() - 1]))));
+      shifts.forEach((shift, index) => {
+        const aggregate = simulations[index];
+        MODEL_SCORINGS.forEach((scoring, scoringIndex) => {
+          const totals = aggregate.scorings[scoringIndex].totals;
+          evaluateModelSimulation(modelEvents, skills, rosters, noise, shift, decayRate, penalty, hiddenRank, (parameter, n, metrics) => {
+            const parameterIndex = scoring.key === 'power' ? Math.round(parameter * 10) - 10 : parameter - 1;
+            MODEL_METRICS.forEach((metric) => { totals[parameterIndex][n - MODEL_N_VALUES[0]][metric.key] += metrics[metric.key]; });
+          }, null, scoring);
+        });
+        if (run === 0) aggregate.first = { skills, rosters, noise, participation, attendance, hiddenRank };
+      });
+    }
+    summary.textContent = `${realRiders.length} dummy riders across ${modelEvents.length} male/open events. ${runCount} simulations per shift, each with a separate seed; simulations with the same number share riders, skills, rosters and event noise across shifts.`;
+    simulations.forEach((aggregate) => aggregate.scorings.forEach((result, index) => {
+      result.curves = modelOptimalCurves(result.totals, runCount, MODEL_SCORINGS[index].values);
+    }));
+    results.innerHTML = simulations.map((aggregate, index) => {
+      const plots = aggregate.scorings.map((result, scoringIndex) => {
+        const scoring = MODEL_SCORINGS[scoringIndex];
+        return `<div style="flex:1 0 600px;min-width:0"><h4>${scoring.label}</h4><canvas id="model-plot-${index}-${scoringIndex}" width="900" height="${25 + result.curves.length * 105}" style="width:100%;height:auto;display:block" role="img" aria-label="${result.curves.length} optimized metrics over ${scoring.axis} for shift ${shifts[index] * 100} percent; values and optimal n are in the tables below"></canvas></div>`;
+      }).join('');
+      const tables = aggregate.scorings.map((result, scoringIndex) => {
+        const scoring = MODEL_SCORINGS[scoringIndex];
+        const rows = result.curves.map((metric, metricIndex) =>
+          `<tr><td>${metric.label}</td><td>${scoring.format(metric.best.parameter)}</td><td>${metric.best.n}</td><td>${metric.format(metric.best.value)}</td><td><button type="button" class="ghost-button model-run-detail" data-shift="${index}" data-scoring="${scoringIndex}" data-metric="${metricIndex}">View first ranking</button></td></tr>`).join('');
+        const detailRows = scoring.values.map((parameter, parameterIndex) =>
+          `<tr><td>${scoring.format(parameter)}</td>${result.curves.map((metric) => `<td>${metric.format(metric.points[parameterIndex].value)} (n=${metric.points[parameterIndex].n})</td>`).join('')}</tr>`).join('');
+        return `<h4>${scoring.label} optimal settings</h4><table><thead><tr><th>Objective</th><th>Optimal ${scoring.axis}</th><th>Optimal n</th><th>Average value</th><th>Details</th></tr></thead><tbody>${rows}</tbody></table><details><summary>Values and optimal n for each ${scoring.axis}</summary><table><thead><tr><th>${scoring.axis}</th>${result.curves.map((metric) => `<th>${metric.label}</th>`).join('')}</tr></thead><tbody>${detailRows}</tbody></table></details>`;
+      }).join('');
+      return `<section><h4>Shift ±${shifts[index] * 100}%</h4><div style="display:flex;gap:16px;overflow-x:auto">${plots}</div>${tables}</section>`;
+    }).join('') + '<div id="model-selected-ranking"></div>';
+    simulations.forEach((aggregate, index) => aggregate.scorings.forEach((result, scoringIndex) =>
+      drawModelCurves(document.getElementById(`model-plot-${index}-${scoringIndex}`), result.curves, MODEL_SCORINGS[scoringIndex])));
+    results.querySelectorAll('.model-run-detail').forEach((runButton) => {
+      runButton.addEventListener('click', () => {
+        const shiftIndex = Number(runButton.dataset.shift);
+        const aggregate = simulations[shiftIndex];
+        const scoringIndex = Number(runButton.dataset.scoring);
+        const scoring = MODEL_SCORINGS[scoringIndex];
+        const metric = aggregate.scorings[scoringIndex].curves[Number(runButton.dataset.metric)];
+        const first = aggregate.first;
+        evaluateModelSimulation(modelEvents, first.skills, first.rosters, first.noise, shifts[shiftIndex], decayRate, penalty, first.hiddenRank,
+          (parameter, n, metrics, ranking, multipliers) => {
+            const detailedRanking = ranking.map((entry) => ({
+              rider: entry.rider, skill: entry.skill, points: entry.points,
+              details: computeRiderPointDetails(entry.scores, multipliers, penalty)
+            }));
+            renderModelSimulation({ ...first, run: 1, seed: seedValue, parameter, n, metrics, ranking: detailedRanking, objective: metric.label, scoring }, shifts[shiftIndex]);
+          }, metric.best, scoring);
+        document.getElementById('model-selected-ranking').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  } catch (error) {
+    console.error('Could not run the model.', error);
+    summary.textContent = `Could not run the model: ${error.message}`;
+    results.innerHTML = '';
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function attachSettingsEvents() {
   const openSettingsButton = document.getElementById('open-settings');
   const closeSettingsButton = document.getElementById('close-settings');
@@ -867,7 +1386,7 @@ function attachSettingsEvents() {
   let pendingTab = null;
   function canAccessTab(tab) {
     if (tab === 'tools') return settingsRole === 'admin' || settingsRole === 'host';
-    if (tab === 'calculation' || tab === 'overview') return settingsRole === 'admin';
+    if (tab === 'calculation' || tab === 'model' || tab === 'overview') return settingsRole === 'admin';
     return true;
   }
   function activateTab(targetTab) {
@@ -949,7 +1468,7 @@ function attachSettingsEvents() {
     }
   });
 
-  ['season-decay', 'type-penalty', 'min-place-points', 'scaling-mode', 'scaling-power', 'custom-formula', 'top-event-multipliers', 'battle-weight', 'battle-factors'].forEach((id) => {
+  ['only-current-year', 'season-decay', 'region-penalty', 'min-place-points', 'scaling-mode', 'scaling-power', 'custom-formula', 'top-event-multipliers', 'battle-weight', 'battle-factors'].forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('input', updateScoringSettingsFromInputs);
@@ -1003,6 +1522,14 @@ function attachSettingsEvents() {
   }
 
   // Graph points: plot place points for the selected scaling function
+  const correlationButton = document.getElementById('correlation-run-button');
+  if (correlationButton) {
+    correlationButton.addEventListener('click', renderCorrelationAnalysis);
+  }
+
+  const modelButton = document.getElementById('model-run-button');
+  if (modelButton) modelButton.addEventListener('click', runHiddenSkillModel);
+
   const graphButton = document.getElementById('graph-points-button');
   const graphCanvas = document.getElementById('graph-points-canvas');
   if (graphButton && graphCanvas) {
@@ -1982,7 +2509,7 @@ async function addUnknownRidersToRidersAll() {
   // Build a map canonical -> full line (preserve alias lists if present)
   const existingMap = new Map();
   existingLines.forEach((line) => {
-    const parts = line.split(',').map((p) => p.trim()).filter(Boolean);
+    const parts = line.split('#')[0].split(',').map((p) => p.trim()).filter(Boolean);
     if (parts.length > 0) existingMap.set(parts[0], line);
   });
 
@@ -2073,18 +2600,18 @@ async function loadRanking({ preserveView = false } = {}) {
 
   const ridersByGender = {
     male: new Map(),
-    female: new Map()
+    female: new Map(),
+    combined: new Map()
   };
 
   eventResults.clear();
   eventBattles.clear();
   eventPrelimResults.clear();
-  riderStrengthCache.male = null;
-  riderStrengthCache.female = null;
-  riderHistoryByGender.male.clear();
-  riderHistoryByGender.female.clear();
-  riderBattlesByGender.male.clear();
-  riderBattlesByGender.female.clear();
+  RANKING_GENDERS.forEach((gender) => {
+    riderStrengthCache[gender] = null;
+    riderHistoryByGender[gender].clear();
+    riderBattlesByGender[gender].clear();
+  });
 
   for (const event of EVENT_FILES) {
     const eventFile = `${activeDiscipline.resultsDirectory}/${event.file}`;
@@ -2312,12 +2839,14 @@ async function loadRanking({ preserveView = false } = {}) {
   computeRankingSnapshots();
 
   EVENT_FILES.forEach((event) => {
-    const entriesByGender = eventResults.get(event.name) || { male: [], female: [] };
-    GENDERS.forEach((gender) => {
-      entriesByGender[gender].forEach((entry) => {
+    const entriesByGender = eventResults.get(event.name) || { male: [], female: [], combined: [] };
+    RANKING_GENDERS.forEach((gender) => {
+      (entriesByGender[gender] || []).forEach((entry) => {
         const name = entry.rider;
+        // The male ranking only contains male riders; female riders' open results count in combined.
+        if (gender === 'male' && isFemaleRider(name)) return;
         const yearsOfDecay = entry.eventYear ? Math.max(0, new Date().getFullYear() - entry.eventYear) : 0;
-        const decayMultiplier = Math.pow(seasondecay, yearsOfDecay);
+        const decayMultiplier = Math.pow(yearDecay, yearsOfDecay);
         const rawPoints = entry.rawPointsBeforeDecay * decayMultiplier;
         if (!ridersByGender[gender].has(name)) {
           ridersByGender[gender].set(name, { event_scores: [], events: 0, wins: 0, podiums: 0, battles: 0 });
@@ -2336,7 +2865,7 @@ async function loadRanking({ preserveView = false } = {}) {
     });
   });
 
-  GENDERS.forEach((gender) => {
+  RANKING_GENDERS.forEach((gender) => {
     globalRowsByGender[gender] = [...ridersByGender[gender].entries()].map(([rider, stats]) => ({
       rider,
       ...stats,
@@ -2351,6 +2880,7 @@ async function loadRanking({ preserveView = false } = {}) {
   });
 
   updateSummaryStats();
+  updateFemaleOpenSummary();
   if (preserveView) return;
   populateViewSelector();
   setView('world');
@@ -2364,7 +2894,7 @@ function computeRankingSnapshots() {
   // Sort events oldest -> newest
   const eventsSortedAsc = [...EVENT_FILES].sort((a, b) => getEventSortValue(a.name) - getEventSortValue(b.name));
   // We'll accumulate raw contributions per rider (no decay applied yet) so snapshots can apply decay relative to the snapshot year.
-  const contributions = { male: new Map(), female: new Map() };
+  const contributions = { male: new Map(), female: new Map(), combined: new Map() };
 
   eventsSortedAsc.forEach((event) => {
     const snapshotYear = (() => {
@@ -2390,7 +2920,7 @@ function computeRankingSnapshots() {
       contributions[gender].forEach((contribs, rider) => {
         const decayedScores = contribs.map((c) => {
           const years = Math.max(0, snapshotYear - c.eventYear);
-          const mult = Math.pow(seasondecay, years);
+          const mult = Math.pow(yearDecay, years);
           return { score: c.valueBase * mult, eventYear: c.eventYear, eventName: c.eventName, eventSortValue: getEventSortValue(c.eventName) };
         });
         const visible = decayedScores.filter((d) => d.eventSortValue < eventSortValue);
@@ -2402,7 +2932,7 @@ function computeRankingSnapshots() {
         const earlierScores = (contributions[gender].get(rider) || [])
           .filter((contribution) => getEventSortValue(contribution.eventName) < eventSortValue)
           .map((contribution) => ({
-            score: contribution.valueBase * Math.pow(seasondecay, Math.max(0, snapshotYear - contribution.eventYear)),
+            score: contribution.valueBase * Math.pow(yearDecay, Math.max(0, snapshotYear - contribution.eventYear)),
             event: contribution.eventName
           }));
         const currentEntry = currentEntryByRider.get(rider);
@@ -2440,15 +2970,46 @@ function computeRankingSnapshots() {
       });
     });
 
-    // Build snapshot for this event: apply decay only to contributions where eventYear < snapshotYear
-    const rowsByGender = { male: [], female: [] };
+    // Combined: open results count normally, female results are divided by COMBINED_FEMALE_DIVISOR.
+    // A rider appearing in both sections of one event keeps only the better of the two.
+    const combinedByRider = new Map();
     GENDERS.forEach((gender) => {
+      const scale = gender === 'female' ? 1 / COMBINED_FEMALE_DIVISOR : 1;
+      (entriesByGender[gender] || []).forEach((entry) => {
+        const scaled = {
+          ...entry,
+          basePointsBeforeWeight: entry.basePointsBeforeWeight * scale,
+          rawPointsBeforeDecay: entry.rawPointsBeforeDecay * scale,
+          battleBonus: (entry.battleBonus || 0) * scale,
+          battlePointsBeforeDecay: (entry.battlePointsBeforeDecay || 0) * scale
+        };
+        const existing = combinedByRider.get(entry.rider);
+        if (!existing || scaled.rawPointsBeforeDecay > existing.rawPointsBeforeDecay) {
+          combinedByRider.set(entry.rider, scaled);
+        }
+      });
+    });
+    entriesByGender.combined = [...combinedByRider.values()];
+    entriesByGender.combined.forEach((entry) => {
+      if (!contributions.combined.has(entry.rider)) contributions.combined.set(entry.rider, []);
+      contributions.combined.get(entry.rider).push({
+        valueBase: entry.rawPointsBeforeDecay,
+        eventYear: entry.eventYear || snapshotYear,
+        place: entry.place,
+        eventName: event.name
+      });
+    });
+
+    // Build snapshot for this event: apply decay only to contributions where eventYear < snapshotYear
+    const rowsByGender = { male: [], female: [], combined: [] };
+    RANKING_GENDERS.forEach((gender) => {
       contributions[gender].forEach((contribs, rider) => {
+        if (gender === 'male' && isFemaleRider(rider)) return;
         // compute decayed scores for contribs up to current snapshot
         const decayedScores = contribs.map((c) => {
           const applyDecay = c.eventYear < snapshotYear;
           const years = applyDecay ? (snapshotYear - c.eventYear) : 0;
-          const mult = applyDecay ? Math.pow(seasondecay, years) : 1;
+          const mult = applyDecay ? Math.pow(yearDecay, years) : 1;
           return { score: c.valueBase * mult, place: c.place, eventYear: c.eventYear, eventName: c.eventName };
         });
 
@@ -2552,6 +3113,485 @@ function getEventFullYear(eventName) {
   return match ? 2000 + Number(match[1]) : Number.MIN_SAFE_INTEGER;
 }
 
+function pearsonCorrelation(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return null;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0;
+  let sxx = 0;
+  let syy = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - mx;
+    const dy = ys[i] - my;
+    sxy += dx * dy;
+    sxx += dx * dx;
+    syy += dy * dy;
+  }
+  return sxx > 0 && syy > 0 ? sxy / Math.sqrt(sxx * syy) : null;
+}
+
+function averageRanks(values) {
+  const order = values.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const ranks = new Array(values.length);
+  for (let i = 0; i < order.length;) {
+    let j = i;
+    while (j + 1 < order.length && order[j + 1][0] === order[i][0]) j++;
+    const rank = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) ranks[order[k][1]] = rank;
+    i = j + 1;
+  }
+  return ranks;
+}
+
+function spearmanCorrelation(xs, ys) {
+  if (xs.length < 3) return null;
+  return pearsonCorrelation(averageRanks(xs), averageRanks(ys));
+}
+
+// Positive correlations always mean "better result goes with better standing". Every event is
+// compared with the ranking right after it ("after": how well the system judges the performance)
+// and with the ranking right before it ("before": how well the system predicts the outcome).
+const CORRELATION_METRICS = ['placeRankAfter', 'placeRankBefore', 'countRankAfter', 'countRankBefore', 'countPlaceAfter', 'countPlaceBefore'];
+
+function computeCorrelationAnalysis(gender) {
+  const history = riderHistoryByGender[gender];
+  const placesByEvent = new Map();
+  history.forEach((entries, rider) => entries.forEach((e) => {
+    if (!e.place) return;
+    if (!placesByEvent.has(e.event)) placesByEvent.set(e.event, []);
+    placesByEvent.get(e.event).push({ rider, place: e.place });
+  }));
+
+  // Correlations between an event's results and one ranking snapshot's rows.
+  const evaluate = (rows, results) => {
+    const total = rows.length;
+    if (total < 3 || results.length < 5) return null;
+    const rowByRider = new Map(rows.map((row, index) => [row.rider, { rank: index + 1, events: row.events }]));
+    const pairs = results
+      .map((r) => ({ ...r, placePct: (r.place - 1) / Math.max(1, results.length - 1), ...rowByRider.get(r.rider) }))
+      .filter((p) => p.rank != null);
+    if (pairs.length < 5) return null;
+    const rankPct = (rank) => (rank - 1) / Math.max(1, total - 1);
+    const maxEvents = Math.max(1, ...rows.map((r) => r.events));
+    const top3 = pairs.filter((p) => p.place <= 3);
+    return {
+      n: pairs.length,
+      top3Rank: top3.length ? top3.reduce((sum, p) => sum + p.rank, 0) / top3.length : null,
+      placeRank: {
+        corr: spearmanCorrelation(pairs.map((p) => p.placePct), pairs.map((p) => rankPct(p.rank))),
+        points: pairs.map((p) => ({ label: p.rider, x: p.place, y: p.rank, xn: p.placePct, yn: rankPct(p.rank) }))
+      },
+      countRank: {
+        corr: spearmanCorrelation(rows.map((r) => r.events), rows.map((_, i) => -(i + 1))),
+        points: rows.map((r, i) => ({ label: r.rider, x: r.events, y: i + 1, xn: r.events / maxEvents, yn: rankPct(i + 1) }))
+      },
+      countPlace: {
+        corr: spearmanCorrelation(pairs.map((p) => p.events), pairs.map((p) => -p.placePct)),
+        points: pairs.map((p) => ({ label: p.rider, x: p.events, y: p.place, xn: p.events / maxEvents, yn: p.placePct }))
+      }
+    };
+  };
+
+  const snapshots = rankingSnapshots.slice().sort((a, b) => a.dateValue - b.dateValue);
+  const editions = [];
+  snapshots.forEach((snapshot, index) => {
+    const results = placesByEvent.get(snapshot.event) || [];
+    const variants = {
+      After: evaluate(snapshot.rowsByGender[gender] || [], results),
+      Before: index > 0 ? evaluate(snapshots[index - 1].rowsByGender[gender] || [], results) : null
+    };
+    if (!variants.After && !variants.Before) return;
+    const edition = {
+      name: snapshot.event,
+      year: parseEventNameYearPrefix(snapshot.event).year,
+      isUnicon: String(parseEventNameYearPrefix(snapshot.event).prefix).toLowerCase() === 'unicon',
+      n: { After: variants.After?.n ?? null, Before: variants.Before?.n ?? null },
+      top3Rank: { After: variants.After?.top3Rank ?? null, Before: variants.Before?.top3Rank ?? null },
+      corr: {},
+      scatter: {}
+    };
+    ['placeRank', 'countRank', 'countPlace'].forEach((base) => {
+      ['After', 'Before'].forEach((when) => {
+        edition.corr[base + when] = variants[when]?.[base].corr ?? null;
+        edition.scatter[base + when] = variants[when]?.[base].points ?? null;
+      });
+    });
+    editions.push(edition);
+  });
+
+  // metrics: which columns the average row reports (event-count columns are not split by Unicon).
+  const average = (name, list, metrics) => {
+    const mean = (values) => {
+      const present = values.filter((v) => v != null);
+      return present.length ? present.reduce((a, b) => a + b, 0) / present.length : null;
+    };
+    const sum = (key) => list.reduce((total, g) => total + (g.n[key] || 0), 0) || null;
+    const avg = {
+      name: `${name} (average of ${list.length})`,
+      pooled: true,
+      n: { After: sum('After'), Before: sum('Before') },
+      top3Rank: {
+        After: metrics === 'place' ? mean(list.map((g) => g.top3Rank.After)) : null,
+        Before: metrics === 'place' ? mean(list.map((g) => g.top3Rank.Before)) : null
+      },
+      corr: {},
+      scatter: {}
+    };
+    CORRELATION_METRICS.forEach((metric) => {
+      const wanted = metrics === 'place' ? metric.startsWith('placeRank') : !metric.startsWith('placeRank');
+      if (!wanted) return;
+      avg.corr[metric] = mean(list.map((g) => g.corr[metric]));
+      avg.scatter[metric] = list.flatMap((g) => (g.scatter[metric] || []).map((p) => ({ ...p, label: `${p.label} (${g.name})` })));
+    });
+    return avg;
+  };
+  const yearlyByYear = new Map();
+  editions.forEach((g) => {
+    if (!g.year) return;
+    if (!yearlyByYear.has(g.year)) yearlyByYear.set(g.year, []);
+    yearlyByYear.get(g.year).push(g);
+  });
+  const yearly = [...yearlyByYear.entries()].sort((a, b) => a[0] - b[0]).map(([year, list]) => {
+    const values = {};
+    const count = {};
+    CORRELATION_METRICS.forEach((metric) => {
+      const present = list.map((g) => g.corr[metric]).filter((v) => v != null);
+      values[metric] = present.length ? present.reduce((a, b) => a + b, 0) / present.length : null;
+      count[metric] = present.length;
+    });
+    return { year, values, count };
+  });
+  return {
+    editions,
+    yearly,
+    averages: [
+      average('All events', editions, 'count'),
+      average('All Unicons', editions.filter((g) => g.isUnicon), 'place'),
+      average('All non-Unicon events', editions.filter((g) => !g.isUnicon), 'place')
+    ].filter((g) => g.name.indexOf('average of 0') === -1)
+  };
+}
+
+function renderCorrelationAnalysis() {
+  const output = document.getElementById('correlation-result');
+  if (!output) return;
+  const analysis = computeCorrelationAnalysis(currentGender);
+  if (!analysis.editions.length) {
+    output.textContent = 'Not enough ranking data loaded yet.';
+    return;
+  }
+  const fmt = (v) => (v == null ? '—' : v.toFixed(2));
+  const label = (v) => {
+    if (v == null) return '';
+    const a = Math.abs(v);
+    return a >= 0.7 ? 'strong' : a >= 0.4 ? 'moderate' : a >= 0.2 ? 'weak' : 'none';
+  };
+  const plotRows = [];
+  const cell = (g, metric) => {
+    if (!g.scatter[metric]?.length) return '<td>—</td>';
+    const v = g.corr[metric];
+    return `<td>${fmt(v)} <small>${label(v)}</small> <button class="ghost-button correlation-plot-button" type="button" data-row="${plotRows.indexOf(g)}" data-metric="${metric}">Plot</button></td>`;
+  };
+  const row = (g, bold) => {
+    plotRows.push(g);
+    const results = g.n.After == null && g.n.Before == null ? '—' : `${g.n.After ?? '—'} / ${g.n.Before ?? '—'}`;
+    const top3 = (when) => `<td>${g.top3Rank[when] == null ? '—' : g.top3Rank[when].toFixed(1)}</td>`;
+    const tr = `<td>${escapeXml(g.name)}</td><td>${results}</td>`
+      + `${cell(g, 'placeRankAfter')}${cell(g, 'placeRankBefore')}${top3('After')}${top3('Before')}`
+      + `${cell(g, 'countRankAfter')}${cell(g, 'countRankBefore')}${cell(g, 'countPlaceAfter')}${cell(g, 'countPlaceBefore')}`;
+    return bold ? `<tr style="font-weight:700">${tr}</tr>` : `<tr>${tr}</tr>`;
+  };
+  const bodyRows = [...analysis.averages.map((g) => row(g, true)), ...analysis.editions.slice().reverse().map((g) => row(g, false))].join('');
+  output.innerHTML = `
+    <table>
+      <thead>
+        <tr><th rowspan="2">Event</th><th rowspan="2">Results (after / before)</th><th colspan="2">Place vs rank (Spearman)</th><th colspan="2">Avg rank of top 3</th><th colspan="2">Event count vs rank, all riders (Spearman)</th><th colspan="2">Event count vs place in event (Spearman)</th></tr>
+        <tr><th>After event (judging)</th><th>Before event (predicting)</th><th>After</th><th>Before</th><th>After</th><th>Before</th><th>After</th><th>Before</th></tr>
+      </thead>
+      <tbody>
+        ${bodyRows}
+      </tbody>
+    </table>
+    <div id="correlation-plot" class="hidden" style="position:relative;margin-top:12px">
+      <strong id="correlation-plot-title"></strong>
+      <canvas id="correlation-plot-canvas" width="900" height="520" style="width:100%;height:auto;display:block"></canvas>
+      <div id="correlation-plot-tooltip" class="hidden" style="position:absolute;pointer-events:none;background:#000c;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;white-space:nowrap"></div>
+    </div>
+    <div style="position:relative;margin-top:16px">
+      <strong>Average event correlation per year (Unicon and non-Unicon combined)</strong>
+      <canvas id="correlation-year-canvas" width="900" height="460" style="width:100%;height:auto;display:block"></canvas>
+      <div id="correlation-year-tooltip" class="hidden" style="position:absolute;pointer-events:none;background:#000c;color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;white-space:pre"></div>
+    </div>
+    <p class="settings-card-hint">${genderLabel(currentGender)}. "After" uses the ranking right after the event (including it) and shows how well the system judges the performance; it is inflated because the event is part of that ranking. "Before" uses the ranking right before the event and shows how well the system predicts the outcome; only riders already ranked are included, and the first event has no "before". Events with fewer than 5 ranked results are hidden. Positive = a better result goes with a better standing; 1 = perfect, 0 = unrelated. Placement is normalised per event (0 = winner, 1 = last). Averages are plain means of the per-event correlations. Scatter plots are oriented so up/right is better on both axes (a rising line = positive correlation); the dashed line is the least-squares fit. Average rows plot all editions together on normalised axes (0 = best).</p>`;
+  output.querySelectorAll('.correlation-plot-button').forEach((button) => {
+    button.addEventListener('click', () => {
+      const g = plotRows[Number(button.dataset.row)];
+      if (g) drawCorrelationScatter(g, button.dataset.metric);
+    });
+  });
+  drawYearlyCorrelation(analysis.yearly);
+}
+
+const YEARLY_CORRELATION_SERIES = [
+  { metric: 'placeRankAfter', label: 'Place vs rank (after)', color: '#4da3ff' },
+  { metric: 'placeRankBefore', label: 'Place vs rank (before)', color: '#4da3ff', dashed: true },
+  { metric: 'countRankAfter', label: 'Event count vs rank (after)', color: '#4dd08a' },
+  { metric: 'countRankBefore', label: 'Event count vs rank (before)', color: '#4dd08a', dashed: true },
+  { metric: 'countPlaceAfter', label: 'Event count vs place (after)', color: '#e05fd0' },
+  { metric: 'countPlaceBefore', label: 'Event count vs place (before)', color: '#e05fd0', dashed: true }
+];
+
+function drawYearlyCorrelation(yearly) {
+  const canvas = document.getElementById('correlation-year-canvas');
+  const tooltip = document.getElementById('correlation-year-tooltip');
+  if (!canvas || !yearly?.length) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  const pad = { l: 56, r: 20, t: 44, b: 40 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+  const years = yearly.map((y) => y.year);
+  const minYear = Math.min(...years);
+  const maxYear = Math.max(...years);
+  const px = (year) => pad.l + (maxYear === minYear ? 0.5 : (year - minYear) / (maxYear - minYear)) * plotW;
+  const py = (v) => pad.t + (1 - v) / 2 * plotH;
+
+  const style = getComputedStyle(document.documentElement);
+  const textColor = style.getPropertyValue('--text').trim() || '#222';
+  const mutedColor = style.getPropertyValue('--muted').trim() || '#888';
+  ctx.clearRect(0, 0, W, H);
+  ctx.font = '13px sans-serif';
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = mutedColor;
+  ctx.fillStyle = textColor;
+  ctx.strokeRect(pad.l, pad.t, plotW, plotH);
+  ctx.textAlign = 'right';
+  [-1, -0.5, 0, 0.5, 1].forEach((v) => {
+    ctx.globalAlpha = v === 0 ? 0.8 : 0.25;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, py(v));
+    ctx.lineTo(pad.l + plotW, py(v));
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillText(v.toFixed(1), pad.l - 6, py(v) + 4);
+  });
+  ctx.textAlign = 'center';
+  years.forEach((year) => ctx.fillText(String(year), px(year), H - pad.b + 18));
+
+  const hits = [];
+  YEARLY_CORRELATION_SERIES.forEach((series) => {
+    const points = yearly.filter((y) => y.values[series.metric] != null);
+    if (!points.length) return;
+    ctx.strokeStyle = series.color;
+    ctx.fillStyle = series.color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(series.dashed ? [6, 4] : []);
+    ctx.beginPath();
+    points.forEach((y, i) => {
+      const x = px(y.year);
+      const yy = py(y.values[series.metric]);
+      if (i === 0) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    points.forEach((y) => {
+      const x = px(y.year);
+      const yy = py(y.values[series.metric]);
+      ctx.beginPath();
+      ctx.arc(x, yy, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      hits.push({ sx: x, sy: yy, series, year: y.year, value: y.values[series.metric], count: y.count });
+    });
+  });
+
+  ctx.lineWidth = 2;
+  ctx.textAlign = 'left';
+  let legendX = pad.l;
+  let legendY = 14;
+  YEARLY_CORRELATION_SERIES.forEach((series) => {
+    const width = ctx.measureText(series.label).width + 44;
+    if (legendX + width > W - pad.r) {
+      legendX = pad.l;
+      legendY += 16;
+    }
+    ctx.strokeStyle = series.color;
+    ctx.setLineDash(series.dashed ? [5, 3] : []);
+    ctx.beginPath();
+    ctx.moveTo(legendX, legendY - 4);
+    ctx.lineTo(legendX + 22, legendY - 4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = textColor;
+    ctx.fillText(series.label, legendX + 28, legendY);
+    legendX += width + 8;
+  });
+
+  canvas.onmousemove = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
+    const cx = (event.clientX - rect.left) * scale;
+    const cy = (event.clientY - rect.top) * scale;
+    let best = null;
+    let bestDist = 144;
+    hits.forEach((h) => {
+      const d = (h.sx - cx) ** 2 + (h.sy - cy) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = h;
+      }
+    });
+    if (!best) {
+      tooltip.classList.add('hidden');
+      return;
+    }
+    tooltip.textContent = [String(best.year), best.series.label, `Correlation: ${best.value.toFixed(2)}`, `Events averaged: ${best.count[best.series.metric]}`].join('\n');
+    tooltip.classList.remove('hidden');
+    const pointX = best.sx / scale;
+    const pointY = best.sy / scale + canvas.offsetTop;
+    const maxLeft = canvas.offsetLeft + rect.width - tooltip.offsetWidth - 4;
+    const maxTop = canvas.offsetTop + rect.height - tooltip.offsetHeight - 4;
+    let left = pointX + 12;
+    if (left > maxLeft) left = pointX - tooltip.offsetWidth - 12;
+    tooltip.style.left = `${Math.max(canvas.offsetLeft + 4, left)}px`;
+    tooltip.style.top = `${Math.max(canvas.offsetTop + 4, Math.min(pointY + 12, maxTop))}px`;
+  };
+  canvas.onmouseleave = () => tooltip.classList.add('hidden');
+}
+
+const CORRELATION_PLOT_META = {};
+[['After', 'after event'], ['Before', 'before event']].forEach(([when, text]) => {
+  CORRELATION_PLOT_META['placeRank' + when] = { title: `Place in event vs rank ${text}`, xLabel: 'Place in event', yLabel: `Rank ${text}`, flipX: true };
+  CORRELATION_PLOT_META['countRank' + when] = { title: `Event count vs rank ${text} (all riders)`, xLabel: `Event count ${text}`, yLabel: `Rank ${text}`, flipX: false };
+  CORRELATION_PLOT_META['countPlace' + when] = { title: `Event count ${text} vs place in event`, xLabel: `Event count ${text}`, yLabel: 'Place in event', flipX: false };
+});
+
+    function drawCorrelationScatter(group, metric) {
+      const meta = CORRELATION_PLOT_META[metric];
+      const container = document.getElementById('correlation-plot');
+      const canvas = document.getElementById('correlation-plot-canvas');
+      const tooltip = document.getElementById('correlation-plot-tooltip');
+      const title = document.getElementById('correlation-plot-title');
+      const points = group.scatter?.[metric];
+      if (!meta || !container || !canvas || !points?.length) return;
+      const normalised = !!group.pooled;
+      const xKey = normalised ? 'xn' : 'x';
+      const yKey = normalised ? 'yn' : 'y';
+      container.classList.remove('hidden');
+      title.textContent = `${meta.title} — ${group.name}`;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      const pad = { l: 64, r: 20, t: 16, b: 52 };
+      const xs = points.map((p) => p[xKey]);
+      const ys = points.map((p) => p[yKey]);
+      const range = (values) => {
+        const lo = Math.min(...values);
+        const hi = Math.max(...values);
+        const margin = (hi - lo || 1) * 0.05;
+        return [lo - margin, hi + margin];
+      };
+      const [x0, x1] = range(xs);
+      const [y0, y1] = range(ys);
+      const plotW = W - pad.l - pad.r;
+      const plotH = H - pad.t - pad.b;
+      // Rank/place axes are inverted (1 = best at the top) so that up/right is always "better"
+      const px = (v) => (meta.flipX ? pad.l + (x1 - v) / (x1 - x0) * plotW : pad.l + (v - x0) / (x1 - x0) * plotW);
+      const py = (v) => pad.t + (v - y0) / (y1 - y0) * plotH;
+
+      const style = getComputedStyle(document.documentElement);
+      const textColor = style.getPropertyValue('--text').trim() || '#222';
+      const mutedColor = style.getPropertyValue('--muted').trim() || '#888';
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = '13px sans-serif';
+      ctx.strokeStyle = mutedColor;
+      ctx.fillStyle = textColor;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(pad.l, pad.t, plotW, plotH);
+
+      const formatTick = (v) => (normalised ? v.toFixed(2) : String(Math.round(v)));
+      for (let i = 0; i <= 5; i++) {
+        const xv = x0 + (x1 - x0) * i / 5;
+        ctx.textAlign = 'center';
+        ctx.fillText(formatTick(xv), px(xv), H - pad.b + 18);
+        const yv = y0 + (y1 - y0) * i / 5;
+        ctx.textAlign = 'right';
+        ctx.fillText(formatTick(yv), pad.l - 6, py(yv) + 4);
+      }
+      ctx.textAlign = 'center';
+      ctx.fillText(normalised ? `${meta.xLabel} (normalised)` : meta.xLabel, pad.l + plotW / 2, H - 10);
+      ctx.save();
+      ctx.translate(16, pad.t + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(normalised ? `${meta.yLabel} (normalised)` : meta.yLabel, 0, 0);
+      ctx.restore();
+
+      const n = xs.length;
+      const mx = xs.reduce((a, b) => a + b, 0) / n;
+      const my = ys.reduce((a, b) => a + b, 0) / n;
+      const sxx = xs.reduce((a, v) => a + (v - mx) ** 2, 0);
+      if (sxx > 0) {
+        const slope = xs.reduce((a, v, i) => a + (v - mx) * (ys[i] - my), 0) / sxx;
+        const fit = (v) => my + slope * (v - mx);
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = '#ff8a4d';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px(x0), py(fit(x0)));
+        ctx.lineTo(px(x1), py(fit(x1)));
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.fillStyle = 'rgba(77, 163, 255, 0.55)';
+      const screenPoints = points.map((p) => ({ p, sx: px(p[xKey]), sy: py(p[yKey]) }));
+      screenPoints.forEach(({ sx, sy }) => {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      canvas.onmousemove = (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const scale = canvas.width / rect.width;
+        const cx = (event.clientX - rect.left) * scale;
+        const cy = (event.clientY - rect.top) * scale;
+        let best = null;
+        let bestDist = 144;
+        screenPoints.forEach((s) => {
+          const d = (s.sx - cx) ** 2 + (s.sy - cy) ** 2;
+          if (d < bestDist) {
+            bestDist = d;
+            best = s;
+          }
+        });
+        if (!best) {
+          tooltip.classList.add('hidden');
+          return;
+        }
+        const labelMatch = String(best.p.label).match(/^(.*?)( \([^()]*\))?$/);
+        const lines = [labelMatch[1]];
+        if (labelMatch[2]) lines.push(labelMatch[2].trim().slice(1, -1));
+        lines.push(`${meta.xLabel}: ${best.p.x}`, `${meta.yLabel}: ${best.p.y}`);
+        tooltip.textContent = lines.join('\n');
+        tooltip.style.whiteSpace = 'pre';
+        tooltip.classList.remove('hidden');
+        // Keep the tooltip inside the plot: flip to the other side of the point near the edges
+        const pointX = best.sx / scale;
+        const pointY = best.sy / scale + canvas.offsetTop;
+        const maxLeft = canvas.offsetLeft + rect.width - tooltip.offsetWidth - 4;
+        const maxTop = canvas.offsetTop + rect.height - tooltip.offsetHeight - 4;
+        let left = pointX + 12;
+        if (left > maxLeft) left = pointX - tooltip.offsetWidth - 12;
+        tooltip.style.left = `${Math.max(canvas.offsetLeft + 4, left)}px`;
+        tooltip.style.top = `${Math.max(canvas.offsetTop + 4, Math.min(pointY + 12, maxTop))}px`;
+      };
+      canvas.onmouseleave = () => tooltip.classList.add('hidden');
+      container.scrollIntoView({ block: 'nearest' });
+    }
+
 function parseEventNameYearPrefix(eventName) {
   const m = String(eventName || '').match(/^([A-Za-z]+)(\d{2})$/);
   if (!m) return { prefix: String(eventName || ''), year: null };
@@ -2587,7 +3627,7 @@ function applyRouteQueryParams(params, route) {
     params.delete('rider');
   }
 
-  if (route && (route.gender === 'male' || route.gender === 'female')) {
+  if (route && isRankingGender(route.gender)) {
     params.set('gender', route.gender);
   } else {
     params.delete('gender');
@@ -2625,7 +3665,7 @@ function readRouteFromUrl() {
   return {
     view,
     rider: riderParam ? riderParam.trim() : '',
-    gender: (genderParam === 'male' || genderParam === 'female') ? genderParam : null,
+    gender: isRankingGender(genderParam) ? genderParam : null,
     year: yearParam && /^\d{4}$/.test(yearParam) ? yearParam : null
   };
 }
@@ -2657,7 +3697,7 @@ function buildRiderPointsUrl(rider, route) {
     url.searchParams.set('rider', rider);
   }
 
-  if (route && (route.gender === 'male' || route.gender === 'female')) {
+  if (route && isRankingGender(route.gender)) {
     url.searchParams.set('gender', route.gender);
   }
   if (route && route.year && /^\d{4}$/.test(String(route.year))) {
@@ -2681,7 +3721,7 @@ function buildResultsEventUrl(eventName) {
   applyCurrentDiscipline(url);
   url.searchParams.set('view', 'event');
   url.searchParams.set('event', eventName);
-  if (currentGender === 'male' || currentGender === 'female') {
+  if (isRankingGender(currentGender)) {
     url.searchParams.set('gender', currentGender);
   }
   return url.toString();
@@ -2827,40 +3867,18 @@ function renderRiderPointsPage() {
     const rawPointsBeforeDecay = Number(entry.rawPointsBeforeDecay ?? 0);
     const eventYear = entry.eventYear;
     const yearsOfDecay = eventYear ? Math.max(0, referenceYear - eventYear) : 0;
-    const decayMultiplier = Math.pow(seasondecay, yearsOfDecay);
+    const decayMultiplier = Math.pow(yearDecay, yearsOfDecay);
     const decayedPoints = rawPointsBeforeDecay * decayMultiplier;
     const battlePoints = Number(entry.battlePointsBeforeDecay || 0);
     return {
       ...entry,
       sourceIndex,
-      points: Number(entry.basePointsBeforeWeight ?? 0),
+      points: rawPointsBeforeDecay - battlePoints,
       battlePoints,
       rawPoints: rawPointsBeforeDecay,
       decayedPoints,
       decay: decayMultiplier
     };
-  });
-
-  const bestDecayedByType = new Map();
-  detailedEntries.forEach((entry) => {
-    const { prefix } = parseEventNameYearPrefix(entry.event);
-    const typeKey = String(prefix || '').toLowerCase();
-    if (!typeKey || typeKey === 'unicon') return;
-    const currentBest = bestDecayedByType.get(typeKey);
-    if (currentBest == null || entry.decayedPoints > currentBest) {
-      bestDecayedByType.set(typeKey, entry.decayedPoints);
-    }
-  });
-
-  detailedEntries.forEach((entry) => {
-    const { prefix } = parseEventNameYearPrefix(entry.event);
-    const typeKey = String(prefix || '').toLowerCase();
-    if (!typeKey || typeKey === 'unicon') {
-      entry.typePenaltyMultiplier = 1;
-    } else {
-      const bestForType = bestDecayedByType.get(typeKey);
-      entry.typePenaltyMultiplier = (bestForType != null && entry.decayedPoints < (bestForType - 1e-9)) ? typePenalty : 1;
-    }
   });
 
   // Region penalty: within one region, the best event is untouched, the 2nd gets one extra decay step, the 3rd two, etc.
@@ -2875,14 +3893,14 @@ function renderRiderPointsPage() {
   });
   entriesByRegion.forEach((entries) => {
     entries
-      .sort((a, b) => (b.decayedPoints * b.typePenaltyMultiplier) - (a.decayedPoints * a.typePenaltyMultiplier))
+      .sort((a, b) => b.decayedPoints - a.decayedPoints)
       .forEach((entry, index) => {
-        entry.regionPenaltyMultiplier = Math.pow(seasondecay, index);
+        entry.regionPenaltyMultiplier = Math.pow(regionPenalty, index);
       });
   });
 
   detailedEntries.forEach((entry) => {
-    entry.penalizedDecayedPoints = entry.decayedPoints * entry.typePenaltyMultiplier * entry.regionPenaltyMultiplier;
+    entry.penalizedDecayedPoints = entry.decayedPoints * entry.regionPenaltyMultiplier;
   });
 
   const scoreOrder = detailedEntries
@@ -2922,16 +3940,15 @@ function renderRiderPointsPage() {
       <td>${battleCalculation}</td>
       <td>${entry.rawPoints.toFixed(2)}</td>
       <td>×${entry.decay.toFixed(2)}</td>
-      <td>${entry.decayedPoints.toFixed(2)}</td>
-      <td>×${entry.typePenaltyMultiplier.toFixed(2)}</td>
       <td>×${entry.regionPenaltyMultiplier.toFixed(2)}</td>
+      <td>${entry.penalizedDecayedPoints.toFixed(2)}</td>
       <td>×${entry.bestFiveMultiplier.toFixed(2)}</td>
       <td>${entry.countedPoints.toFixed(2)}</td>
     `;
     body.appendChild(row);
   });
 
-  summary.textContent = `${visibleHistory.length} events. Weighted total with type and region penalties: ${totalCounted.toFixed(2)} points (${currentGender === 'male' ? 'male/open' : currentGender} view, ${currentYearComparison}).`;
+  summary.textContent = `${visibleHistory.length} events. Weighted total with region penalty: ${totalCounted.toFixed(2)} points (${currentGender} view, ${currentYearComparison}).`;
 
   document.querySelectorAll('.rider-points-event-link').forEach((button) => {
     button.addEventListener('click', () => {
@@ -2978,15 +3995,82 @@ function setView(view) {
 }
 
 function updateGenderToggleText() {
-  const button = document.getElementById('toggle-gender');
-  if (!button) return;
-  button.textContent = currentGender === 'female' ? 'Show male/open view' : 'Show female view';
+  document.querySelectorAll('.gender-switch [data-gender]').forEach((button) => {
+    const active = button.dataset.gender === currentGender;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
 }
 
-function toggleGender() {
-  currentGender = currentGender === 'female' ? 'male' : 'female';
+function setRankingGender(gender) {
+  if (!isRankingGender(gender) || gender === currentGender) return;
+  currentGender = gender;
   updateGenderToggleText();
   refreshRankingView();
+}
+
+// For each open-event appearance of a female rider, the expected points are the average
+// ranking points of the male riders who finished at the same place in that event.
+// Ratio = the rider's female ranking points / that expected value (averaged per rider).
+function computeFemaleOpenStats() {
+  const femalePoints = new Map((globalRowsByGender.female || []).map((row) => [row.rider, row.points || 0]));
+  const malePoints = new Map((globalRowsByGender.male || []).map((row) => [row.rider, row.points || 0]));
+  const rows = [];
+  EVENT_FILES.forEach((event) => {
+    const entries = eventResults.get(event.name)?.male || [];
+    entries.forEach((entry) => {
+      if (!riderInfoMap.get(entry.rider)?.female) return;
+      const peers = entries.filter((e) => e.place === entry.place && !riderInfoMap.get(e.rider)?.female);
+      if (peers.length === 0) return;
+      const expected = peers.reduce((a, e) => a + (malePoints.get(e.rider) || 0), 0) / peers.length;
+      rows.push({ rider: entry.rider, event: event.name, place: entry.place, total: entries.length, expected });
+    });
+  });
+  rows.sort((a, b) => a.rider.localeCompare(b.rider) || a.event.localeCompare(b.event));
+
+  const byRider = new Map();
+  rows.forEach((r) => {
+    if (!byRider.has(r.rider)) byRider.set(r.rider, []);
+    byRider.get(r.rider).push(r.expected);
+  });
+  const riderStats = [...byRider.entries()]
+    .map(([rider, list]) => {
+      const expected = list.reduce((a, b) => a + b, 0) / list.length;
+      const points = femalePoints.get(rider) || 0;
+      return { rider, points, expected, ratio: expected > 0 ? points / expected : null };
+    })
+    .filter((s) => s.ratio !== null && s.points > 0);
+  const ratio = riderStats.length ? riderStats.reduce((a, s) => a + s.ratio, 0) / riderStats.length : null;
+  return { rows, riderStats, ratio };
+}
+
+function updateFemaleOpenSummary() {
+  const el = document.getElementById('female-open-summary');
+  if (!el) return;
+  const stats = computeFemaleOpenStats();
+  if (stats.ratio === null) {
+    el.textContent = 'No female results in open events to compare.';
+    return;
+  }
+  el.textContent = `Female points / expected male points for the same open placing: ${stats.ratio.toFixed(2)} (avg of ${stats.riderStats.length} riders).`;
+}
+
+function showFemaleOpenAppearances() {
+  const overlay = document.getElementById('female-open-overlay');
+  const body = document.getElementById('female-open-body');
+  if (!overlay || !body) return;
+  const { rows, riderStats, ratio } = computeFemaleOpenStats();
+  const riderTable = riderStats.length
+    ? `<h3>Per rider</h3><table><thead><tr><th>Rider</th><th>Female points</th><th>Expected male points</th><th>Ratio</th></tr></thead><tbody>${riderStats
+        .map((s) => `<tr><td>${escapeXml(s.rider)}</td><td>${s.points.toFixed(1)}</td><td>${s.expected.toFixed(1)}</td><td>${s.ratio.toFixed(2)}</td></tr>`)
+        .join('')}</tbody></table>`
+    : '';
+  body.innerHTML = rows.length
+    ? `<p>${rows.length} appearance(s) in ${escapeXml(activeDiscipline.label)}${ratio !== null ? `, average ratio ${ratio.toFixed(2)}` : ''}.</p>${riderTable}<h3>Appearances</h3><table><thead><tr><th>Rider</th><th>Event</th><th>Place</th><th>Expected male points</th></tr></thead><tbody>${rows
+        .map((r) => `<tr><td>${escapeXml(r.rider)}</td><td>${escapeXml(r.event)}</td><td>${r.place} / ${r.total}</td><td>${r.expected.toFixed(1)}</td></tr>`)
+        .join('')}</tbody></table>`
+    : `<p>No female riders competed in the open category in ${escapeXml(activeDiscipline.label)}.</p>`;
+  overlay.classList.remove('hidden');
 }
 
 function setRankingHeaders(type) {
@@ -3287,7 +4371,8 @@ function renderEvent(eventName) {
   const battleBody = document.getElementById('event-battle-body');
   if (!body || !battleWrapper || !battleBody) return;
 
-  const eventEntries = eventResults.get(eventName)?.[currentGender] || [];
+  const eventSection = currentGender === 'combined' ? 'male' : currentGender; // combined shows the raw open results
+  const eventEntries = eventResults.get(eventName)?.[eventSection] || [];
   const visibleEntries = currentSearch
     ? eventEntries.filter((entry) => entry.rider.toLowerCase().includes(currentSearch))
     : eventEntries;
@@ -3347,10 +4432,10 @@ function renderEvent(eventName) {
     }
   }
 
-  const battles = eventBattles.get(eventName)?.[currentGender] || [];
+  const battles = eventBattles.get(eventName)?.[eventSection] || [];
 
   if (prelimWrapper && prelimBody) {
-    const prelimEntries = [...(eventPrelimResults.get(eventName)?.[currentGender] || [])];
+    const prelimEntries = [...(eventPrelimResults.get(eventName)?.[eventSection] || [])];
     const prelimHeadRow = document.getElementById('event-prelim-head-row');
     // Not every event's preliminary results include a per-category score breakdown
     // (e.g. Difficulty/Variety/Fullness/Style); only add those columns when present.
@@ -4661,12 +5746,20 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const genderButton = document.getElementById('toggle-gender');
-  if (genderButton) {
-    genderButton.addEventListener('click', toggleGender);
-  }
+  document.querySelectorAll('.gender-switch [data-gender]').forEach((button) => {
+    button.addEventListener('click', () => setRankingGender(button.dataset.gender));
+  });
 
   updateGenderToggleText();
+
+  const femaleOpenButton = document.getElementById('show-female-open');
+  if (femaleOpenButton) femaleOpenButton.addEventListener('click', showFemaleOpenAppearances);
+  const femaleOpenClose = document.getElementById('female-open-close');
+  if (femaleOpenClose) {
+    femaleOpenClose.addEventListener('click', () => {
+      document.getElementById('female-open-overlay')?.classList.add('hidden');
+    });
+  }
 
   const closeButton = document.getElementById('close-profile');
   if (closeButton) {
@@ -4721,9 +5814,12 @@ async function loadAliasesFile() {
     const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     lines.forEach((line) => {
       // If a line contains comma-separated names, first name is canonical, others are aliases.
-      const parts = line.split(',').map((p) => p.trim()).filter(Boolean);
+      // Line format: "Name,Alias #F #EU" - optional gender flag and region after '#'.
+      const [namePart, genderPart = '', regionPart = ''] = line.split('#');
+      const parts = namePart.split(',').map((p) => p.trim()).filter(Boolean);
       if (parts.length === 0) return;
       const canonical = parts[0];
+      riderInfoMap.set(canonical, { female: genderPart.trim().toUpperCase() === 'F', region: regionPart.trim() });
       const normCanonical = normalizeName(canonical);
       // Map normalized canonical to canonical display name
       aliasMap.set(normCanonical, canonical);

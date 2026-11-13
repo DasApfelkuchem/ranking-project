@@ -39,7 +39,7 @@ def read_existing(path):
             line = line.strip()
             if not line:
                 continue
-            parts = [p.strip() for p in line.split(',') if p.strip()]
+            parts = [p.strip() for p in line.split('#')[0].split(',') if p.strip()]
             if parts:
                 d[parts[0]] = line
     return d

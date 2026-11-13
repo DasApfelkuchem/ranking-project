@@ -44,7 +44,7 @@ function readExistingRiders(filePath) {
   if (!fs.existsSync(filePath)) return out;
   const txt = fs.readFileSync(filePath, 'utf8');
   txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach((line) => {
-    const parts = line.split(',').map(p => p.trim()).filter(Boolean);
+    const parts = line.split('#')[0].split(',').map(p => p.trim()).filter(Boolean);
     if (parts.length > 0) out.set(parts[0], line);
   });
   return out;

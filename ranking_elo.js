@@ -562,7 +562,7 @@ async function addUnknownRidersToRidersAll() {
   // Build a map canonical -> full line (preserve alias lists if present)
   const existingMap = new Map();
   existingLines.forEach((line) => {
-    const parts = line.split(',').map((p) => p.trim()).filter(Boolean);
+    const parts = line.split('#')[0].split(',').map((p) => p.trim()).filter(Boolean);
     if (parts.length > 0) existingMap.set(parts[0], line);
   });
 
@@ -1981,7 +1981,7 @@ async function loadAliasesFile() {
     const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     lines.forEach((line) => {
       // If a line contains comma-separated names, first name is canonical, others are aliases.
-      const parts = line.split(',').map((p) => p.trim()).filter(Boolean);
+      const parts = line.split('#')[0].split(',').map((p) => p.trim()).filter(Boolean);
       if (parts.length === 0) return;
       const canonical = parts[0];
       const normCanonical = normalizeName(canonical);
