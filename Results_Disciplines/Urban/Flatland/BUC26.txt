@@ -1,12 +1,89 @@
-Ben Niediek
-Jelle Dillen
-Tim Desmet
-Stephane Ranc;
+1. Ben Niediek
+2. Jelle Dillen
+3. Tim Desmet
+4. Stéphane Ranc
+5. Joos Machetanz
+6. Tristan Jambon
+7. Martin Grouillon
+8. Robbe De Gruyter
+9. Louis Stevens
+10. Tuur Somers
+11. Arthur Duyts
+12. Brecht Ruyters
+13. Wout Chauvaux
+14. Kjell Heidt
+15. Lorenz De Neve
+16. Nathanaël Bogdan
+17. Bernd Lawrenz
+18. Timo de Letter
+19. Stan Bollen
+20. Jonas Vandecaveye
+21. Tatsuya Fukunaga
+22. emile themelin
+23. Vitus Cords;
 Ben Niediek, Jelle Dillen
 Tim Desmet, Stephane Ranc
 Ben Niediek, Stephane Ranc
 Jelle Dillen, Tim Desmet
+Ben Niediek, Joos Machetanz
+Tim Desmet, Tristan Jambon
+Stéphane Ranc, Martin Grouillon
+Jelle Dillen, Robbe De Gruyter
+@prelim Total
+1. Jelle Dillen, 82.8
+2. Joos Machetanz, 81.1
+3. Stéphane Ranc, 80.0
+4. Tim Desmet, 74.2
+5. Tristan Jambon, 72.9
+6. Martin Grouillon, 64.7
+7. Ben Niediek, 61.7
+8. Robbe De Gruyter, 59.5
+9. Louis Stevens, 59.4
+10. Tuur Somers, 55.9
+11. Arthur Duyts, 55.3
+12. Brecht Ruyters, 54.3
+13. Wout Chauvaux, 49.2
+14. Kjell Heidt, 47.8
+15. Lorenz De Neve, 47.7
+16. Nathanaël Bogdan, 45.9
+17. Bernd Lawrenz, 40.1
+18. Timo de Letter, 35.2
+19. Stan Bollen, 29.9
+20. Jonas Vandecaveye, 26.1
+21. Tatsuya Fukunaga, 17.7
+22. emile themelin, 14.0
+23. Vitus Cords, /
 |
-Marie Schlenker
-Sofia van Veen;
+1. Marie Schlenker
+2. Sofia van Veen
+3. Paula Wache
+4. Isabell Haase
+5. Diana Wache
+6. Wita Gossen
+7. Cora Schindele
+8. Julie Vandelaer
+9. Ellynn Del Perugia
+10. Jasmin Bothe
+11. Linda Gossen
+12. Helena Vanbellinghen
+13. Jana Riedel
+14. Jana Vande Velde;
 Marie Schlenker, Sofia van Veen
+Paula Wache, Isabell Haase
+Sofia van Veen, Isabell Haase
+Marie Schlenker, Paula Wache
+@prelim Total
+1. Sofia van Veen, 84.6
+2. Marie Schlenker, 82.6
+3. Paula Wache, 78.6
+4. Isabell Haase, 76.2
+5. Diana Wache, 70.8
+6. Wita Gossen, 57.6
+7. Cora Schindele, 56.0
+8. Julie Vandelaer, 53.8
+9. Ellynn Del Perugia, 52.6
+10. Jasmin Bothe, 51.7
+11. Linda Gossen, 46.7
+12. Helena Vanbellinghen, 38.7
+13. Jana Riedel, 36.2
+14. Jana Vande Velde, 25.5

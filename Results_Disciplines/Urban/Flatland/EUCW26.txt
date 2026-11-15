@@ -1,23 +1,23 @@
 1. Stéphane Ranc
 2. Alexis Mercat
-3. Clement Pujol
+3. PUJOL Clément
 4. Oliver Nielsen
-5. Dao Shani
-5. Jan Niediek
 5. Jelle Dillen
 5. martin grouillon
-9. August Agerskov
+5. Jan Niediek
+5. Dao Shani
 9. Marvin Henke
+9. August Agerskov
 11. Joos Machetanz
 11. Julius Auth
 11. Kevin Gaudillere
 11. Robbe DeGruyter
 15. Folke Schubert
 15. Vitus Bieringer
-17. Antonín Čiviš
 17. Arthur Duyts
-17. Casper Martinsen
+17. Antonín Čiviš
 17. Louis Giroud
+17. Casper Martinsen
 21. Erik Černý
 22. Bernd Lawrenz
 23. Felix Adjei
@@ -28,8 +28,9 @@
 28. Lars Van Asbroeck
 29. Karel Dyselinck
 30. Wout Chauvaux;
+
 @prelim Total score, difficulty, variety, fullness, style
-1. Clement Pujol, 75.33, 22.5/30, 21.5/30, 15/20, 16.3/20
+1. PUJOL Clément, 75.33, 22.5/30, 21.5/30, 15/20, 16.3/20
 2. Dao Shani, 75.17, 18.5/30, 22/30, 17/20, 17.7/20
 3. Alexis Mercat, 73.7, 19/30, 21.5/30, 16.5/20, 16.7/20
 4. Jelle Dillen, 73.17, 18/30, 24.5/30, 15.7/20, 15/20
@@ -55,67 +56,27 @@
 24. Tristan Jambon, 28.5, 12.5/30, 5/30, 3.3/20, 7.7/20
 25. Corentin BERSET, 26.17, 10.5/30, 4/30, 3.7/20, 8/20
 26. Tatsuya Fukunaga, 17.5, 4.5/30, 6/30, 4/20, 3/20
-@battle Votes, Difficulty, Variety, Fullness, Style, Battling, Final Trick
-Stephane Ranc,Alexis Mercat #https://www.youtube.com/watch?v=MkUwu9vUUdQ
-Clement Pujol,Oliver Nielsen
-Stephane Ranc,Clement Pujol #https://www.youtube.com/watch?v=x1Fwlc6U02A
-Alexis Mercat,Oliver Nielsen
-Clement Pujol,Martin Grouillon
-Stephane Ranc,Jelle Dillen #https://www.youtube.com/watch?v=IpSG8wvHl6g&t=1s
-Alexis Mercat,Jan Niediek
-Oliver Nielsen, Dao Shani
-Martin Grouillon, August Agerskov
-Oliver Nielsen, Marvin Henke
-Martin Grouillon,Robbe DeGruyter
-August Agerskov, Julius Auth
-Oliver Nielsen, Kevin Gaudillere
-Marvin Henke, Joos Machetanz
-Joos Machetanz, Folke Schubert
-Robbe DeGruyter, Vitus Bieringer
-Folke Schubert, Arthur Duyts
-Joos Machetanz, Louis Giroud
-Vitus Bieringer, Antonin Civis
-Robbe DeGruyter, Casper Martinsen
-|
-Lea Söser
-Nina Beckmann
-Sofia van Veen
-Roos Seegers
-Lara Kubiczek
-Paula Wache
-Elodie Zuchuat
-Linda Gossen
-Juli Feldkircher
-Khadija Compaore
-Jenny Rueß
-Isabell Haase
-Rebekka Wiedener
-Evelyn Rohn
-Lilly Cramer
-Cora Schindele
-Ellynn Del Perugia
-Amina Compaore
-Jasmin Bothe
-Marie Schlenker;
-Lea Söser, Nina Beckmann
-Sofia van Veen, Roos Seegers
-Lea Söser, Roos Seegers
-Nina Beckmann, Sofia van Veen
-Lea Söser, Elodie Zuchuat
-Roos Seegers, Lara Kubiczek
-Sofia van Veen, Paula Wache
-Nina Beckmann, Linda Gossen
-Elodie Zuchuat, Khadija Compaore
-Linda Gossen, Juli Feldkircher
-Elodie Zuchuat, Evelyn Rohn
-Khadija Compaore, Jenny Rueß
-Juli Feldkircher,Isabell Haase
-Linda Gossen, Linda Gossen
 
-
-
-
-
-
-
-
+@battle Winner votes, Winner difficulty, Winner variety, Winner fullness, Winner style, Winner battling, /, Loser votes, Loser difficulty, Loser variety, Loser fullness, Loser style, Loser battling, /
+Folke Schubert, Arthur Duyts, 3, 14.4/24, 12.4/24, 9.6/17, 11.9/17, 6.6/18, /, 0, 9.2/24, 9.6/24, 6.8/17, 6.2/17, 1.2/18, /
+Joos Machetanz, Louis Giroud, 3, 13.6/24, 13.6/24, 13/17, 9.6/17, 9/18, /, 0, 6.4/24, 6.4/24, 4/17, 5.1/17, 1.2/18, /
+Vitus Bieringer, Antonín Čiviš, 2, 12.4/24, 14/24, 9.6/17, 9.1/17, 3.6/18, /, 1, 12/24, 8.8/24, 9.9/17, 9.1/17, 1.8/18, /
+Robbe DeGruyter, Casper Martinsen, 3, 12/24, 11.2/24, 9.1/17, 10.2/17, 4.2/18, /, 0, 0/24, 0/24, 0/17, 0/17, 0/18, /
+Joos Machetanz, Folke Schubert, 3, 10.4/24, 10.4/24, 9.6/17, 8.5/17, 3.6/18, /, 0, 4.8/24, 4.8/24, 6.8/17, 9.1/17, 3.6/18, /
+Robbe DeGruyter, Vitus Bieringer, 3, 12.8/24, 11.2/24, 10.2/17, 9.6/17, 5.4/18, /, 0, 6.4/24, 8/24, 6.2/17, 6.2/17, 1.2/18, /
+Robbe DeGruyter, Joos Machetanz, 3, 13.6/24, /, /, 12.5/17, /, /, 0, 0/24, /, /, 0/17, /, /
+martin grouillon, Robbe DeGruyter, 2, 12.8/24, 14.4/24, 13/17, 10.2/17, 2.4/18, /, 1, 14/24, 9.6/24, 7.9/17, 9.9/17, 1.8/18, /
+August Agerskov, Julius Auth, 3, 17.6/24, 12.8/24, 12.5/17, 11.9/17, 3/18, /, 0, 10.4/24, 8.8/24, 8.5/17, 7.4/17, 1.8/18, /
+Oliver Nielsen, Kevin Gaudillere, 2, 14.8/24, 14.4/24, 13/17, 9.6/17, 1.2/18, /, 1, 16.4/24, 12.8/24, 13/17, 10.2/17, 1.2/18, /
+Marvin Henke, Joos Machetanz, 3, 16.4/24, 12.4/24, 13.6/17, 8.2/17, 1.2/18, /, 0, 12.4/24, 11.2/24, 10.2/17, 9.1/17, 3/18, /
+martin grouillon, August Agerskov, 2, 13.6/24, 12/24, 14.2/17, 9.1/17, 1.8/18, /, 1, 16.4/24, 11.6/24, 8.5/17, 9.6/17, 4.8/18, /
+Oliver Nielsen, Marvin Henke, 3, 17.6/24, 14.4/24, 10.8/17, 9.1/17, 1.8/18, /, 0, 14.4/24, 8.8/24, 8.5/17, 8.5/17, 1.2/18, /
+Oliver Nielsen, martin grouillon, 3, 15.2/24, /, /, 11.9/17, /, /, 0, 0/24, /, /, 0/17, /, /
+PUJOL Clément, martin grouillon, 3, 19.6/24, 14.4/24, 13/17, 10.8/17, 6/18, 8.9/14, 0, 12.8/24, 8.8/24, 7.4/17, 6.8/17, 0.6/18, 0/14
+Stéphane Ranc, Jelle Dillen, 2, 20.8/24, 16/24, 11.9/17, 11.3/17, 6.6/18, 13.3/14, 0, 16.8/24, 16/24, 14.7/17, 11.6/17, 4.8/18, 10/14
+Alexis Mercat, Jan Niediek, 3, 17.6/24, 16/24, 14.7/17, 13/17, 3/18, 12.1/14, 0, 18/24, 16.4/24, 15.9/17, 11.9/17, 4.2/18, 0/14
+Oliver Nielsen, Dao Shani, 2, 16.8/24, 10.4/24, 6.8/17, 9.6/17, 1.2/18, 12.8/14, 1, 16.8/24, 16.8/24, 11.1/17, 12.5/17, 1.8/18, 0/14
+Stéphane Ranc, PUJOL Clément, 3, 21.2/24, 16.4/24, 15/17, 12.2/17, 3.3/18, 13.3/14, 0, 18/24, 13.6/24, 10.8/17, 13.6/17, 4.2/18, 0/14
+Alexis Mercat, Oliver Nielsen, 3, 15.2/24, 14.4/24, 11.9/17, 9.6/17, 1.8/18, 8.2/14, 0, 17.2/24, 7.2/24, 3.4/17, 8.5/17, 1.2/18, 12.4/14
+PUJOL Clément, Oliver Nielsen, 3, 17.6/24, 16.8/24, 12.8/17, 12.5/17, 3.6/18, 0/14, 0, 13.6/24, 8.8/24, 5.1/17, 9.9/17, 1.2/18, 0/14
+Stéphane Ranc, Alexis Mercat, 2, 19.6/24, 14.4/24, 13.6/17, 11.1/17, 7.2/18, 0/14, 1, 16/24, 14/24, 8.8/17, 13/17, 1.2/18, 12.6/14

@@ -1723,7 +1723,7 @@ function setupResultsTextBuilder() {
       if (hint) hint.innerHTML = 'Step 1: enter an <strong>event code</strong> and <strong>year</strong>. Step 2: fill in the <strong>Final rider ranking</strong> and, optionally, the <strong>Prelim</strong> tab for each gender. Step 3: on the <strong>Battles</strong> tab add the battle results. Then generate the file.';
       scoreFormatHint.innerHTML = '<strong>Final rider ranking:</strong> only the final order, one rider per line, like <code>1. Rider Name</code>, <code>2. Rider Name</code>, … (no scores), or <strong>Import CSV</strong> with no header, one rider per row as <code>placement, rider</code>. <strong>Prelim:</strong> choose the score names yourself (Difficulty, Variety, Fullness and Style are the defaults; use <strong>Add Total</strong> if the prelim has a total score, it then goes first) and enter <code>1. Rider Name, score1 score2…</code> in the same order, or import a CSV with a header row. Use <code>/</code> for a score that was not given.';
       const battleHint = document.getElementById('results-builder-battle-hint');
-      if (battleHint) battleHint.innerHTML = 'For each gender first choose the battle scores, either <strong>Import CSV</strong> (score names are read from the CSV header) or <strong>Add score</strong> / <strong>Add default scores</strong> (Votes, Difficulty, Variety, Fullness, Style, Battling, Final Trick). Then enter one battle per line as <code>Winning Rider, Losing Rider, winner scores, loser scores</code>. Scores are separated by spaces, in the same order as the score names above, for example <code>Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21, 0 14.5/21 18.2/21</code>. Use <code>/</code> for a missing score. <strong>CSV layout:</strong> header <code>Winner, Loser, Votes, Difficulty, …, Votes, Difficulty, …</code> — the winner’s scores first, then the loser’s scores with the same names; one battle per row.';
+      if (battleHint) battleHint.innerHTML = 'For each gender first choose the battle scores, either <strong>Import CSV</strong> (score names are read from the CSV header) or <strong>Add score</strong> / <strong>Add default scores</strong> (Votes, Difficulty, Variety, Fullness, Style, Battling, Final Trick). Then enter one battle per line as <code>Winning Rider, Losing Rider, winner scores, loser scores</code>. Scores are separated by spaces, in the same order as the score names above, for example <code>Ben Niediek, Jelle Dillen, 3 16.8/21 14.4/21, 0 14.5/21 18.2/21</code>. Use <code>/</code> for a missing score. <strong>CSV layout:</strong> header <code>Winner, Loser, Votes, Difficulty, …, Votes, Difficulty, …</code> — the winner’s scores first, then the loser’s scores with the same names; one battle per row. When the bottom four battles contain the same four riders, their order is reversed automatically.';
     } else if (activeDisciplineKey === 'x-style') {
       scoreFormatHint.textContent = 'For lower X-Style rounds, enter each rider’s place within that round. Matching places are tied and converted to overall event places after the riders in later rounds.';
     } else {
@@ -2269,7 +2269,7 @@ function setupResultsTextBuilder() {
       const loserScores = names.map((_, i) => cleanScore(cells[2 + count + i]));
       return `${winner}, ${loser}, ${winnerScores.join(' ')}, ${loserScores.join(' ')}`;
     }).filter(Boolean);
-    return { names, lines, skipped };
+    return { names, lines: orderBattleLines(lines), skipped };
   }
 
   async function importBattleCsv(gender, file) {
@@ -2377,7 +2377,7 @@ function setupResultsTextBuilder() {
     }).filter(Boolean);
 
     if (!lines.length) return '';
-    return `${names.length ? `@battle ${names.join(', ')}\r\n` : ''}${lines.join('\r\n')}`;
+    return `${names.length ? `@battle ${names.join(', ')}\r\n` : ''}${orderBattleLines(lines).join('\r\n')}`;
   }
 
   function showStatus(message, warning = false) {
@@ -2732,7 +2732,7 @@ async function loadRanking({ preserveView = false } = {}) {
           if (prelimHeader) {
             prelimNames = prelimHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
           } else if (battleHeader) {
-            battleNames = battleHeader[1].split(',').map((name) => name.trim()).filter(Boolean);
+            battleNames = parseBattleNames(battleHeader[1]);
           } else if (isPrelimLine(line)) {
             const prelimEntry = parsePrelimLine(line, prelimNames);
             if (prelimEntry) inlinePrelim.push(prelimEntry);
@@ -2743,7 +2743,7 @@ async function loadRanking({ preserveView = false } = {}) {
         if (inlinePrelim.length) eventPrelimByGender[gender] = inlinePrelim;
 
         const battles = [];
-        battleLines.forEach((line, index) => {
+        orderBattleLines(battleLines).forEach((line, index) => {
           if (!line) {
             return; // preserve placeholder position for missing battle rows
           }
@@ -4779,6 +4779,43 @@ function extractVideoUrl(text) {
   return match ? match[0] : null;
 }
 
+function orderBattleLines(lines) {
+  const battles = lines.filter((line) => line.trim()).map((line) => {
+    const riders = line.split('#')[0].split(/[,;]+/).slice(0, 2).map((name) => normalizeName(name.trim()));
+    return riders.length === 2 && riders[0] && riders[1] && riders[0] !== riders[1] ? riders : null;
+  });
+  if (battles.length < 4) return lines;
+  const lastFour = battles.slice(-4);
+  if (lastFour.some((battle) => !battle) || new Set(lastFour.flat()).size !== 4) return lines;
+
+  // Four-battle brackets have the same four riders at both ends; preserve final-first order.
+  if (battles.length === 4) {
+    const [final, third, semi1, semi2] = lastFour;
+    if (final.includes(semi1[0]) && final.includes(semi2[0]) &&
+        third.includes(semi1[1]) && third.includes(semi2[1])) return lines;
+  }
+  return lines.slice().reverse();
+}
+
+function parseBattleNames(text) {
+  const names = text.split(',').map((name) => name.trim()).filter(Boolean);
+  const count = names.length / 2;
+  if (Number.isInteger(count) && count > 0) {
+    const winnerNames = names.slice(0, count);
+    const loserNames = names.slice(count);
+    const paired = winnerNames.every((name, i) => {
+      if (name === '/' && loserNames[i] === '/') return true;
+      const winner = name.match(/^winner\s+(.+)$/i);
+      const loser = loserNames[i].match(/^loser\s+(.+)$/i);
+      return winner && loser && winner[1].toLowerCase() === loser[1].toLowerCase();
+    });
+    if (paired && winnerNames.some((name) => /^winner\s+/i.test(name))) {
+      return winnerNames.map((name) => name.replace(/^winner\s+/i, ''));
+    }
+  }
+  return names;
+}
+
 function getBattleRound(eventName, index) {
   if (index === 0) return 'Final';
   if (index === 1) return 'Third place';
@@ -4930,7 +4967,7 @@ function parseEventDetailText(text) {
     let detailBattleNames = BATTLE_DETAIL_CATEGORIES;
     const battleLines = (firstBattleIndex === -1 ? [] : lines.slice(firstBattleIndex)).filter((line) => {
       const header = line.match(/^@battle\s+(.*)$/i);
-      if (header) detailBattleNames = header[1].split(',').map((name) => name.trim()).filter(Boolean);
+      if (header) detailBattleNames = parseBattleNames(header[1]);
       return !header;
     });
 
