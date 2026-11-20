@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Extract Rankings Data</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 4px; }
+    .status { margin: 20px 0; padding: 15px; border-radius: 4px; font-weight: bold; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; overflow: auto; max-height: 400px; border-radius: 4px; }
+    button { padding: 10px 20px; margin: 10px 0; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚴 Extract Real Rankings from ranking.js</h1>
+    <div id="status" class="status info">Loading ranking.js and calculating rankings...</div>
+    <div id="result"></div>
+    <button onclick="downloadData()">Download as JSON</button>
+  </div>
+
+  <!-- Load ranking.js to access its functions -->
+  <script src="ranking.js"></script>
+  
+  <script>
+    let extractedData = null;
+    
+    async function extractRankings() {
+      try {
+        document.getElementById('status').className = 'status info';
+        document.getElementById('status').textContent = 'Calculating rankings...';
+        
+        // loadRanking() is an async function that calculates rankings
+        if (typeof loadRanking !== 'function') {
+          throw new Error('loadRanking function not found in ranking.js');
+        }
+        
+        // Execute loadRanking to populate globalRowsByGender
+        await loadRanking();
+        
+        // Wait a moment for data to settle
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if rankings are available
+        if (!window.globalRowsByGender) {
+          throw new Error('globalRowsByGender not populated after loadRanking()');
+        }
+        
+        // Extract the rankings data
+        extractedData = window.globalRowsByGender;
+        
+        // Show success
+        document.getElementById('status').className = 'status success';
+        document.getElementById('status').textContent = 'Success! Rankings extracted. Click "Download as JSON" to save.';
+        
+        // Show preview
+        const preview = JSON.stringify(extractedData, null, 2).substring(0, 2000);
+        document.getElementById('result').innerHTML = `
+          <h3>Preview of extracted data:</h3>
+          <pre>${preview}...</pre>
+          <p><strong>Total data size:</strong> ${JSON.stringify(extractedData).length} bytes</p>
+        `;
+        
+      } catch (error) {
+        document.getElementById('status').className = 'status error';
+        document.getElementById('status').textContent = 'ERROR: ' + error.message;
+        document.getElementById('result').innerHTML = `<p>Stack: ${error.stack}</p>`;
+        console.error(error);
+      }
+    }
+    
+    function downloadData() {
+      if (!extractedData) {
+        alert('No data extracted yet. Wait for the status to show "Success!"');
+        return;
+      }
+      
+      const jsonStr = JSON.stringify(extractedData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rankings-export.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    
+    // Start extraction when page fully loads
+    window.addEventListener('load', () => {
+      setTimeout(extractRankings, 1000);
+    });
+  </script>
+</body>
+</html>

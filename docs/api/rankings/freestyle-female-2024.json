@@ -1,0 +1,618 @@
+[
+  {
+    "name": "Amanda Laursen",
+    "points": 5280
+  },
+  {
+    "name": "Anna Kolar",
+    "points": 5269
+  },
+  {
+    "name": "Amina Compaore",
+    "points": 5250
+  },
+  {
+    "name": "Alison Martin",
+    "points": 5235
+  },
+  {
+    "name": "Adele Le Priol",
+    "points": 5234
+  },
+  {
+    "name": "Agnes Nielsen",
+    "points": 5229
+  },
+  {
+    "name": "Anouk Rückert,Anouk",
+    "points": 5212
+  },
+  {
+    "name": "Anna Plininger",
+    "points": 5185
+  },
+  {
+    "name": "Amelie Herbst",
+    "points": 5162
+  },
+  {
+    "name": "Annalena Söll",
+    "points": 5135
+  },
+  {
+    "name": "Anika Wiegele",
+    "points": 5102
+  },
+  {
+    "name": "Andrea Worsoe,Andrea Worsøe",
+    "points": 5092
+  },
+  {
+    "name": "Caroline Tittel",
+    "points": 5085
+  },
+  {
+    "name": "Bedia Sieradrki",
+    "points": 5082
+  },
+  {
+    "name": "Anna Schubert",
+    "points": 5066
+  },
+  {
+    "name": "Alissa",
+    "points": 5060
+  },
+  {
+    "name": "Benaiah Kendall",
+    "points": 5051
+  },
+  {
+    "name": "Becky Wiedener",
+    "points": 5015
+  },
+  {
+    "name": "ANZU Hashimoto",
+    "points": 5005
+  },
+  {
+    "name": "Diana Wache",
+    "points": 5002
+  },
+  {
+    "name": "Augie Tourdot",
+    "points": 4961
+  },
+  {
+    "name": "Anna-Lena Heitmann",
+    "points": 4953
+  },
+  {
+    "name": "Cecile Sautter",
+    "points": 4952
+  },
+  {
+    "name": "Anna-Lena Blaschke",
+    "points": 4945
+  },
+  {
+    "name": "Annabel Jäger-Kec",
+    "points": 4936
+  },
+  {
+    "name": "Christina Vogt",
+    "points": 4931
+  },
+  {
+    "name": "Antonia Tschirner",
+    "points": 4922
+  },
+  {
+    "name": "Ebony O'Dea",
+    "points": 4915
+  },
+  {
+    "name": "Ann-Sophie Reinfelder",
+    "points": 4867
+  },
+  {
+    "name": "Cora Schindele",
+    "points": 4867
+  },
+  {
+    "name": "Elenonore Cauquil, Eleonore Cauquil",
+    "points": 4823
+  },
+  {
+    "name": "Felix Adjei,Felix-Nana Adjei",
+    "points": 4822
+  },
+  {
+    "name": "Elodie Zuchuat",
+    "points": 4796
+  },
+  {
+    "name": "Danielle Chevalier",
+    "points": 4765
+  },
+  {
+    "name": "Calla Carter",
+    "points": 4743
+  },
+  {
+    "name": "Fanelle Morne Boutet",
+    "points": 4739
+  },
+  {
+    "name": "Ariane Rohn",
+    "points": 4731
+  },
+  {
+    "name": "Emma Ring",
+    "points": 4701
+  },
+  {
+    "name": "Cecilie Leth",
+    "points": 4695
+  },
+  {
+    "name": "Emily Ascherl",
+    "points": 4665
+  },
+  {
+    "name": "Charlotte Kullen",
+    "points": 4650
+  },
+  {
+    "name": "Hanna Czikowski",
+    "points": 4636
+  },
+  {
+    "name": "Ellynn Del Perugia",
+    "points": 4629
+  },
+  {
+    "name": "Florian Brecht",
+    "points": 4627
+  },
+  {
+    "name": "Folke Schubert",
+    "points": 4611
+  },
+  {
+    "name": "Grete Rückert",
+    "points": 4581
+  },
+  {
+    "name": "Helena Vanbellinghen",
+    "points": 4577
+  },
+  {
+    "name": "Emma Neumann",
+    "points": 4538
+  },
+  {
+    "name": "Fiona Raddatz",
+    "points": 4534
+  },
+  {
+    "name": "ELISA DÜNGLER",
+    "points": 4522
+  },
+  {
+    "name": "Hannah Grätzl",
+    "points": 4511
+  },
+  {
+    "name": "Francois Lize",
+    "points": 4492
+  },
+  {
+    "name": "Finnja Gross",
+    "points": 4466
+  },
+  {
+    "name": "Fuo Sato",
+    "points": 4457
+  },
+  {
+    "name": "Greta Koehler",
+    "points": 4435
+  },
+  {
+    "name": "Isabelle Bilkau",
+    "points": 4428
+  },
+  {
+    "name": "Evelyn Rohn",
+    "points": 4421
+  },
+  {
+    "name": "Florian Rohe",
+    "points": 4410
+  },
+  {
+    "name": "Jana Bastigkeit",
+    "points": 4406
+  },
+  {
+    "name": "Erika Worsoe,Erika Worsøe",
+    "points": 4377
+  },
+  {
+    "name": "Jana Vande Velde",
+    "points": 4367
+  },
+  {
+    "name": "Josefine Faurby",
+    "points": 4283
+  },
+  {
+    "name": "Irene Genelin",
+    "points": 4277
+  },
+  {
+    "name": "Isa Mook",
+    "points": 4248
+  },
+  {
+    "name": "Gioia Thiem",
+    "points": 4229
+  },
+  {
+    "name": "Isabell Haase",
+    "points": 4224
+  },
+  {
+    "name": "Johanna Dumann",
+    "points": 4221
+  },
+  {
+    "name": "Hanna Zimmermann",
+    "points": 4217
+  },
+  {
+    "name": "Henrike Fink",
+    "points": 4204
+  },
+  {
+    "name": "Julia Vonk",
+    "points": 4202
+  },
+  {
+    "name": "Julia Belk",
+    "points": 4200
+  },
+  {
+    "name": "Julie Vandelaer",
+    "points": 4191
+  },
+  {
+    "name": "Henriette Höhne",
+    "points": 4186
+  },
+  {
+    "name": "Katharina Böhm",
+    "points": 4182
+  },
+  {
+    "name": "Helene Kragelund",
+    "points": 4150
+  },
+  {
+    "name": "Johanna Sturm",
+    "points": 4134
+  },
+  {
+    "name": "Kim Höser",
+    "points": 4119
+  },
+  {
+    "name": "Jorina Auktun",
+    "points": 4105
+  },
+  {
+    "name": "Hsuan Chen,Hsuan Chen 39",
+    "points": 4089
+  },
+  {
+    "name": "Jasmin Azari",
+    "points": 4065
+  },
+  {
+    "name": "Laura Courtens,LAURA COURTENS",
+    "points": 4050
+  },
+  {
+    "name": "Jakob Flansberry",
+    "points": 4047
+  },
+  {
+    "name": "Jasmin Bothe",
+    "points": 4045
+  },
+  {
+    "name": "Lea Söser",
+    "points": 4040
+  },
+  {
+    "name": "Jenny Rueß",
+    "points": 3961
+  },
+  {
+    "name": "Jana Riedel",
+    "points": 3957
+  },
+  {
+    "name": "Kether Laszlo",
+    "points": 3952
+  },
+  {
+    "name": "Lisa Hanny",
+    "points": 3950
+  },
+  {
+    "name": "Laura Aguilera",
+    "points": 3948
+  },
+  {
+    "name": "Ludwig Felhofer",
+    "points": 3903
+  },
+  {
+    "name": "Katrin Jensen, Katrine Jensen",
+    "points": 3892
+  },
+  {
+    "name": "Maelle Huguenin",
+    "points": 3884
+  },
+  {
+    "name": "Lalenia Hirte",
+    "points": 3869
+  },
+  {
+    "name": "Lina Auth",
+    "points": 3867
+  },
+  {
+    "name": "Jonas Figge",
+    "points": 3866
+  },
+  {
+    "name": "Lara Kubiczek",
+    "points": 3860
+  },
+  {
+    "name": "Juli Feldkircher",
+    "points": 3859
+  },
+  {
+    "name": "Louane Kachelhoffer",
+    "points": 3817
+  },
+  {
+    "name": "Julia Tejkl",
+    "points": 3809
+  },
+  {
+    "name": "Mara Kunzelnick",
+    "points": 3806
+  },
+  {
+    "name": "Lorena Schwerzmann",
+    "points": 3794
+  },
+  {
+    "name": "JURI SHIMOSAKO",
+    "points": 3757
+  },
+  {
+    "name": "Lisa Schubert",
+    "points": 3757
+  },
+  {
+    "name": "Lotta Reinert",
+    "points": 3747
+  },
+  {
+    "name": "Marie Pilz",
+    "points": 3716
+  },
+  {
+    "name": "Marie Schlenker",
+    "points": 3713
+  },
+  {
+    "name": "Lilly Cramer",
+    "points": 3712
+  },
+  {
+    "name": "Martin Panofsky",
+    "points": 3709
+  },
+  {
+    "name": "Khadija Compaore",
+    "points": 3703
+  },
+  {
+    "name": "Margrethe Buus",
+    "points": 3694
+  },
+  {
+    "name": "Marieke van der Staak",
+    "points": 3683
+  },
+  {
+    "name": "Linda Gossen",
+    "points": 3673
+  },
+  {
+    "name": "Maja Andersen",
+    "points": 3605
+  },
+  {
+    "name": "Nagomi Nejigane",
+    "points": 3576
+  },
+  {
+    "name": "Nicole Kischlat",
+    "points": 3548
+  },
+  {
+    "name": "Neala Chevalier",
+    "points": 3538
+  },
+  {
+    "name": "Maeva Augier",
+    "points": 3537
+  },
+  {
+    "name": "Markus Pröglhöf, MARKUS PRÖGÖLHOF",
+    "points": 3525
+  },
+  {
+    "name": "Maja Novosel",
+    "points": 3516
+  },
+  {
+    "name": "Mary Wegscheider,Mary Wegschneider",
+    "points": 3496
+  },
+  {
+    "name": "Rachel Sindelar",
+    "points": 3491
+  },
+  {
+    "name": "Mahee Kunzelnick",
+    "points": 3461
+  },
+  {
+    "name": "Matilde Nikolajsen",
+    "points": 3459
+  },
+  {
+    "name": "Maria Wegscheider",
+    "points": 3457
+  },
+  {
+    "name": "Nina Beckmann,Nina Beckmann 54 ,Nina Katharina Beckmann",
+    "points": 3447
+  },
+  {
+    "name": "Sam La Hood",
+    "points": 3410
+  },
+  {
+    "name": "Natsumi Onuma",
+    "points": 3406
+  },
+  {
+    "name": "Nadine Martin",
+    "points": 3397
+  },
+  {
+    "name": "Manfred Fux",
+    "points": 3390
+  },
+  {
+    "name": "Sophia Pellmann",
+    "points": 3352
+  },
+  {
+    "name": "Marie Louise Petersen",
+    "points": 3311
+  },
+  {
+    "name": "Swantje Wicker",
+    "points": 3232
+  },
+  {
+    "name": "Mayuko Kogi",
+    "points": 3226
+  },
+  {
+    "name": "Roos Seegers",
+    "points": 3174
+  },
+  {
+    "name": "Takahiko Fujii",
+    "points": 3172
+  },
+  {
+    "name": "Will Strohbehn",
+    "points": 3146
+  },
+  {
+    "name": "TATSUYA FUKUNAGA,Tatsuya Fukunaga",
+    "points": 3132
+  },
+  {
+    "name": "Theresa Zieglwalner,THEREZA ZIEGLWALNER",
+    "points": 3127
+  },
+  {
+    "name": "Sofia Sedelnikova",
+    "points": 3101
+  },
+  {
+    "name": "Paula Wache",
+    "points": 3084
+  },
+  {
+    "name": "Takahiko Fuji",
+    "points": 3082
+  },
+  {
+    "name": "Rebekka Wiedener",
+    "points": 3064
+  },
+  {
+    "name": "Ramona Mike",
+    "points": 3063
+  },
+  {
+    "name": "Sonja Theiß",
+    "points": 3056
+  },
+  {
+    "name": "Selma Engedal Holmskov",
+    "points": 3046
+  },
+  {
+    "name": "Sarah Smith",
+    "points": 3019
+  },
+  {
+    "name": "Sofia van Veen,Sofia Van Veen",
+    "points": 2997
+  },
+  {
+    "name": "Yuka Fujimoto",
+    "points": 2992
+  },
+  {
+    "name": "Selina Mair",
+    "points": 2989
+  },
+  {
+    "name": "Theresa Mausehund",
+    "points": 2981
+  },
+  {
+    "name": "Svenja Stronzik",
+    "points": 2885
+  },
+  {
+    "name": "Wita Gossen",
+    "points": 2810
+  },
+  {
+    "name": "Youho Minei",
+    "points": 2797
+  },
+  {
+    "name": "Yuhan Huang",
+    "points": 2768
+  }
+]

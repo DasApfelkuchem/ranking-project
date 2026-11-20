@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto-Extract All Disciplines</title>
+  <style>
+    body { font-family: system-ui; padding: 40px; background: #f5f5f5; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .status { padding: 15px; margin: 20px 0; border-radius: 4px; font-weight: bold; font-family: monospace; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    .success { background: #d4edda; color: #155724; }
+    .working { background: #fff3cd; color: #856404; }
+    .progress { background: #f5f5f5; padding: 20px; border-radius: 4px; margin: 20px 0; }
+    .progress-item { padding: 10px; margin: 5px 0; border-radius: 4px; font-family: monospace; font-size: 13px; }
+    .progress-item.pending { background: #f0f0f0; color: #666; }
+    .progress-item.processing { background: #fff3cd; color: #856404; }
+    .progress-item.done { background: #d4edda; color: #155724; }
+    .summary { background: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0; }
+    .summary-item { padding: 8px 0; font-family: monospace; }
+    button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 5px; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚴 Auto-Extract Rankings for All Disciplines</h1>
+    
+    <div id="status" class="status info">
+      Ready to extract rankings for all disciplines
+    </div>
+    
+    <div class="progress" id="progress"></div>
+    
+    <div id="summary" class="summary" style="display:none;"></div>
+    
+    <div>
+      <button id="startBtn" onclick="startExtraction()">🚀 Start Extraction</button>
+      <button id="downloadBtn" onclick="downloadAllData()" disabled>📥 Download All Data as JSON</button>
+      <button onclick="location.reload()">🔄 Reset</button>
+    </div>
+  </div>
+
+  <script>
+    const DISCIPLINES = ['flatland', 'street', 'trial', 'x-style'];
+    let allExtractedData = {};
+    
+    function updateStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.className = `status ${type}`;
+      status.textContent = message;
+    }
+    
+    function updateProgress(discipline, status) {
+      let progress = document.getElementById('progress');
+      
+      if (!progress.innerHTML) {
+        progress.innerHTML = DISCIPLINES.map(d => 
+          `<div class="progress-item pending" data-discipline="${d}">${d.toUpperCase()}: Waiting...</div>`
+        ).join('');
+      }
+      
+      const item = progress.querySelector(`[data-discipline="${discipline}"]`);
+      if (item) {
+        item.textContent = `${discipline.toUpperCase()}: ${status}`;
+        item.className = status.includes('Done') ? 'progress-item done' : 
+                        status.includes('Extracting') ? 'progress-item processing' : 
+                        'progress-item pending';
+      }
+    }
+    
+    async function extractDiscipline(discipline) {
+      return new Promise((resolve, reject) => {
+        updateProgress(discipline, 'Opening index.html...');
+        
+        // Open index.html in a hidden iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.onload = () => {
+          setTimeout(async () => {
+            try {
+              updateProgress(discipline, 'Calculating rankings...');
+              
+              // Set the discipline dropdown
+              const selectEl = iframe.contentDocument.querySelector('[data-discipline-select]');
+              if (selectEl) {
+                selectEl.value = discipline;
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+              
+              // Wait for rankings to calculate
+              await new Promise(r => setTimeout(r, 3000));
+              
+              updateProgress(discipline, 'Extracting data...');
+              
+              // Get globalRowsByGender from iframe
+              const data = iframe.contentWindow.globalRowsByGender;
+              
+              if (!data || Object.keys(data).length === 0) {
+                throw new Error('No rankings calculated');
+              }
+              
+              allExtractedData[discipline] = data;
+              updateProgress(discipline, 'Done!');
+              document.body.removeChild(iframe);
+              
+              resolve(data);
+            } catch (error) {
+              updateProgress(discipline, `Error: ${error.message}`);
+              document.body.removeChild(iframe);
+              reject(error);
+            }
+          }, 1000);
+        };
+        
+        iframe.src = '/index.html';
+        document.body.appendChild(iframe);
+      });
+    }
+    
+    async function startExtraction() {
+      document.getElementById('startBtn').disabled = true;
+      updateStatus('⏳ Starting extraction process...', 'working');
+      
+      try {
+        for (const discipline of DISCIPLINES) {
+          await extractDiscipline(discipline);
+          // Wait between extractions
+          await new Promise(r => setTimeout(r, 1000));
+        }
+        
+        updateStatus('✅ All disciplines extracted successfully!', 'success');
+        
+        // Show summary
+        const summary = document.getElementById('summary');
+        summary.style.display = 'block';
+        let html = '<h3>Extraction Summary:</h3>';
+        
+        for (const [discipline, data] of Object.entries(allExtractedData)) {
+          const stats = {};
+          for (const [gender, riders] of Object.entries(data || {})) {
+            stats[gender] = riders ? riders.length : 0;
+          }
+          html += `<div class="summary-item"><strong>${discipline.toUpperCase()}:</strong> ${JSON.stringify(stats)}</div>`;
+        }
+        
+        summary.innerHTML = html;
+        document.getElementById('downloadBtn').disabled = false;
+        
+      } catch (error) {
+        updateStatus(`❌ Error: ${error.message}`, 'error');
+        document.getElementById('startBtn').disabled = false;
+      }
+    }
+    
+    function downloadAllData() {
+      const jsonStr = JSON.stringify(allExtractedData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'all-rankings-by-discipline.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

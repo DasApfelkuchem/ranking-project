@@ -1,0 +1,426 @@
+[
+  {
+    "name": "Pierre Sturny",
+    "points": 624.7834327006012
+  },
+  {
+    "name": "Lorenz Pöham",
+    "points": 449.80874081002986
+  },
+  {
+    "name": "Raphael Pöham",
+    "points": 419.215394585408
+  },
+  {
+    "name": "Jack Sebben",
+    "points": 406.48322210935413
+  },
+  {
+    "name": "Eli Brill",
+    "points": 382.18754529838725
+  },
+  {
+    "name": "Kornel Auth",
+    "points": 377.92249579807145
+  },
+  {
+    "name": "Michael Bachleda",
+    "points": 339.39923207274694
+  },
+  {
+    "name": "Waylon Batt",
+    "points": 304.69069217323164
+  },
+  {
+    "name": "Adrien Delecroix",
+    "points": 262.3277598492855
+  },
+  {
+    "name": "Jelle Dillen",
+    "points": 258.8451759983247
+  },
+  {
+    "name": "Mimo Seedler",
+    "points": 243.90077527753732
+  },
+  {
+    "name": "Dale Grzych",
+    "points": 235.1890508985619
+  },
+  {
+    "name": "Cyril Mercat",
+    "points": 229.71199050681219
+  },
+  {
+    "name": "Nicolas Neumann",
+    "points": 227.93964960306175
+  },
+  {
+    "name": "Maxwell Schulze",
+    "points": 207.6415694989648
+  },
+  {
+    "name": "Josef Sjönneby",
+    "points": 206.35512728282245
+  },
+  {
+    "name": "Clement Pujol",
+    "points": 201.18271145290802
+  },
+  {
+    "name": "Scott Julian",
+    "points": 181.69059732083537
+  },
+  {
+    "name": "Manuel Vetter",
+    "points": 161.06640211290622
+  },
+  {
+    "name": "Krisztián Kovács",
+    "points": 159.73084182487682
+  },
+  {
+    "name": "Luc Huguenin",
+    "points": 147.67432383610162
+  },
+  {
+    "name": "Kevin Gaudillere",
+    "points": 142.36104123226784
+  },
+  {
+    "name": "Dan Colvin",
+    "points": 138.12765629563478
+  },
+  {
+    "name": "Tim Desmet",
+    "points": 136.86184484833885
+  },
+  {
+    "name": "Christian Kendall",
+    "points": 131.35329814121945
+  },
+  {
+    "name": "Jan Niediek",
+    "points": 130.16503339753868
+  },
+  {
+    "name": "Loïc Baud",
+    "points": 127.02974477074181
+  },
+  {
+    "name": "Mario Bel",
+    "points": 121.01928972498158
+  },
+  {
+    "name": "Maxime Peabody",
+    "points": 110.88977652115885
+  },
+  {
+    "name": "Max Schulze",
+    "points": 106.16832
+  },
+  {
+    "name": "Tirryn Nankivell",
+    "points": 100.2998649893694
+  },
+  {
+    "name": "Nathan Miyachi",
+    "points": 99.84799340818546
+  },
+  {
+    "name": "Sean Minter",
+    "points": 91.06622716725171
+  },
+  {
+    "name": "Colby Thomas",
+    "points": 82.8349571389306
+  },
+  {
+    "name": "Cristian Hörner",
+    "points": 73.41931105754674
+  },
+  {
+    "name": "Markus Pröglhöf",
+    "points": 64.67321302143087
+  },
+  {
+    "name": "Cristian Brink",
+    "points": 59.56286844867211
+  },
+  {
+    "name": "Lars Anderson",
+    "points": 52.89522092352135
+  },
+  {
+    "name": "Alexis Mercat",
+    "points": 45.885124777647334
+  },
+  {
+    "name": "Oskar Lund",
+    "points": 43.916969120009526
+  },
+  {
+    "name": "Alex Murr",
+    "points": 38.42291801780883
+  },
+  {
+    "name": "Kadek Sudiarta",
+    "points": 38.39999999999999
+  },
+  {
+    "name": "Alex Anderson",
+    "points": 37.09434032485367
+  },
+  {
+    "name": "Ryman Lollar",
+    "points": 33.65827709130728
+  },
+  {
+    "name": "Damien Dyonne",
+    "points": 33.01465333333334
+  },
+  {
+    "name": "Alexej Ghirardini",
+    "points": 31.99999999999999
+  },
+  {
+    "name": "Liam Koehler",
+    "points": 31.4817104565818
+  },
+  {
+    "name": "Kyle Alviani",
+    "points": 30.790667270286463
+  },
+  {
+    "name": "Christian Huriwai",
+    "points": 30.64556602441407
+  },
+  {
+    "name": "Edmund Leduc",
+    "points": 29.724666757881426
+  },
+  {
+    "name": "Kevin Kartchner",
+    "points": 29.643954156006426
+  },
+  {
+    "name": "Casper Tielraden",
+    "points": 24.103390293333327
+  },
+  {
+    "name": "David Moscoe",
+    "points": 23.416027650965095
+  },
+  {
+    "name": "Ben Niediek",
+    "points": 23.299285888671875
+  },
+  {
+    "name": "Loïc Miara",
+    "points": 22.823148567844967
+  },
+  {
+    "name": "Nicolas Charbonneau-Rahm",
+    "points": 22.823148567844967
+  },
+  {
+    "name": "Balthazar Ossig-Bonanno",
+    "points": 22.674815999999996
+  },
+  {
+    "name": "Christian Brink",
+    "points": 18.895679999999995
+  },
+  {
+    "name": "Alex Ladikoff",
+    "points": 17.370985825210823
+  },
+  {
+    "name": "Souryan Dubois",
+    "points": 16.413085937500007
+  },
+  {
+    "name": "Patrick Schulte",
+    "points": 14.390712441244716
+  },
+  {
+    "name": "Jeremy Bonzon",
+    "points": 12.459110463360002
+  },
+  {
+    "name": "martin grouillon",
+    "points": 12.391203968823902
+  },
+  {
+    "name": "Tobias Rudloff",
+    "points": 12.180113570601847
+  },
+  {
+    "name": "Matej Zachar",
+    "points": 9.978368007898148
+  },
+  {
+    "name": "Oskar Rytter",
+    "points": 4.950573333333332
+  },
+  {
+    "name": "Martin Dailliez",
+    "points": 4.914886474609375
+  },
+  {
+    "name": "Vid Skrbinsek",
+    "points": 3.9263099190479305
+  },
+  {
+    "name": "Wout Chauvaux",
+    "points": 3.0517578125000013
+  },
+  {
+    "name": "Milos Bakalar",
+    "points": 2.4280940808061975
+  },
+  {
+    "name": "Simon Berry",
+    "points": 2.3597859614024315
+  },
+  {
+    "name": "Matthew Sindelar",
+    "points": 2.305113875171059
+  },
+  {
+    "name": "Ben Eicker",
+    "points": 2.3002607421875
+  },
+  {
+    "name": "Isaiah Stefan",
+    "points": 1.6218292236328133
+  },
+  {
+    "name": "Ivar Christenson",
+    "points": 1.1999999999999997
+  },
+  {
+    "name": "Ben Koehler",
+    "points": 1.0640821536254885
+  },
+  {
+    "name": "emile themelin",
+    "points": 0.9999999999999997
+  },
+  {
+    "name": "Adrien Troiano",
+    "points": 0.7575954050129907
+  },
+  {
+    "name": "TOM HUNTER",
+    "points": 0.5428433070378382
+  },
+  {
+    "name": "Emile Mathieu-Begin",
+    "points": 0.5314409999999999
+  },
+  {
+    "name": "Pablo Codes",
+    "points": 0.4497097637888974
+  },
+  {
+    "name": "Walker Orner",
+    "points": 0.3756272276482072
+  },
+  {
+    "name": "Gabriel Seng",
+    "points": 0.3035540905575057
+  },
+  {
+    "name": "André Eide",
+    "points": 0.2784291827815229
+  },
+  {
+    "name": "Sandy Armstrong",
+    "points": 0.23730468750000003
+  },
+  {
+    "name": "Lukas Wadstedt",
+    "points": 0.18049342146266711
+  },
+  {
+    "name": "Ludwig Felhofer",
+    "points": 0.15133612851562503
+  },
+  {
+    "name": "David Hackett",
+    "points": 0.15075486492187504
+  },
+  {
+    "name": "Till Wohlfarth",
+    "points": 0.12258226409765627
+  },
+  {
+    "name": "August Agerskov",
+    "points": 0.09536743164062504
+  },
+  {
+    "name": "Benjamin Koehler",
+    "points": 0.0720348085990956
+  },
+  {
+    "name": "Daniel Neeff",
+    "points": 0.07119140625
+  },
+  {
+    "name": "Cleden Guichard",
+    "points": 0.03496943123222467
+  },
+  {
+    "name": "Manfred Fux",
+    "points": 0.013653333333333332
+  },
+  {
+    "name": "Timo Hirschmann",
+    "points": 0.007415771484375001
+  },
+  {
+    "name": "Jakob Eschlböck",
+    "points": 0.00460502798119831
+  },
+  {
+    "name": "MATTIA DONDA",
+    "points": 0.004025601916815023
+  },
+  {
+    "name": "Brandon Nankivell",
+    "points": 0.00324
+  },
+  {
+    "name": "Lars van Asbroeck",
+    "points": 0.0009765624999999997
+  },
+  {
+    "name": "WIM VERSLEEGERS",
+    "points": 0.0005301204170291389
+  },
+  {
+    "name": "Rodrigue Bonnevie",
+    "points": 0.0004266666666666666
+  },
+  {
+    "name": "Magnus Petersen-Paaske",
+    "points": 0.0001439071244124472
+  },
+  {
+    "name": "Balte Tomboy",
+    "points": 0.00003051757812499999
+  },
+  {
+    "name": "KILIAN SCHAUER",
+    "points": 0.00001656626303216059
+  },
+  {
+    "name": "Francois Lize",
+    "points": 0.000013333333333333332
+  },
+  {
+    "name": "Gou Takahashi",
+    "points": 0.000004497097637888975
+  }
+]

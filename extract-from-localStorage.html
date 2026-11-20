@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extract Rankings from localStorage</title>
+  <style>
+    body { font-family: system-ui; padding: 40px; background: #f5f5f5; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .status { padding: 15px; margin: 20px 0; border-radius: 4px; font-weight: bold; font-family: monospace; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .data-preview { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; max-height: 400px; overflow: auto; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
+    .stat { background: #f5f5f5; padding: 15px; border-radius: 4px; text-align: center; }
+    .stat-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #333; }
+    button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 5px; font-size: 14px; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .instructions { background: #e7f3ff; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0; border-radius: 4px; }
+    .instructions h3 { margin-top: 0; }
+    .instructions ol { margin: 10px 0; }
+    .instructions li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚴 Extract Rankings from localStorage</h1>
+    
+    <div class="instructions">
+      <h3>How to use:</h3>
+      <ol>
+        <li>Open <strong>index.html</strong> in your browser (the main ranking page)</li>
+        <li>Wait for it to load and calculate rankings completely</li>
+        <li>Then come back to this page and click <strong>Check localStorage</strong></li>
+      </ol>
+    </div>
+    
+    <div id="status" class="status info">
+      ℹ️ Click "Check localStorage" to extract rankings that were calculated on index.html
+    </div>
+    
+    <div id="stats" class="stats"></div>
+    
+    <div id="preview" class="data-preview" style="display:none;"></div>
+    
+    <div>
+      <button onclick="checkLocalStorage()">🔍 Check localStorage</button>
+      <button id="downloadBtn" onclick="downloadData()" disabled>
+        📥 Download Rankings as JSON
+      </button>
+      <button onclick="clearData()">🗑️ Clear Data</button>
+    </div>
+  </div>
+
+  <script>
+    let extractedData = null;
+    
+    function updateStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.className = `status ${type}`;
+      status.textContent = message;
+    }
+    
+    function updateStats(data) {
+      const stats = document.getElementById('stats');
+      let html = '';
+      let totalRiders = 0;
+      
+      for (const [gender, riders] of Object.entries(data || {})) {
+        if (riders && Array.isArray(riders) && riders.length > 0) {
+          totalRiders += riders.length;
+          html += `
+            <div class="stat">
+              <div class="stat-label">${gender.toUpperCase()}</div>
+              <div class="stat-value">${riders.length}</div>
+            </div>
+          `;
+        }
+      }
+      
+      if (html) {
+        html = `<div class="stat"><div class="stat-label">TOTAL RIDERS</div><div class="stat-value">${totalRiders}</div></div>` + html;
+      }
+      
+      stats.innerHTML = html;
+    }
+    
+    function checkLocalStorage() {
+      try {
+        const stored = localStorage.getItem('RANKINGS_EXPORT');
+        
+        if (!stored) {
+          updateStatus('❌ No rankings found in localStorage. Make sure you opened index.html and let it calculate.', 'error');
+          return;
+        }
+        
+        extractedData = JSON.parse(stored);
+        
+        if (!extractedData || Object.keys(extractedData).length === 0) {
+          updateStatus('❌ Stored data is empty.', 'error');
+          return;
+        }
+        
+        // Verify there's actual data
+        const hasData = Object.values(extractedData).some(arr => arr && arr.length > 0);
+        if (!hasData) {
+          updateStatus('❌ Stored data has no riders.', 'error');
+          return;
+        }
+        
+        updateStatus('✅ Success! Rankings extracted from localStorage', 'success');
+        updateStats(extractedData);
+        
+        // Show preview
+        const preview = JSON.stringify(extractedData, null, 2).substring(0, 2000);
+        const previewDiv = document.getElementById('preview');
+        previewDiv.style.display = 'block';
+        previewDiv.textContent = preview + '\n\n... (truncated)';
+        
+        document.getElementById('downloadBtn').disabled = false;
+        
+      } catch (error) {
+        updateStatus(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+    
+    function downloadData() {
+      if (!extractedData) {
+        alert('No data to download');
+        return;
+      }
+      
+      const jsonStr = JSON.stringify(extractedData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rankings-globalRowsByGender.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      updateStatus('✅ Downloaded: rankings-globalRowsByGender.json', 'success');
+    }
+    
+    function clearData() {
+      try {
+        localStorage.removeItem('RANKINGS_EXPORT');
+        extractedData = null;
+        document.getElementById('stats').innerHTML = '';
+        document.getElementById('preview').style.display = 'none';
+        document.getElementById('downloadBtn').disabled = true;
+        updateStatus('🗑️ localStorage cleared', 'info');
+      } catch (error) {
+        updateStatus(`Error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Auto-check on load
+    window.addEventListener('load', () => {
+      checkLocalStorage();
+    });
+  </script>
+</body>
+</html>

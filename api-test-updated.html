@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider Ranking API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.error {
+            background: #fff5f5;
+            border-left-color: #e74c3c;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-content {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .result-row {
+            margin: 8px 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border: 1px solid #b0e0e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .error-text {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Rider Ranking API Tester</h1>
+
+        <div class="info-box">
+            <strong>How to use:</strong>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Load the main rankings page at http://127.0.0.1:5500/ to calculate rankings</li>
+                <li>Fill in the rider name below (must match exactly, e.g., "Jelle Dillen")</li>
+                <li>Select the year, gender, and discipline</li>
+                <li>Click "Get Rider Rank" to query the API</li>
+            </ol>
+        </div>
+
+        <form id="queryForm">
+            <div class="form-group">
+                <label for="riderName">Rider Name *</label>
+                <input 
+                    type="text" 
+                    id="riderName" 
+                    placeholder="e.g., Jelle Dillen" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="year">Year *</label>
+                <select id="year" required>
+                    <option value="2026">2026</option>
+                    <option value="2024">2024</option>
+                    <option value="2022">2022</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender/Category *</label>
+                <select id="gender" required>
+                    <option value="combined">Combined (All)</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="discipline">Discipline *</label>
+                <select id="discipline" required>
+                    <option value="flatland">Flatland</option>
+                    <option value="street">Street</option>
+                    <option value="trial">Trial</option>
+                    <option value="x-style">X-Style</option>
+                </select>
+            </div>
+
+            <button type="submit">Get Rider Rank</button>
+        </form>
+
+        <div class="loading" id="loading">
+            Loading... Please wait
+        </div>
+
+        <div class="result" id="result">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_SERVER = 'http://localhost:6789';
+
+        document.getElementById('queryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const riderName = document.getElementById('riderName').value.trim();
+            const year = document.getElementById('year').value;
+            const gender = document.getElementById('gender').value;
+            const discipline = document.getElementById('discipline').value;
+
+            if (!riderName) {
+                showError('Please enter a rider name');
+                return;
+            }
+
+            await queryRider(riderName, year, gender, discipline);
+        });
+
+        async function queryRider(name, year, gender, discipline) {
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+
+            loadingDiv.classList.add('show');
+            resultDiv.classList.remove('show', 'error');
+
+            try {
+                const params = new URLSearchParams({
+                    name: name,
+                    year: year,
+                    gender: gender,
+                    discipline: discipline
+                });
+
+                const response = await fetch(`${API_SERVER}/api/rider?${params.toString()}`);
+                const data = await response.json();
+
+                loadingDiv.classList.remove('show');
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showSuccess(data);
+                }
+            } catch (error) {
+                loadingDiv.classList.remove('show');
+                showError(`Failed to connect to API server: ${error.message}`);
+                console.error('API Error:', error);
+            }
+        }
+
+        function showSuccess(data) {
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+
+            resultTitle.innerHTML = `<span class="success">✓ Found: ${data.name}</span>`;
+
+            const rank = data.rank || 'N/A';
+            const points = data.points ? parseFloat(data.points).toFixed(2) : 'N/A';
+
+            resultContent.innerHTML = `
+                <div class="result-row"><strong>Rank:</strong> #${rank}</div>
+                <div class="result-row"><strong>Points:</strong> ${points}</div>
+                <div class="result-row"><strong>Events Competed:</strong> ${data.events || 0}</div>
+                <div class="result-row"><strong>Wins:</strong> ${data.wins || 0}</div>
+                <div class="result-row"><strong>Podiums:</strong> ${data.podiums || 0}</div>
+                <div class="result-row"><strong>Battles:</strong> ${data.battles || 0}</div>
+                <div class="result-row"><strong>Discipline:</strong> ${data.discipline}</div>
+                <div class="result-row"><strong>Category:</strong> ${data.gender}</div>
+                <div class="result-row"><strong>Year:</strong> ${data.year}</div>
+            `;
+
+            resultDiv.classList.add('show');
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+
+            resultTitle.innerHTML = `<span class="error-text">✗ Error</span>`;
+            resultContent.innerHTML = `<div class="result-row">${message}</div>`;
+
+            resultDiv.classList.add('show', 'error');
+        }
+
+        // Test connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_SERVER}/health`);
+                if (!response.ok) throw new Error();
+                console.log('✓ API server is running');
+            } catch (error) {
+                console.warn('⚠ API server is not running. Make sure to start it with: node get-rider-rank-api.js');
+            }
+        });
+    </script>
+</body>
+</html>

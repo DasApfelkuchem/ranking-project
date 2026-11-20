@@ -336,6 +336,47 @@ const riderBattlesByGender = { male: maleBattleHistory, female: new Map(), combi
 const aliasMap = new Map(); // maps normalized alias -> canonical display name
 const riderInfoMap = new Map(); // canonical name -> { female, region } from riders_all.txt
 
+/**
+ * Export current rankings data for remote API access.
+ * This function returns the calculated rankings in a format suitable for JSON serialization.
+ */
+function exportRankingsData() {
+  const exported = {};
+  ['male', 'female', 'combined'].forEach((gender) => {
+    exported[gender] = (globalRowsByGender[gender] || []).map((row) => ({
+      rank: globalRowsByGender[gender].indexOf(row) + 1,
+      name: row.rider,
+      points: row.points,
+      events: row.events,
+      wins: row.wins,
+      podiums: row.podiums,
+      battles: row.battles
+    }));
+  });
+  return exported;
+}
+
+/**
+ * Post rankings to remote API server for caching.
+ * This is called after rankings finish loading.
+ */
+async function postRankingsToServer() {
+  try {
+    const data = exportRankingsData();
+    const response = await fetch('http://localhost:6789/api/rankings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      console.log('Rankings exported to API server');
+    }
+  } catch (error) {
+    // Silently fail - API server may not be running
+    console.debug('Could not post rankings to API server:', error.message);
+  }
+}
+
 function normalizeName(name) {
   if (!name) return '';
   // remove diacritics, collapse whitespace, lowercase
@@ -2879,8 +2920,21 @@ async function loadRanking({ preserveView = false } = {}) {
     });
   });
 
+  // Save rankings to localStorage for export
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('RANKINGS_EXPORT', JSON.stringify(globalRowsByGender));
+    }
+  } catch (e) {
+    console.warn('Could not save rankings to localStorage:', e.message);
+  }
+
   updateSummaryStats();
   updateFemaleOpenSummary();
+  
+  // Export rankings to remote API server for caching
+  await postRankingsToServer();
+  
   if (preserveView) return;
   populateViewSelector();
   setView('world');
@@ -5841,6 +5895,31 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
   });
+
+// Export calculated rankings data for use by export-rankings.js
+function exportRankingsData() {
+  // Return a copy of globalRowsByGender for export
+  const exported = {};
+  for (const [gender, rows] of Object.entries(globalRowsByGender || {})) {
+    exported[gender] = (rows || []).map(row => ({
+      rider: row.rider,
+      points: row.points,
+      events: row.events,
+      battles: row.battles
+    }));
+  }
+  return exported;
+}
+
+// Make exportable via window for use in export-rankings.js
+if (typeof window !== 'undefined') {
+  window.exportRankingsData = exportRankingsData;
+}
+
+// If running in Node.js (via export-rankings.js), export the function
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { exportRankingsData };
+}
 
 // Try to load aliases from a file named `riders_all.txt` in project root.
 async function loadAliasesFile() {

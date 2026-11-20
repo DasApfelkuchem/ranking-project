@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extract All Rankings - Flatland</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .status.info { background: #e3f2fd; color: #1976d2; }
+    .status.success { background: #c8e6c9; color: #2e7d32; }
+    .status.error { background: #ffcdd2; color: #c62828; }
+    .status.working { background: #fff9c4; color: #f57f17; }
+    button { padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #1565c0; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .progress { margin-top: 20px; }
+    .progress-bar { width: 100%; height: 20px; background: #ddd; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
+    .progress-text { margin-top: 10px; font-size: 14px; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; max-height: 300px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Extract Flatland Rankings</h1>
+    <p>This page extracts all ranking data for all years from ranking.js and saves to localStorage.</p>
+    
+    <button id="extractBtn" onclick="startExtraction()">Start Extraction</button>
+    
+    <div class="status info" id="status" style="display: none;"></div>
+    
+    <div class="progress" id="progressContainer" style="display: none;">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText"></div>
+    </div>
+    
+    <div id="results" style="display: none; margin-top: 20px;">
+      <h2>Extraction Results</h2>
+      <pre id="resultsText"></pre>
+    </div>
+  </div>
+
+  <!-- Load ranking.js to get all the functions -->
+  <script src="ranking.js" onerror="console.log('ranking.js failed to load, but that is OK');"></script>
+
+  <script>
+    async function startExtraction() {
+      const btn = document.getElementById('extractBtn');
+      const statusDiv = document.getElementById('status');
+      const progressContainer = document.getElementById('progressContainer');
+      const resultsDiv = document.getElementById('results');
+      
+      btn.disabled = true;
+      statusDiv.textContent = '';
+      statusDiv.style.display = 'none';
+      progressContainer.style.display = 'none';
+      resultsDiv.style.display = 'none';
+
+      try {
+        // Show working status
+        statusDiv.textContent = 'Loading rankings for flatland...';
+        statusDiv.className = 'status working';
+        statusDiv.style.display = 'block';
+        progressContainer.style.display = 'block';
+
+        // Wait for ranking.js to be fully loaded and ready
+        // The page should have a global activeDiscipline and loadRanking function
+        if (typeof loadRanking !== 'function') {
+          throw new Error('loadRanking function not found. Make sure ranking.js is loaded.');
+        }
+
+        // Set the active discipline to flatland by simulating a dropdown selection
+        // Check what disciplines are available
+        if (!window.disciplines || window.disciplines.length === 0) {
+          throw new Error('No disciplines found in ranking.js');
+        }
+
+        // Find flatland discipline
+        const flatlandDiscipline = window.disciplines.find(d => d.name.toLowerCase() === 'flatland');
+        if (!flatlandDiscipline) {
+          throw new Error('Flatland discipline not found. Available: ' + window.disciplines.map(d => d.name).join(', '));
+        }
+
+        // Set active discipline
+        window.activeDiscipline = flatlandDiscipline;
+
+        statusDiv.textContent = 'Calculating rankings for flatland (this may take a moment)...';
+
+        // Load rankings - this populates rankingSnapshots
+        await loadRanking({ preserveView: false });
+
+        statusDiv.textContent = 'Rankings loaded! Extracting data...';
+        updateProgress(50);
+
+        // Check if rankingSnapshots exists
+        if (!window.rankingSnapshots || window.rankingSnapshots.length === 0) {
+          throw new Error('No ranking snapshots found after loadRanking()');
+        }
+
+        // Extract all years from snapshots
+        const extractedData = {};
+        const years = new Set();
+
+        for (const snapshot of window.rankingSnapshots) {
+          const year = snapshot.snapshotYear;
+          if (!year) continue;
+          
+          years.add(year);
+          if (!extractedData[year]) {
+            extractedData[year] = {};
+          }
+
+          // Extract male, female, combined rankings
+          for (const gender of ['male', 'female', 'combined']) {
+            const rows = snapshot.rowsByGender?.[gender] || [];
+            extractedData[year][gender] = rows.map((row, index) => ({
+              rank: index + 1,
+              rider: row.rider,
+              points: row.points,
+              events: row.events,
+              battles: row.battles,
+              wins: row.wins,
+              podiums: row.podiums
+            }));
+          }
+        }
+
+        // Save to localStorage
+        const storageKey = 'FLATLAND_RANKINGS_EXPORT';
+        const exportPayload = {
+          discipline: 'flatland',
+          years: Array.from(years).sort((a, b) => b - a), // newest first
+          data: extractedData,
+          extractedAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem(storageKey, JSON.stringify(exportPayload));
+
+        updateProgress(90);
+
+        // Now send to API server to persist on disk
+        statusDiv.textContent = 'Sending data to API server...';
+        
+        try {
+          const response = await fetch('/api/import-rankings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(exportPayload)
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            console.error('API import error:', error);
+            // Don't fail extraction if server import fails - data is still in localStorage
+            statusDiv.textContent = 'Rankings extracted! (Note: Server save had issue, but data saved to localStorage)';
+          }
+        } catch (err) {
+          console.error('Failed to send to API server:', err);
+          // This is OK - data is still in localStorage
+        }
+
+        updateProgress(100);
+
+        statusDiv.textContent = 'Successfully extracted and saved rankings!';
+        statusDiv.className = 'status success';
+
+        // Show results summary
+        const summary = {
+          discipline: 'flatland',
+          yearsExtracted: Array.from(years).sort((a, b) => b - a),
+          totalSnapshots: window.rankingSnapshots.length,
+          storageKey: storageKey,
+          message: 'Data saved to localStorage. API can now query by: name, gender, year'
+        };
+
+        // For each year, show counts
+        for (const year of Array.from(years).sort((a, b) => b - a)) {
+          summary[`year_${year}`] = {
+            male: extractedData[year].male?.length || 0,
+            female: extractedData[year].female?.length || 0,
+            combined: extractedData[year].combined?.length || 0
+          };
+        }
+
+        resultsDiv.style.display = 'block';
+        document.getElementById('resultsText').textContent = JSON.stringify(summary, null, 2);
+
+      } catch (error) {
+        statusDiv.textContent = `Error: ${error.message}`;
+        statusDiv.className = 'status error';
+        console.error('Extraction error:', error);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateProgress(percent) {
+      document.getElementById('progressFill').style.width = percent + '%';
+      document.getElementById('progressText').textContent = percent + '%';
+    }
+
+    // Auto-run extraction on page load
+    window.addEventListener('load', () => {
+      console.log('Page loaded. Checking if ranking.js is ready...');
+      // Don't auto-run, let user click button
+      // This gives ranking.js time to initialize
+    });
+  </script>
+</body>
+</html>
